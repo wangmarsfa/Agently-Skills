@@ -34,7 +34,8 @@
       "reference_example": "skills/agently-triggerflow/examples/minimal.py",
       "required_primitives": [
         "TriggerFlow",
-        ".to("
+        ".to(",
+        "async_close"
       ],
       "forbidden_antipatterns": [
         "while True",
@@ -49,7 +50,8 @@
       "required_primitives": [
         "TriggerFlow",
         ".output(",
-        "get_response()"
+        "get_response()",
+        "async_close"
       ],
       "forbidden_antipatterns": [
         "while True",

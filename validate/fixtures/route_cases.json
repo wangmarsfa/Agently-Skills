@@ -701,6 +701,87 @@
           "agently-triggerflow"
         ]
       ]
+    },
+    {
+      "id": "triggerflow-nowait-emit-manual-close-zh",
+      "scenario_id": "triggerflow-execution-lifecycle",
+      "locale": "zh",
+      "intent_style": "nonblocking-emit-explicit",
+      "query": "我在 TriggerFlow 里需要真正非阻塞的 emit，事件可以继续 fan-out，但 execution 要等到我手动 close 时再统一收尾。",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-triggerflow",
+        "agently-model-response"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-triggerflow"
+        ],
+        [
+          "agently-playbook",
+          "agently-triggerflow"
+        ]
+      ]
+    },
+    {
+      "id": "triggerflow-manual-close-worker-en",
+      "scenario_id": "triggerflow-execution-lifecycle",
+      "locale": "en",
+      "intent_style": "manual-close-explicit",
+      "query": "Design a long-running TriggerFlow worker that keeps accepting webhook events until my service explicitly closes the execution.",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-triggerflow"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-triggerflow"
+        ],
+        [
+          "agently-playbook",
+          "agently-triggerflow"
+        ]
+      ]
+    },
+    {
+      "id": "triggerflow-persistent-execution-zh",
+      "scenario_id": "triggerflow-durable-execution",
+      "locale": "zh",
+      "intent_style": "persistence-explicit",
+      "query": "我想让 TriggerFlow execution 能保存、恢复，并且恢复后继续处理外部事件，避免进程重启导致状态丢失。",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-triggerflow"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-triggerflow"
+        ],
+        [
+          "agently-playbook",
+          "agently-triggerflow"
+        ]
+      ]
+    },
+    {
+      "id": "triggerflow-distributed-management-en",
+      "scenario_id": "triggerflow-distributed-management",
+      "locale": "en",
+      "intent_style": "distributed-management-explicit",
+      "query": "Plan distributed management for TriggerFlow executions with ownership, leases, heartbeat metadata, durable state, and safe close behavior.",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-triggerflow"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-triggerflow"
+        ],
+        [
+          "agently-playbook",
+          "agently-triggerflow"
+        ]
+      ]
     }
   ]
 }

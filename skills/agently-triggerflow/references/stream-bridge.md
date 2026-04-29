@@ -18,10 +18,12 @@ Instead:
 2. accumulate partial state in the workflow step
 3. detect when a business block is complete enough to emit
 4. call `async_put_into_stream(...)` with a stable workflow event
+5. close the execution with `async_close()` so the runtime stream receives its stop signal
 
 ## Minimal Shape
 
 ```python
+import asyncio
 from agently import Agently, TriggerFlow
 
 agent = Agently.create_agent()
@@ -32,7 +34,7 @@ flow = TriggerFlow(name="stream-bridge")
 async def judge(data):
     response = (
         agent
-        .input(data.value["essay"])
+        .input(data.input["essay"])
         .get_response()
     )
 
@@ -66,7 +68,21 @@ async def judge(data):
             "summary": result["summary"],
         }
     )
+    await data.async_set_state("report", result)
     return result
+
+
+async def main():
+    execution = flow.create_execution(auto_close=False)
+    await execution.async_start({"essay": "..."}, wait_for_result=False)
+    close_task = asyncio.create_task(execution.async_close())
+    async for item in execution.get_async_runtime_stream():
+        render(item)
+    state = await close_task
+    return state["report"]
+
+
+asyncio.run(main())
 ```
 
 ## Recommended Event Shape
@@ -90,6 +106,7 @@ Avoid exposing:
 - model contract stays in prompt config or output control
 - path-to-state accumulation stays inside the workflow step or a small workflow-owned helper
 - UI event naming belongs to TriggerFlow, because the workflow owns the delivery contract
+- stream shutdown belongs to execution close, not to ad hoc UI timeout logic
 
 ## Validation Rule
 

@@ -220,6 +220,27 @@ def main() -> None:
         passes,
     )
     check(
+        "route_fixture_covers_execution_lifecycle_group",
+        sum(case.get("scenario_id") == "triggerflow-execution-lifecycle" for case in fixture_cases) >= 2,
+        "route fixtures cover TriggerFlow execution lifecycle and manual close scenarios",
+        failures,
+        passes,
+    )
+    check(
+        "route_fixture_covers_durable_execution",
+        any(case.get("scenario_id") == "triggerflow-durable-execution" for case in fixture_cases),
+        "route fixtures cover durable TriggerFlow execution scenarios",
+        failures,
+        passes,
+    )
+    check(
+        "route_fixture_covers_distributed_management",
+        any(case.get("scenario_id") == "triggerflow-distributed-management" for case in fixture_cases),
+        "route fixtures cover distributed TriggerFlow execution management scenarios",
+        failures,
+        passes,
+    )
+    check(
         "route_fixture_covers_project_structure_group",
         sum(case.get("scenario_id") == "project-structure-separated-refactor" for case in fixture_cases) >= 4,
         "route fixtures cover the project-structure separation refactor scenario with multiple user expressions",
@@ -258,6 +279,27 @@ def main() -> None:
         "reference_fixture_covers_response_fanout",
         any(case.get("id") == "response-fanout-example-en" for case in reference_cases),
         "reference retrieval fixtures cover TriggerFlow response-fanout support docs",
+        failures,
+        passes,
+    )
+    check(
+        "reference_fixture_covers_triggerflow_lifecycle",
+        any(case.get("id") == "triggerflow-lifecycle-close-zh" for case in reference_cases),
+        "reference retrieval fixtures cover TriggerFlow lifecycle close guidance",
+        failures,
+        passes,
+    )
+    check(
+        "reference_fixture_covers_stream_close",
+        any(case.get("id") == "triggerflow-runtime-stream-close-en" for case in reference_cases),
+        "reference retrieval fixtures cover runtime stream close guidance",
+        failures,
+        passes,
+    )
+    check(
+        "reference_fixture_covers_state_vs_flow_data",
+        any(case.get("id") == "triggerflow-state-vs-flow-data-zh" for case in reference_cases),
+        "reference retrieval fixtures cover execution state versus flow data guidance",
         failures,
         passes,
     )

@@ -18,6 +18,25 @@ Use this file as installation-time guidance after the skills are added into anot
 - Keep public skill boundaries capability-first and mutually exclusive.
 - Treat multi-agent, judge, and review flows as scenario recipes unless they need a dedicated framework surface.
 
+## Source Alignment Rule
+
+- This repository is the official companion guidance repository for `github.com/AgentEra/Agently`.
+- Skills must follow Agently public APIs, recommended usage, deprecation policy, and runtime behavior.
+- Do not present deprecated Agently APIs as the default path. Deprecated APIs may appear only in explicit legacy or migration notes.
+- When Agently changes a public API, runtime behavior, or recommendation, update affected Skills guidance, examples, fixtures, and validation rules in the same work item.
+
+## Companion Change Rule
+
+- TriggerFlow changes require checking `skills/agently-triggerflow/`, `skills/agently-playbook/references/project-framework.md`, `skills/agently-langgraph-to-triggerflow/`, route fixtures, reference fixtures, native usage validation, and README guidance.
+- Action Runtime, ModelResponse, Session, FastAPIHelper, settings, prompt config, tools, MCP, knowledge-base, and DevTools integration changes require the same companion impact review.
+- If the Agently source repository is unavailable, record that source alignment could not be verified.
+
+## Validation Rule
+
+- After changing skill content, run the relevant validation scripts under `validate/`.
+- At minimum for TriggerFlow guidance changes, run `python validate/validate_catalog.py`, `python validate/validate_bundle_manifest.py`, `python validate/validate_native_usage.py`, `python validate/validate_trigger_paths.py`, and `python validate/validate_reference_retrieval.py` when model/runtime credentials are available.
+- Validation should fail if recommended TriggerFlow examples use deprecated lifecycle, result, runtime-data, or flow-data APIs outside an explicit legacy allowlist.
+
 ## Project Defaults
 
 - Prefer separating `settings/`, `prompts/`, `services/`, `domain/` or `schemas/`, `workflow/`, `tools/`, and `tests/` when the project is more than a tiny demo.
@@ -33,7 +52,7 @@ Use this file as installation-time guidance after the skills are added into anot
 - `agently-prompt-management`: prompt config, mappings, reusable request contracts, and prompt-side output contracts
 - `agently-output-control`: structured output shape, required keys, reliability, and structured streaming
 - `agently-model-response`: response reuse, async getters, metadata, and stream consumption
-- `agently-agent-extensions`: tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
+- `agently-agent-extensions`: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
 - `agently-triggerflow`: explicit orchestration, branching, concurrency, runtime stream, workflow-owned business events, and execution-graph-friendly workflow definitions
 
 ## Anti-Patterns

@@ -2,7 +2,7 @@
 
 Use this reference when the workflow design needs to stay inspectable in local DevTools, exported configs, or review artifacts.
 
-## Why This Matters In v4.0.9
+## Why This Matters In v4.1.0
 
 TriggerFlow execution metadata is now rich enough for graph-oriented debugging without inventing a second workflow description.
 

@@ -40,6 +40,8 @@ The default Agently project should usually separate these layers:
 - inject tool instances, loggers, and other dependencies as runtime resources rather than hardcoding them inside chunk logic
 - use sub flows when a repeated business pipeline deserves an explicit reusable unit
 - keep chunk names readable enough that exported flow configs, Mermaid diagrams, and local observation graphs stay understandable
+- for long-running or externally driven workflows, create an execution explicitly and close it with `close()` / `async_close()` when the service boundary decides work is complete
+- use execution state for per-run data and avoid shared flow data unless the project explicitly needs cross-execution shared state
 
 ## Async Rules
 
@@ -47,6 +49,7 @@ The default Agently project should usually separate these layers:
 - treat sync APIs as wrappers for scripts, teaching examples, or compatibility bridges, not as the default service architecture
 - keep async boundaries visible near the app or integration layer so request handlers, flow runners, and stream consumers do not hide blocking behavior
 - if the project needs progressive UI updates, combine model-side structured streaming with workflow-side runtime stream rather than building ad hoc thread-based fan-out
+- when runtime stream is exposed to a UI or worker, make execution close responsible for stopping the stream instead of relying on client-side timeouts
 
 ## Frontend Bridge
 
@@ -57,6 +60,7 @@ The default Agently project should usually separate these layers:
 ## Optional DevTools Loop
 
 - use `agently-devtools` as an optional PyPI-installed companion package for development, debugging, and evaluation
+- use `agently-devtools init <project>` when the team wants a scaffolded starting point before wiring observation or evaluation
 - keep DevTools endpoints in env or settings, for example `AGENTLY_DEVTOOLS_BASE_URL` and `AGENTLY_DEVTOOLS_INGEST_URL`
 - attach `ObservationBridge` or `EvaluationBridge` in the app or integration layer instead of hiding them inside request or workflow helpers
 - if the team needs a local observation API inside its own server process, use `create_local_observation_app(...)`

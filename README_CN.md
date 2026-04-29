@@ -5,6 +5,10 @@
 主仓库：<https://github.com/AgentEra/Agently>  
 官方文档：<https://agently.tech/docs/en/> | <https://agently.cn/docs/>
 
+## 适配版本
+
+本技能目录已按 Agently 4.1.x 对齐，并跟随计划中的 TriggerFlow execution lifecycle 指导。
+
 ## 什么是 Agently？
 
 Agently 是一个用于构建模型应用和工作流的框架。
@@ -16,8 +20,8 @@ Agently 是一个用于构建模型应用和工作流的框架。
 - Prompt 组合与 prompt config
 - 结构化输出与 required keys 约束
 - 响应复用、metadata 读取与 streaming 消费
-- tools、MCP、memory、knowledge-base 等扩展能力
-- 基于 TriggerFlow 的工作流编排
+- Action Runtime、tools、MCP、memory、knowledge-base 等扩展能力
+- 基于 TriggerFlow 的 lifecycle-aware 工作流编排
 - 通过 `agently-devtools` 提供的可选开发者工具能力
 
 ## 什么是 Agently-Skills？
@@ -59,9 +63,9 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - 稳定结构化输出、required keys、机器可消费结果 -> `agently-output-control`
 - 一个响应结果需要被文本、数据、metadata、stream 多次消费 -> `agently-model-response`
 - session 连续性与 restore-after-restart -> `agently-session-memory`
-- tools、MCP、FastAPIHelper、`auto_func`、`KeyWaiter`、带 Playwright / PyAutoGUI 的 Browse，或可选 `agently-devtools` 集成 -> `agently-agent-extensions`
+- Action Runtime、tools、MCP、FastAPIHelper、`auto_func`、`KeyWaiter`、带 Playwright / PyAutoGUI 的 Browse，或可选 `agently-devtools` 集成 -> `agently-agent-extensions`
 - embeddings、索引、检索、KB-to-answer -> `agently-knowledge-base`
-- 显式工作流编排、TriggerFlow、混合同异步执行、事件驱动 fan-out、流程清晰化重构、图可视化友好的流程定义、可恢复多阶段流程 -> `agently-triggerflow`
+- 显式工作流编排、TriggerFlow、execution lifecycle 控制、混合同异步执行、事件驱动 fan-out、流程清晰化重构、图可视化友好的流程定义、可恢复多阶段流程 -> `agently-triggerflow`
 - LangChain / LangGraph 迁移 -> `agently-migration-playbook`，再进入对应迁移 leaf
 
 执行方式上，默认应采用 async-first 心智：
@@ -129,21 +133,26 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 ### Request Extensions
 
 - `agently-agent-extensions`
-  tools、MCP、FastAPIHelper、`auto_func`、`KeyWaiter`、带 Playwright / PyAutoGUI 的 Browse，以及可选 `agently-devtools` 集成。
+  Action Runtime、tools、MCP、FastAPIHelper、`auto_func`、`KeyWaiter`、带 Playwright / PyAutoGUI 的 Browse，以及可选 `agently-devtools` 集成。
 - `agently-knowledge-base`
   embeddings、Chroma 索引、检索与 retrieval-to-answer。
 
 ### Workflow
 
 - `agently-triggerflow`
-  TriggerFlow 编排、运行时状态、runtime stream、工作流内模型执行、事件驱动 fan-out、流程清晰化重构、混合同异步编排，以及面向调试和可视化的图友好流程定义。
+  TriggerFlow 编排、execution lifecycle、运行时状态、runtime stream、工作流内模型执行、事件驱动 fan-out、流程清晰化重构、混合同异步编排，以及面向调试和可视化的图友好流程定义。
 
 ## 可选配套包
 
-Agently `v4.0.9` 还引入了可选开发者工具配套包 `agently-devtools`。
+Agently 4.1.0 继续将 `agently-devtools` 作为可选开发者工具配套包。
+
+```bash
+pip install agently-devtools
+agently-devtools init my_project    # 快速初始化 Agently 工程
+```
 
 - 安装：`pip install -U agently agently-devtools`
-- 兼容线：`agently-devtools 0.1.x` 对应 `agently >=4.0.9,<4.1.0`
+- 兼容线：`agently-devtools 0.1.x` 对应 `agently >=4.1.0,<4.2.0`
 - 公共入口：`ObservationBridge`、`EvaluationBridge`、`EvaluationRunner`、`create_local_observation_app`
 - 推荐启动命令：`agently-devtools start`
 

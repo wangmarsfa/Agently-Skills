@@ -131,6 +131,95 @@
         "response_reuse_no_rerequest",
         "workflow_dispatch_after_plan"
       ]
+    },
+    {
+      "id": "triggerflow-lifecycle-close-zh",
+      "query": "我已经确定要用 TriggerFlow，现在需要先看哪份参考来理解 execution lifecycle、auto_close、manual close、以及为什么新代码要用 close 或 async_close 做收尾？",
+      "matched_skills": [
+        "agently-triggerflow"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/overview.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "execution_lifecycle_control",
+          "description": "TriggerFlow execution should be explicitly closed for cleanup and final state."
+        },
+        {
+          "id": "auto_close_manual_close",
+          "description": "Short workflows can use auto-close while long-running services use manual close."
+        },
+        {
+          "id": "close_over_result_polling",
+          "description": "New TriggerFlow guidance prefers close over result polling."
+        }
+      ],
+      "required_concepts": [
+        "execution_lifecycle_control",
+        "auto_close_manual_close",
+        "close_over_result_polling"
+      ]
+    },
+    {
+      "id": "triggerflow-runtime-stream-close-en",
+      "query": "After routing to TriggerFlow, which reference explains bridging model instant updates into runtime stream events and closing the execution so stream consumers get a stop signal?",
+      "matched_skills": [
+        "agently-triggerflow",
+        "agently-model-response"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/stream-bridge.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "stable_runtime_stream_events",
+          "description": "Workflow stream items should be stable business events rather than raw parser paths."
+        },
+        {
+          "id": "execution_close_stops_stream",
+          "description": "Execution close is responsible for stopping the runtime stream."
+        },
+        {
+          "id": "model_stream_bridge",
+          "description": "Model-side instant updates can be accumulated and emitted as workflow-owned events."
+        }
+      ],
+      "required_concepts": [
+        "stable_runtime_stream_events",
+        "execution_close_stops_stream",
+        "model_stream_bridge"
+      ]
+    },
+    {
+      "id": "triggerflow-state-vs-flow-data-zh",
+      "query": "我需要确认 TriggerFlow 里每次执行自己的状态应该放哪里，以及为什么不该把 flow_data 当成并发 execution 的普通状态存储。应该先看哪份参考？",
+      "matched_skills": [
+        "agently-triggerflow"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/overview.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "execution_state",
+          "description": "Per-run data belongs in execution state."
+        },
+        {
+          "id": "flow_data_risk",
+          "description": "Flow data is shared across executions and is risky under concurrency."
+        }
+      ],
+      "required_concepts": [
+        "execution_state",
+        "flow_data_risk"
+      ]
     }
   ]
 }

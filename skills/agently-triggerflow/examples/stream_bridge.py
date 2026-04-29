@@ -1,3 +1,5 @@
+import asyncio
+
 from agently import Agently, TriggerFlow
 
 agent = Agently.create_agent()
@@ -11,7 +13,7 @@ def item_is_complete(item):
 @flow.chunk("judge")
 async def judge(data):
     response = (
-        agent.input(f"Score this draft and explain strengths: {data.value}")
+        agent.input(f"Score this draft and explain strengths: {data.input}")
         .output({"judge_items": [{"name": (str,), "score": (int,), "comment": (str,)}]})
         .get_response()
     )
@@ -41,7 +43,21 @@ async def judge(data):
                 }
             )
 
-    return await response.result.async_get_data()
+    result = await response.result.async_get_data()
+    await data.async_set_state("judge_result", result)
+    return result
 
 
-flow.to(judge).end()
+flow.to(judge)
+
+
+async def main():
+    execution = flow.create_execution(auto_close=False)
+    await execution.async_start("demo", wait_for_result=False)
+    close_task = asyncio.create_task(execution.async_close())
+    async for item in execution.get_async_runtime_stream():
+        print(item)
+    return await close_task
+
+
+asyncio.run(main())
