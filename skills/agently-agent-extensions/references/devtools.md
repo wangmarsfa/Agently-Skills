@@ -59,6 +59,14 @@ agently-devtools start
 
 Use the embedded app path when the host process already owns the local server boundary.
 
+## Project Scaffolding
+
+Use `agently-devtools init <project>` when the user wants a new Agently project scaffold before wiring observation or evaluation tooling.
+
+```bash
+agently-devtools init my_project
+```
+
 ## Scenario Evaluations
 
 Use `EvaluationBridge` and `EvaluationRunner` when the user wants repeated scenario runs with DevTools-backed reports.
