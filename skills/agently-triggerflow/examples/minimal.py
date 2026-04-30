@@ -14,7 +14,7 @@ flow.to(finish)
 
 async def main():
     execution = flow.create_execution()
-    await execution.async_start("demo", wait_for_result=False)
+    await execution.async_start("demo")
     state = await execution.async_close()
     print(state["output"])
 

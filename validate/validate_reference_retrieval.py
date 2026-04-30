@@ -44,6 +44,12 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
         failures.append(f"{name}: {details}")
 
 
+def unwrap_triggerflow_result(value):
+    if isinstance(value, dict) and "$final_result" in value:
+        return value["$final_result"]
+    return value
+
+
 def load_cases() -> list[dict]:
     data = json.loads(FIXTURES.read_text(encoding="utf-8"))
     return data.get("cases", [])
@@ -57,7 +63,12 @@ def list_candidate_paths(skill_name: str) -> list[Path]:
         if not target_dir.exists():
             continue
         for path in sorted(target_dir.rglob("*")):
-            if not path.is_file() or path.name == ".gitkeep":
+            if (
+                not path.is_file()
+                or path.name in {".gitkeep", ".DS_Store"}
+                or "__pycache__" in path.parts
+                or path.suffix == ".pyc"
+            ):
                 continue
             candidates.append(path)
     return candidates
@@ -206,7 +217,7 @@ async def run_live_validation(
         return await validate_live_case(data.value, timeout_seconds=timeout_seconds)
 
     flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().end()
-    results = await flow.async_start(load_cases())
+    results = unwrap_triggerflow_result(await flow.async_start(load_cases()))
     for result in results:
         check(result["name"], result["ok"], result["details"], failures, passes)
 

@@ -10,7 +10,7 @@ Use this pattern when a model step emits structured partial updates and the UI o
 
 ## Core Rule
 
-Do not couple the UI directly to raw `instant` paths such as `judge_items.0.comment` or `meta.risk_flags.1`.
+Do not couple the UI directly to raw `instant` paths such as `judge_items[0].comment` or `meta.risk_flags[1]`.
 
 Instead:
 
@@ -24,17 +24,41 @@ Instead:
 
 ```python
 import asyncio
+import re
+import os
+
 from agently import Agently, TriggerFlow
+
+Agently.set_settings(
+    "OpenAICompatible",
+    {
+        "base_url": os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+        "api_key": "ollama",
+        "model": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+        "model_type": "chat",
+        "request_options": {"temperature": 0},
+    },
+)
 
 agent = Agently.create_agent()
 flow = TriggerFlow(name="stream-bridge")
+PATH_PATTERN = re.compile(r"^judge_items\[(\d+)\]\.(\w+)$")
+
+
+def item_is_complete(item):
+    return isinstance(item, dict) and {"name", "score", "comment"}.issubset(item.keys())
 
 
 @flow.chunk("judge")
 async def judge(data):
+    agent.role(
+        "Return JSON only. judge_items must contain exactly two items: item 0 is clarity with score 8 and comment Clear and direct. item 1 is evidence with score 7 and comment Backed by examples.",
+        always=True,
+    )
     response = (
         agent
-        .input(data.input["essay"])
+        .input(f"Score this draft and explain strengths: {data.input['essay']}")
+        .output({"judge_items": [{"name": (str,), "score": (int,), "comment": (str,)}]})
         .get_response()
     )
 
@@ -43,43 +67,45 @@ async def judge(data):
 
     async for msg in response.get_async_generator(type="instant"):
         path = getattr(msg, "path", None) or getattr(msg, "wildcard_path", None)
-        if not path:
+        match = PATH_PATTERN.match(path or "")
+        if match is None:
             continue
 
-        # update your partial state here
-        # for example: set_value_by_path(partial, path, msg.delta or msg.value)
+        item_index = int(match.group(1))
+        field_name = match.group(2)
+        while len(partial["judge_items"]) <= item_index:
+            partial["judge_items"].append({})
+        value = getattr(msg, "value", None)
+        if value is None:
+            value = getattr(msg, "delta", None)
+        partial["judge_items"][item_index][field_name] = value
 
-        if path.startswith("judge_items.") and item_is_complete(partial, path):
-            item_index = int(path.split(".")[1])
-            if item_index not in emitted_items:
-                emitted_items.add(item_index)
-                await data.async_put_into_stream(
-                    {
-                        "stage": "judge_item_ready",
-                        "index": item_index,
-                        "item": partial["judge_items"][item_index],
-                    }
-                )
+        if item_is_complete(partial["judge_items"][item_index]) and item_index not in emitted_items:
+            emitted_items.add(item_index)
+            await data.async_put_into_stream(
+                {
+                    "stage": "judge_item_ready",
+                    "index": item_index,
+                    "item": partial["judge_items"][item_index],
+                }
+            )
 
-    result = await response.result.async_get_data()
-    await data.async_put_into_stream(
-        {
-            "stage": "report_ready",
-            "summary": result["summary"],
-        }
+    result = await response.result.async_get_data(
+        ensure_keys=["judge_items[*].name", "judge_items[*].score", "judge_items[*].comment"],
+        max_retries=1,
     )
-    await data.async_set_state("report", result)
+    await data.async_set_state("judge_result", result)
     return result
 
 
 async def main():
     execution = flow.create_execution(auto_close=False)
-    await execution.async_start({"essay": "..."}, wait_for_result=False)
+    await execution.async_start({"essay": "..."})
     close_task = asyncio.create_task(execution.async_close())
-    async for item in execution.get_async_runtime_stream():
-        render(item)
+    async for item in execution.get_async_runtime_stream(timeout=None):
+        print(item)
     state = await close_task
-    return state["report"]
+    return state["judge_result"]
 
 
 asyncio.run(main())

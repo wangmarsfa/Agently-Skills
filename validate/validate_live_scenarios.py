@@ -44,6 +44,12 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
         failures.append(f"{name}: {details}")
 
 
+def unwrap_triggerflow_result(value):
+    if isinstance(value, dict) and "$final_result" in value:
+        return value["$final_result"]
+    return value
+
+
 async def run_model_smoke(failures: list[str], passes: list[str]) -> None:
     agent = Agently.create_agent("v2-live-validator")
     response = (
@@ -221,7 +227,7 @@ async def run_route_live_validation(
         return await validate_route_case(data.value, timeout_seconds=timeout_seconds)
 
     flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().end()
-    results = await flow.async_start(fixtures)
+    results = unwrap_triggerflow_result(await flow.async_start(fixtures))
 
     for result in results:
         check(result["name"], result["ok"], result["details"], failures, passes)

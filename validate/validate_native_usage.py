@@ -11,6 +11,7 @@ TRIGGERFLOW_EXAMPLES = ROOT / "skills" / "agently-triggerflow" / "examples"
 TRIGGERFLOW_LEGACY_ALLOWLIST: set[Path] = set()
 DEPRECATED_TRIGGERFLOW_TOKENS = [
     ".end(",
+    ".start(",
     "get_result(",
     "set_result(",
     "get_runtime_data(",
@@ -21,6 +22,7 @@ DEPRECATED_TRIGGERFLOW_TOKENS = [
     "set_flow_data(",
     "append_flow_data(",
     "del_flow_data(",
+    "get_runtime_stream(",
 ]
 
 
