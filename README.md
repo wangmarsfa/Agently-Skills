@@ -99,7 +99,7 @@ Two source-backed details matter here:
 Two high-frequency rules prevent common drift:
 
 - keep stable shared output contracts in prompt config rather than scattering them across Python helpers
-- keep `OpenAICompatible` and similar provider settings under the plugin namespace that the requester actually reads, for example `plugins.ModelRequester.OpenAICompatible.*`
+- keep provider settings under the plugin namespace that the requester actually reads, for example `plugins.ModelRequester.OpenAICompatible.*` or `plugins.ModelRequester.AnthropicCompatible.*`
 - keep optional DevTools endpoints and bridge wiring outside prompt files and workflow helpers; use `ObservationBridge`, `EvaluationBridge`, or `create_local_observation_app(...)` from the public `agently-devtools` package instead of repo-specific install guidance
 
 This is the pattern used by `Agently-Daily-News-Collector`: settings stay in `SETTINGS.yaml`, prompt contracts stay in `prompts/`, flow construction stays in `workflow/`, and the app layer does env loading plus Agently wiring.

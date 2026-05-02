@@ -99,7 +99,7 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 还有两个容易踩坑、应当默认明确的规则：
 
 - 稳定共享的 output contract 优先放进 Prompt config，例如 `.request.output`，而不是散落在多个 Python helper 里
-- `OpenAICompatible` 之类 provider 配置，应放在插件实际读取的命名空间下，例如 `plugins.ModelRequester.OpenAICompatible.*`
+- provider 配置应放在插件实际读取的命名空间下，例如 `plugins.ModelRequester.OpenAICompatible.*` 或 `plugins.ModelRequester.AnthropicCompatible.*`
 - 可选 DevTools 端点和 bridge wiring 应放在 integration 层，而不是 Prompt 文件或 workflow helper 里；对外只写公共包 `agently-devtools` 的安装与入口，不写源码仓库接入说明
 
 `Agently-Daily-News-Collector` 用的就是这个模式：settings 留在 `SETTINGS.yaml`，prompt contract 留在 `prompts/`，流程构造留在 `workflow/`，而 app 层负责 `.env` 加载和 Agently wiring。
