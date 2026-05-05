@@ -7,7 +7,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 
 ## Compatibility
 
-This catalog is aligned with Agently 4.1.x and tracks the planned TriggerFlow execution lifecycle guidance.
+This catalog is aligned with the Agently 4.1.1 release line and its current TriggerFlow execution lifecycle guidance.
 
 ## What Is Agently?
 
@@ -60,7 +60,7 @@ The most important routing rules are:
 - unresolved product, assistant, automation, or workflow request -> `agently-playbook`
 - provider wiring, env vars, or model settings separation -> `agently-model-setup`
 - prompt structure, prompt config, YAML-backed prompt behavior, or config-file prompt bridge -> `agently-prompt-management`
-- stable structured fields, required keys, or machine-readable output -> `agently-output-control`
+- stable structured fields, required keys, value-level validation, or machine-readable output -> `agently-output-control`
 - reuse one response as text, data, metadata, or streaming updates -> `agently-model-response`
 - session continuity or restore-after-restart -> `agently-session-memory`
 - Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, or optional `agently-devtools` observation/evaluation tooling -> `agently-agent-extensions`
@@ -124,7 +124,7 @@ The public catalog currently contains 12 skills.
 - `agently-prompt-management`
   Prompt composition, prompt config, YAML-backed prompt behavior, mappings, and reusable request-side prompt structure.
 - `agently-output-control`
-  Output schema, field ordering, required keys, and structured output reliability.
+  Output schema, field ordering, required keys, value-level validation, and structured output reliability.
 - `agently-model-response`
   `get_response()`, parsed results, metadata, streaming consumption, and response reuse.
 - `agently-session-memory`
@@ -144,7 +144,7 @@ The public catalog currently contains 12 skills.
 
 ## Optional Companion Package
 
-Agently 4.1.0 keeps `agently-devtools` as an optional developer-tooling companion package.
+Agently 4.1.1 keeps `agently-devtools` as an optional developer-tooling companion package.
 
 ```bash
 pip install agently-devtools

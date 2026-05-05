@@ -14,7 +14,7 @@ Treat auto-close as the default for short workflows and manual close as the serv
 
 Use execution state (`get_state(...)`, `set_state(...)`, and async variants) for per-execution data. Flow data is shared across executions and should be treated as a risky internal/shared-state surface rather than normal workflow memory.
 
-In Agently `v4.1.0`, TriggerFlow definitions, chunk signal metadata, and origin-chunk payloads are also strong enough to support graph-oriented debugging and local DevTools visualization without duplicating the workflow description.
+In Agently `v4.1.1`, TriggerFlow definitions, chunk signal metadata, and origin-chunk payloads are also strong enough to support graph-oriented debugging and local DevTools visualization without duplicating the workflow description.
 
 For the concrete `instant -> runtime stream` pattern, read `references/stream-bridge.md`.
 For graph, export, and observation design, read `references/devtools-graph.md`.

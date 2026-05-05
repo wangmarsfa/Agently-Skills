@@ -36,7 +36,7 @@
     {
       "id": "request-extensions",
       "kind": "addon",
-      "purpose": "Optional request-side extensions for Action Runtime, tools, memory, knowledge-base work, and developer tooling such as agently-devtools integration.",
+      "purpose": "Optional request-side extensions for Action Runtime, tools, memory, knowledge-base work, and developer tooling such as agently-devtools observation and evaluation.",
       "entry_skill": "agently-playbook",
       "base_bundle": "request-core",
       "active_skills": [

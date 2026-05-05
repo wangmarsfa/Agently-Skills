@@ -50,7 +50,7 @@ Use this file as installation-time guidance after the skills are added into anot
 - `agently-playbook`: unresolved owner layer, project shape, or broad product request
 - `agently-model-setup`: provider wiring, env placeholders, model settings, namespace placement, and connectivity checks
 - `agently-prompt-management`: prompt config, mappings, reusable request contracts, and prompt-side output contracts
-- `agently-output-control`: structured output shape, required keys, reliability, and structured streaming
+- `agently-output-control`: structured output shape, required keys, value-level validation, reliability, and structured streaming
 - `agently-model-response`: response reuse, async getters, metadata, and stream consumption
 - `agently-agent-extensions`: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
 - `agently-triggerflow`: explicit orchestration, branching, concurrency, runtime stream, workflow-owned business events, and execution-graph-friendly workflow definitions

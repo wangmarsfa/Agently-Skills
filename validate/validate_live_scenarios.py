@@ -137,7 +137,7 @@ async def judge_route_case(case: dict) -> dict:
         "- If one installed non-playbook skill directly and narrowly owns the request, prefer that leaf skill without agently-playbook.\n"
         "- If the request is still unresolved between one request family and workflow orchestration, stop at agently-playbook.\n"
         "- If the request explicitly says it should stay inside one request family, treat that as resolved away from workflow orchestration rather than unresolved.\n"
-        "- If the request clearly stays inside one request family and asks for stable structured fields, required keys, or machine-readable reports, continue with agently-output-control when installed.\n"
+        "- If the request clearly stays inside one request family and asks for stable structured fields, required keys, value-level validation, or machine-readable reports, continue with agently-output-control when installed.\n"
         "- If the same request also needs response reuse, metadata consumption, or partial structured updates, continue with agently-model-response when installed.\n"
         "- If the request clearly needs branching, concurrency, approvals, waiting and resume, runtime stream, or explicit draft-review-revise loops, continue with agently-triggerflow when installed.\n"
         "- If the request is about simplifying tangled process expression, making stages or dependencies explicit, or making flow management easier to understand, prefer agently-triggerflow when installed.\n"
