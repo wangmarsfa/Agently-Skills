@@ -1,6 +1,6 @@
 # Overview
 
-This skill owns Agently-native extension surfaces: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` integration.
+This skill owns Agently-native extension surfaces: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation/evaluation tooling.
 
 Use it when:
 

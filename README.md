@@ -63,7 +63,7 @@ The most important routing rules are:
 - stable structured fields, required keys, or machine-readable output -> `agently-output-control`
 - reuse one response as text, data, metadata, or streaming updates -> `agently-model-response`
 - session continuity or restore-after-restart -> `agently-session-memory`
-- Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, or optional `agently-devtools` integration -> `agently-agent-extensions`
+- Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, or optional `agently-devtools` observation/evaluation tooling -> `agently-agent-extensions`
 - embeddings, indexing, retrieval, or KB-to-answer -> `agently-knowledge-base`
 - explicit orchestration, TriggerFlow, execution lifecycle control, mixed sync/async execution, event-driven fan-out, process-clarity refactors, graph-friendly workflow definitions, or resumable multi-stage flows -> `agently-triggerflow`
 - migration from LangChain or LangGraph -> `agently-migration-playbook`, then the matching migration leaf
@@ -81,7 +81,7 @@ When an Agently project needs to stay maintainable, initialize or refactor it ar
 The default shape should usually separate:
 
 - `SETTINGS.yaml` or a settings layer for provider config, `${ENV.xxx}` placeholders, workflow/search/browse knobs, and other deployment-time switches
-- `app/` or another integration layer that loads settings, validates required env names when needed, chooses async boundaries, and wires tools plus the main flow
+- `app/` or another application wiring layer that loads settings, validates required env names when needed, chooses async boundaries, and wires tools plus the main flow
 - `prompts/` for YAML or JSON prompt contracts that own `input`, `info`, `instruct`, and `output`
 - `services/` for request wrappers, response normalization, and business-facing adapters
 - `domain/` or `schemas/` for enums, request/response contracts, and shared value objects
@@ -89,7 +89,7 @@ The default shape should usually separate:
 - `tools/` for replaceable search, browse, MCP, or external adapters
 - `tests/` for settings smoke checks, prompt/response checks, and API or flow validation
 - `outputs/` and `logs/` for runtime artifacts instead of mixing them into source folders
-- optional `agently-devtools` wiring in the integration layer for local observation, evaluation, playground, and logs
+- optional `agently-devtools` wiring in the app or observability layer for local observation, evaluation, playground, and logs
 
 Two source-backed details matter here:
 
@@ -133,7 +133,7 @@ The public catalog currently contains 12 skills.
 ### Request Extensions
 
 - `agently-agent-extensions`
-  Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, and optional `agently-devtools` integration.
+  Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, and optional `agently-devtools` observation/evaluation tooling.
 - `agently-knowledge-base`
   Embeddings plus Chroma-backed indexing, retrieval, and retrieval-to-answer flows.
 
@@ -156,7 +156,7 @@ agently-devtools init my_project    # scaffold a new Agently project
 - Public entrypoints: `ObservationBridge`, `EvaluationBridge`, `EvaluationRunner`, and `create_local_observation_app`
 - Recommended startup: `agently-devtools start`
 
-Use this package when an Agently app needs local runtime observation, evaluations, logs, or playground support during development and debugging. The skills package treats this as an optional extension surface, not as a required source-repo dependency.
+Use this package when an Agently app needs local runtime observation, evaluations, logs, or playground support during development and debugging. The skills package treats this as optional observability tooling, not as a required source-repo dependency.
 
 ### Migration
 

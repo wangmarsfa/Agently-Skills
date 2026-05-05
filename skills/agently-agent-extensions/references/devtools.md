@@ -4,7 +4,7 @@ Use this reference when the request is about attaching official development and 
 
 ## Ownership
 
-This belongs to `agently-agent-extensions` because the app is staying on its current request or workflow design, and the main change is adding native observation, evaluation, or playground tooling around it.
+Conceptually this is observability work. It belongs to `agently-agent-extensions` in Skills because the app is staying on its current request or workflow design, and the main change is attaching native observation, evaluation, or playground tooling around it.
 
 Route here when the user wants:
 
@@ -45,7 +45,7 @@ Recommended environment split:
 - `AGENTLY_DEVTOOLS_BASE_URL` for local console and evaluation APIs
 - `AGENTLY_DEVTOOLS_INGEST_URL` for runtime event upload
 
-Keep this wiring in the app or integration layer, not inside prompt helpers or chunk handlers.
+Keep this wiring in the app or observability layer, not inside prompt helpers or chunk handlers.
 
 ## Local Embedded Listener
 
