@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "repository": "Agently-Skills",
+  "framework": "agently",
+  "aligned_framework_version": "4.1.1",
+  "supported_protocols": {
+    "authoring": [
+      "agently-skills.authoring.v1"
+    ],
+    "devtools_guidance": [
+      "agently-skills.devtools-guidance.v1"
+    ]
+  }
+}

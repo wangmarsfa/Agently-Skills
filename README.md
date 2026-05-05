@@ -9,6 +9,16 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 
 This catalog is aligned with the Agently 4.1.1 release line and its current TriggerFlow execution lifecycle guidance.
 
+Machine-readable compatibility support lives in `compatibility/support.json`.
+
+For unpublished cross-repo work, match against Agently companion protocols first, not against a future package version that has not been released yet:
+
+- authoring protocol: `agently-skills.authoring.v1`
+- DevTools guidance protocol: `agently-skills.devtools-guidance.v1`
+
+The source of truth for a published framework release remains Agently's release registry entry under `../Agently/compatibility/releases/`.
+The public next-release development target lives in `../Agently/compatibility/in-development.json`. It currently targets `4.1.1.1`.
+
 ## What Is Agently?
 
 Agently is a framework for building model-powered applications and workflows.
@@ -155,6 +165,8 @@ agently-devtools init my_project    # scaffold a new Agently project
 - Compatibility line: `agently-devtools 0.1.x` targets `agently >=4.1.0,<4.2.0`
 - Public entrypoints: `ObservationBridge`, `EvaluationBridge`, `EvaluationRunner`, and `create_local_observation_app`
 - Recommended startup: `agently-devtools start`
+
+For release automation and unpublished branch work, treat the Agently compatibility registry as the machine-readable source of truth. This repository only declares which Agently skills protocols it supports.
 
 Use this package when an Agently app needs local runtime observation, evaluations, logs, or playground support during development and debugging. The skills package treats this as optional observability tooling, not as a required source-repo dependency.
 

@@ -22,6 +22,7 @@ Use this file as installation-time guidance after the skills are added into anot
 
 - This repository is the official companion guidance repository for `github.com/AgentEra/Agently`.
 - Skills must follow Agently public APIs, recommended usage, deprecation policy, and runtime behavior.
+- Machine-readable compatibility support lives in `compatibility/support.json` and must stay aligned with the Agently release registry under `../Agently/compatibility/`.
 - Do not present deprecated Agently APIs as the default path. Deprecated APIs may appear only in explicit legacy or migration notes.
 - When Agently changes a public API, runtime behavior, or recommendation, update affected Skills guidance, examples, fixtures, and validation rules in the same work item.
 
@@ -34,6 +35,7 @@ Use this file as installation-time guidance after the skills are added into anot
 ## Validation Rule
 
 - After changing skill content, run the relevant validation scripts under `validate/`.
+- Run `python validate/validate_compatibility.py` whenever compatibility guidance, release-line claims, or DevTools integration guidance changes.
 - At minimum for TriggerFlow guidance changes, run `python validate/validate_catalog.py`, `python validate/validate_bundle_manifest.py`, `python validate/validate_native_usage.py`, `python validate/validate_trigger_paths.py`, and `python validate/validate_reference_retrieval.py` when model/runtime credentials are available.
 - Validation should fail if recommended TriggerFlow examples use deprecated lifecycle, result, runtime-data, or flow-data APIs outside an explicit legacy allowlist.
 

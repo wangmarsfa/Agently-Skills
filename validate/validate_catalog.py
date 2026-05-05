@@ -29,6 +29,7 @@ PUBLIC_FILES = [
     ROOT / "README_CN.md",
     ROOT / "AGENTS.md",
     ROOT / "bundles" / "manifest.json",
+    ROOT / "compatibility" / "support.json",
 ]
 RETIRED_SKILLS = [
     "agently-model-request-playbook",
@@ -67,6 +68,13 @@ def main() -> None:
     failures: list[str] = []
 
     check("skills_dir_exists", SKILLS.exists(), "skills directory exists", failures, passes)
+    check(
+        "compatibility_support_exists",
+        (ROOT / "compatibility" / "support.json").exists(),
+        "compatibility support manifest exists",
+        failures,
+        passes,
+    )
     actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
     check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches V2 skill set", failures, passes)
 

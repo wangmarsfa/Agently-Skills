@@ -9,6 +9,16 @@
 
 本技能目录已按 Agently 4.1.1 发布线对齐，并跟随当前 TriggerFlow execution lifecycle 指导。
 
+机器可读的兼容支持声明位于 `compatibility/support.json`。
+
+对于未发布的跨仓库协作，应优先按 Agently companion protocols 对齐，而不是按一个暂时还不存在的未来包版本号对齐：
+
+- authoring protocol：`agently-skills.authoring.v1`
+- DevTools guidance protocol：`agently-skills.devtools-guidance.v1`
+
+已发布框架版本的事实来源仍然是 Agently 主仓库下 `../Agently/compatibility/releases/` 的分版本 registry 文件。
+公开的下一个发布目标位于 `../Agently/compatibility/in-development.json`，当前目标版本是 `4.1.1.1`。
+
 ## 什么是 Agently？
 
 Agently 是一个用于构建模型应用和工作流的框架。
@@ -155,6 +165,8 @@ agently-devtools init my_project    # 快速初始化 Agently 工程
 - 兼容线：`agently-devtools 0.1.x` 对应 `agently >=4.1.0,<4.2.0`
 - 公共入口：`ObservationBridge`、`EvaluationBridge`、`EvaluationRunner`、`create_local_observation_app`
 - 推荐启动命令：`agently-devtools start`
+
+对 release automation 和未发布分支协作而言，应把 Agently compatibility registry 视作机器可读事实来源；本仓库只声明自己支持哪些 Agently skills protocols。
 
 当 Agently 应用在开发、调试阶段需要本地 runtime observation、评测、日志或 playground 时，应把它当作可选扩展能力接入，而不是要求用户接触 DevTools 源码仓库。
 
