@@ -8,7 +8,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "bundles" / "manifest.json"
 VALID_KINDS = {"entry", "core", "addon", "specialized"}
-EXPECTED_IDS = {"entry-general", "request-core", "request-extensions", "workflow-core", "migration"}
+EXPECTED_IDS = {"app", "migration"}
+APP_SKILLS = {
+    "agently-playbook",
+    "agently-model-setup",
+    "agently-prompt-management",
+    "agently-output-control",
+    "agently-model-response",
+    "agently-agent-extensions",
+    "agently-session-memory",
+    "agently-knowledge-base",
+    "agently-triggerflow",
+}
+MIGRATION_EXTRA_SKILLS = {
+    "agently-migration-playbook",
+    "agently-langchain-to-agently",
+    "agently-langgraph-to-triggerflow",
+}
 
 
 def check(name: str, condition: bool, details: str, failures: list[str], passes: list[str]) -> None:
@@ -26,7 +42,7 @@ def main() -> None:
     bundle_map = {bundle["id"]: bundle for bundle in bundles}
 
     check("version_is_v2", data.get("version") == 2, "manifest version is 2", failures, passes)
-    check("bundle_ids", set(bundle_map) == EXPECTED_IDS, "bundle ids match V2 set", failures, passes)
+    check("bundle_ids", set(bundle_map) == EXPECTED_IDS, "bundle ids match V2 app/migration set", failures, passes)
 
     for bundle in bundles:
         bundle_id = bundle["id"]
@@ -51,6 +67,13 @@ def main() -> None:
             passes,
         )
         check(
+            f"{bundle_id}_install_matches_active",
+            set(install) == set(active),
+            "recommended install order covers active skills exactly",
+            failures,
+            passes,
+        )
+        check(
             f"{bundle_id}_entry",
             entry == "agently-playbook",
             "entry skill is agently-playbook",
@@ -58,11 +81,36 @@ def main() -> None:
             passes,
         )
 
-    request_extensions = bundle_map["request-extensions"]
+    app = bundle_map["app"]
+    migration = bundle_map["migration"]
+    app_active = set(app.get("active_skills", []))
+    migration_active = set(migration.get("active_skills", []))
+
     check(
-        "request_extensions_base",
-        request_extensions.get("base_bundle") == "request-core",
-        "request-extensions attaches to request-core",
+        "app_skills",
+        app_active == APP_SKILLS,
+        "app bundle combines core request, extension, session, knowledge-base, and TriggerFlow skills",
+        failures,
+        passes,
+    )
+    check(
+        "migration_base",
+        migration.get("base_bundle") == "app",
+        "migration attaches to app bundle",
+        failures,
+        passes,
+    )
+    check(
+        "migration_superset",
+        app_active.issubset(migration_active),
+        "migration includes every app skill",
+        failures,
+        passes,
+    )
+    check(
+        "migration_extra_skills",
+        MIGRATION_EXTRA_SKILLS.issubset(migration_active),
+        "migration adds framework migration skills",
         failures,
         passes,
     )

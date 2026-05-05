@@ -2,89 +2,63 @@
   "version": 2,
   "bundles": [
     {
-      "id": "entry-general",
-      "kind": "entry",
-      "purpose": "Top-level Agently routing for unresolved model-powered product or workflow requests.",
-      "entry_skill": "agently-playbook",
-      "active_skills": [
-        "agently-playbook"
-      ],
-      "recommended_install_order": [
-        "agently-playbook"
-      ]
-    },
-    {
-      "id": "request-core",
+      "id": "app",
       "kind": "core",
-      "purpose": "Request-side Agently implementation with native prompt, output, and response control.",
+      "purpose": "Build new Agently applications or services with model setup, prompt and output control, response handling, Action Runtime and service exposure, session or knowledge-base support, and TriggerFlow orchestration.",
       "entry_skill": "agently-playbook",
       "active_skills": [
         "agently-playbook",
         "agently-model-setup",
         "agently-prompt-management",
         "agently-output-control",
-        "agently-model-response"
+        "agently-model-response",
+        "agently-agent-extensions",
+        "agently-session-memory",
+        "agently-knowledge-base",
+        "agently-triggerflow"
       ],
       "recommended_install_order": [
         "agently-playbook",
         "agently-model-setup",
         "agently-prompt-management",
         "agently-output-control",
-        "agently-model-response"
-      ]
-    },
-    {
-      "id": "request-extensions",
-      "kind": "addon",
-      "purpose": "Optional request-side extensions for Action Runtime, tools, memory, knowledge-base work, and developer tooling such as agently-devtools observation and evaluation.",
-      "entry_skill": "agently-playbook",
-      "base_bundle": "request-core",
-      "active_skills": [
-        "agently-playbook",
+        "agently-model-response",
         "agently-agent-extensions",
         "agently-session-memory",
-        "agently-knowledge-base"
-      ],
-      "recommended_install_order": [
-        "agently-playbook",
-        "agently-agent-extensions",
-        "agently-session-memory",
-        "agently-knowledge-base"
-      ]
-    },
-    {
-      "id": "workflow-core",
-      "kind": "core",
-      "purpose": "Workflow orchestration with TriggerFlow and response-control companions for lifecycle-aware execution, event-driven fan-out, performance-sensitive refactors, mixed sync/async flows, and graph-friendly workflow debugging.",
-      "entry_skill": "agently-playbook",
-      "active_skills": [
-        "agently-playbook",
-        "agently-triggerflow",
-        "agently-output-control",
-        "agently-model-response",
-        "agently-session-memory"
-      ],
-      "recommended_install_order": [
-        "agently-playbook",
-        "agently-triggerflow",
-        "agently-output-control",
-        "agently-model-response",
-        "agently-session-memory"
+        "agently-knowledge-base",
+        "agently-triggerflow"
       ]
     },
     {
       "id": "migration",
       "kind": "specialized",
-      "purpose": "Migration from LangChain or LangGraph into Agently.",
+      "purpose": "Migrate existing LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently, with the app bundle plus migration-specific routing and framework mapping skills.",
       "entry_skill": "agently-playbook",
+      "base_bundle": "app",
       "active_skills": [
         "agently-playbook",
+        "agently-model-setup",
+        "agently-prompt-management",
+        "agently-output-control",
+        "agently-model-response",
+        "agently-agent-extensions",
+        "agently-session-memory",
+        "agently-knowledge-base",
+        "agently-triggerflow",
         "agently-migration-playbook",
         "agently-langchain-to-agently",
         "agently-langgraph-to-triggerflow"
       ],
       "recommended_install_order": [
         "agently-playbook",
+        "agently-model-setup",
+        "agently-prompt-management",
+        "agently-output-control",
+        "agently-model-response",
+        "agently-agent-extensions",
+        "agently-session-memory",
+        "agently-knowledge-base",
+        "agently-triggerflow",
         "agently-migration-playbook",
         "agently-langchain-to-agently",
         "agently-langgraph-to-triggerflow"

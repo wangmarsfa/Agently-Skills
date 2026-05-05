@@ -169,64 +169,58 @@ agently-devtools init my_project    # 快速初始化 Agently 工程
 
 ## 安装
 
-最快的整包安装方式，是直接把全部 skills 装到当前检测到的所有 agents：
+先明确目标 agent。推荐把一个 bundle 安装到一个 agent 对应的 skills 目录里，例如 Codex：
+
+```bash
+export AGENT=codex
+```
+
+如果目标是 Claude、Cursor 或其他受支持 agent，把 `AGENT` 换成对应名称。
+
+`app`
+开发新 Agently 应用的默认 bundle。它合并了通常必然一起使用的能力：模型请求接入、TriggerFlow、service 与 tool 包装、响应处理、输出控制、session continuity 和知识库指导。
+
+```bash
+for skill in \
+  agently-playbook \
+  agently-model-setup \
+  agently-prompt-management \
+  agently-output-control \
+  agently-model-response \
+  agently-agent-extensions \
+  agently-session-memory \
+  agently-knowledge-base \
+  agently-triggerflow
+do
+  npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
+done
+```
+
+`migration`
+从 LangChain、LangGraph、LlamaIndex、CrewAI 或类似系统迁移到 Agently 的 bundle。先安装 `app` bundle，再补充迁移 skills：
+
+```bash
+for skill in \
+  agently-migration-playbook \
+  agently-langchain-to-agently \
+  agently-langgraph-to-triggerflow
+do
+  npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
+done
+```
+
+如果只想最小化安装入口 router：
+
+```bash
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+```
+
+高级多 agent 安装：
 
 ```bash
 npx skills add AgentEra/Agently-Skills --all
 ```
 
-如果你希望更稳妥，明确指定目标 agent，同时仍然整包安装：
+`--all` 会有意安装到所有检测到的 agents。对于同时配置了多个 coding agents 的仓库，它可能创建 `.agents/`、`.claude/`、`.cursor/`、`.codex/` 等多个隐藏目录，所以不再作为默认推荐。
 
-```bash
-npx skills add AgentEra/Agently-Skills --agent codex --skill '*' -y
-```
-
-也可以直接让你的 coding agent 安装 `AgentEra/Agently-Skills`。
-
-如果你想更窄一点地安装，先装 `agently-playbook`：
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-```
-
-`request-core`  
-适合明确留在 request side，需要模型接入、prompt 组织、结构化输出和响应复用的场景。
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-model-setup
-npx skills add AgentEra/Agently-Skills --skill agently-prompt-management
-npx skills add AgentEra/Agently-Skills --skill agently-output-control
-npx skills add AgentEra/Agently-Skills --skill agently-model-response
-```
-
-`request-extensions`  
-适合 request side 还需要 tools、MCP、session continuity 或知识库的场景。
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-agent-extensions
-npx skills add AgentEra/Agently-Skills --skill agently-session-memory
-npx skills add AgentEra/Agently-Skills --skill agently-knowledge-base
-```
-
-`workflow-core`  
-适合 owner layer 明确在工作流编排侧，尤其是事件驱动 fan-out、性能重构、可恢复流程、混合同异步执行等场景。
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-triggerflow
-npx skills add AgentEra/Agently-Skills --skill agently-output-control
-npx skills add AgentEra/Agently-Skills --skill agently-model-response
-npx skills add AgentEra/Agently-Skills --skill agently-session-memory
-```
-
-`migration`  
-适合明确要把已有 LangChain 或 LangGraph 系统迁移到 Agently 的场景。
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-migration-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-langchain-to-agently
-npx skills add AgentEra/Agently-Skills --skill agently-langgraph-to-triggerflow
-```
+机器可读的 bundle 定义见 `bundles/manifest.json`。

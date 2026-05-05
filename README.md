@@ -169,64 +169,58 @@ Use this package when an Agently app needs local runtime observation, evaluation
 
 ## Install
 
-Fastest full install across all detected agents:
+Choose the target agent first. The recommended path is to install one bundle into one agent-specific skill directory, for example Codex:
+
+```bash
+export AGENT=codex
+```
+
+Use `AGENT=claude`, `AGENT=cursor`, or another supported agent when that is your actual target.
+
+`app`
+Default bundle for building new Agently applications. It combines the skills normally needed together: core model request setup, TriggerFlow, service and tool wrapping, response handling, output control, session continuity, and knowledge-base guidance.
+
+```bash
+for skill in \
+  agently-playbook \
+  agently-model-setup \
+  agently-prompt-management \
+  agently-output-control \
+  agently-model-response \
+  agently-agent-extensions \
+  agently-session-memory \
+  agently-knowledge-base \
+  agently-triggerflow
+do
+  npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
+done
+```
+
+`migration`
+Bundle for moving existing LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently. Install the `app` bundle first, then add the migration skills:
+
+```bash
+for skill in \
+  agently-migration-playbook \
+  agently-langchain-to-agently \
+  agently-langgraph-to-triggerflow
+do
+  npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
+done
+```
+
+Install only the router when you want the smallest possible starting point:
+
+```bash
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+```
+
+Advanced multi-agent install:
 
 ```bash
 npx skills add AgentEra/Agently-Skills --all
 ```
 
-Safer full install when you want to control the target agent explicitly:
+`--all` intentionally installs across all detected agents. In repositories where several coding agents are configured, that can create multiple hidden directories such as `.agents/`, `.claude/`, `.cursor/`, and `.codex/`, so it is no longer the default recommendation.
 
-```bash
-npx skills add AgentEra/Agently-Skills --agent codex --skill '*' -y
-```
-
-You can also ask your coding agent to install `AgentEra/Agently-Skills`.
-
-If you want a narrower install, start with `agently-playbook`:
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-```
-
-`request-core`  
-Use when the solution stays on the request side and needs model setup, prompt shaping, structured output, and response reuse.
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-model-setup
-npx skills add AgentEra/Agently-Skills --skill agently-prompt-management
-npx skills add AgentEra/Agently-Skills --skill agently-output-control
-npx skills add AgentEra/Agently-Skills --skill agently-model-response
-```
-
-`request-extensions`  
-Use when the request side also needs tools, MCP, session continuity, or a knowledge base.
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-agent-extensions
-npx skills add AgentEra/Agently-Skills --skill agently-session-memory
-npx skills add AgentEra/Agently-Skills --skill agently-knowledge-base
-```
-
-`workflow-core`  
-Use when the owner layer is workflow orchestration, especially for event-driven fan-out, performance-sensitive refactors, resumable flows, or mixed sync/async execution.
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-triggerflow
-npx skills add AgentEra/Agently-Skills --skill agently-output-control
-npx skills add AgentEra/Agently-Skills --skill agently-model-response
-npx skills add AgentEra/Agently-Skills --skill agently-session-memory
-```
-
-`migration`  
-Use when the request is explicitly about moving an existing LangChain or LangGraph system into Agently.
-
-```bash
-npx skills add AgentEra/Agently-Skills --skill agently-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-migration-playbook
-npx skills add AgentEra/Agently-Skills --skill agently-langchain-to-agently
-npx skills add AgentEra/Agently-Skills --skill agently-langgraph-to-triggerflow
-```
+The machine-readable bundle definitions live in `bundles/manifest.json`.
