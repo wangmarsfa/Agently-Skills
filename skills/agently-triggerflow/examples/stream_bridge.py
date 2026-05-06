@@ -64,7 +64,7 @@ def _build_judge_response(draft: str):
     )
     return (
         agent.input(f"Score this draft and explain strengths: {draft}")
-        .output({"judge_items": [{"name": (str,), "score": (int,), "comment": (str,)}]})
+        .output({"judge_items": [{"name": (str, None, True), "score": (int, None, True), "comment": (str, None, True)}]})
         .get_response()
     )
 
@@ -109,10 +109,7 @@ async def judge(data):
                 }
             )
 
-    result = await response.result.async_get_data(
-        ensure_keys=["judge_items[*].name", "judge_items[*].score", "judge_items[*].comment"],
-        max_retries=1,
-    )
+    result = await response.result.async_get_data(max_retries=1)
     await data.async_set_state("judge_result", result)
     return result
 

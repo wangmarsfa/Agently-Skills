@@ -44,12 +44,6 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
         failures.append(f"{name}: {details}")
 
 
-def unwrap_triggerflow_result(value):
-    if isinstance(value, dict) and "$final_result" in value:
-        return value["$final_result"]
-    return value
-
-
 def load_cases() -> list[dict]:
     data = json.loads(FIXTURES.read_text(encoding="utf-8"))
     return data.get("cases", [])
@@ -151,19 +145,17 @@ async def judge_case(case: dict) -> dict:
                 "decision": (
                     Literal["sure", "unsure"],
                     "Use sure only when the selected files directly support the request.",
+                    True,
                 ),
-                "selected_paths": [(str, f"Exact repo-relative path. Must be one of: {allowed_paths}.")],
-                "covered_concepts": [(str, f"Exact concept id. Must be one of: {allowed_concepts}.")],
-                "reason": (str, "Short reason for the chosen supporting files."),
-                "evidence": [(str, "Short file-based evidence for the chosen files.")],
+                "selected_paths": [(str, f"Exact repo-relative path. Must be one of: {allowed_paths}.", True)],
+                "covered_concepts": [(str, f"Exact concept id. Must be one of: {allowed_concepts}.", True)],
+                "reason": (str, "Short reason for the chosen supporting files.", True),
+                "evidence": [(str, "Short file-based evidence for the chosen files.", True)],
             }
         )
         .get_response()
     )
-    data = await response.result.async_get_data(
-        ensure_keys=["decision", "selected_paths[*]", "covered_concepts[*]", "reason", "evidence[*]"],
-        max_retries=1,
-    )
+    data = await response.result.async_get_data(max_retries=1)
     data["decision"] = str(data["decision"]).strip().lower()
     data["selected_paths"] = normalize_string_list(data["selected_paths"])
     data["covered_concepts"] = normalize_string_list(data["covered_concepts"])
@@ -216,8 +208,16 @@ async def run_live_validation(
     async def validate_in_flow(data):
         return await validate_live_case(data.value, timeout_seconds=timeout_seconds)
 
-    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().end()
-    results = unwrap_triggerflow_result(await flow.async_start(load_cases()))
+    @flow.chunk("store_results")
+    async def store_results(data):
+        await data.async_set_state("results", data.input)
+        return data.input
+
+    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().to(store_results)
+    execution = flow.create_execution(auto_close=False)
+    await execution.async_start(load_cases())
+    state = await execution.async_close()
+    results = state["results"]
     for result in results:
         check(result["name"], result["ok"], result["details"], failures, passes)
 

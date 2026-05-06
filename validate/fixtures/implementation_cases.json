@@ -6,7 +6,7 @@
       "reference_example": "skills/agently-output-control/examples/minimal.py",
       "required_primitives": [
         ".output(",
-        "ensure_keys"
+        "tuple_ensure"
       ],
       "forbidden_antipatterns": [
         "json.loads(",

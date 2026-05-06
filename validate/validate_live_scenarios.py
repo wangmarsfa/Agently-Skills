@@ -44,22 +44,16 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
         failures.append(f"{name}: {details}")
 
 
-def unwrap_triggerflow_result(value):
-    if isinstance(value, dict) and "$final_result" in value:
-        return value["$final_result"]
-    return value
-
-
 async def run_model_smoke(failures: list[str], passes: list[str]) -> None:
     agent = Agently.create_agent("v2-live-validator")
     response = (
         agent.input("Return answer=ok and one checklist item.")
-        .output({"answer": (str,), "checklist": [(str,)]})
+        .output({"answer": (str, None, True), "checklist": [(str, None, True)]})
         .get_response()
     )
     try:
         data = await asyncio.wait_for(
-            response.result.async_get_data(ensure_keys=["answer", "checklist[*]"], max_retries=1),
+            response.result.async_get_data(max_retries=1),
             timeout=60,
         )
         check(
@@ -166,18 +160,16 @@ async def judge_route_case(case: dict) -> dict:
                 "decision": (
                     Literal["sure", "unsure"],
                     "Routing confidence. Use sure only when metadata boundaries clearly support the chosen path.",
+                    True,
                 ),
-                "route_path": [(str, f"Exact skill name. Must be one of: {allowed}.")],
-                "reason": (str, "Short explanation of why this route path is correct."),
-                "evidence": [(str, "Short metadata evidence supporting the selected route.")],
+                "route_path": [(str, f"Exact skill name. Must be one of: {allowed}.", True)],
+                "reason": (str, "Short explanation of why this route path is correct.", True),
+                "evidence": [(str, "Short metadata evidence supporting the selected route.", True)],
             }
         )
         .get_response()
     )
-    data = await response.result.async_get_data(
-        ensure_keys=["decision", "route_path[*]", "reason", "evidence[*]"],
-        max_retries=1,
-    )
+    data = await response.result.async_get_data(max_retries=1)
     data["decision"] = str(data["decision"]).strip().lower()
     data["route_path"] = [normalize_skill_name(item) for item in data["route_path"]]
     return data
@@ -226,8 +218,16 @@ async def run_route_live_validation(
     async def validate_in_flow(data):
         return await validate_route_case(data.value, timeout_seconds=timeout_seconds)
 
-    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().end()
-    results = unwrap_triggerflow_result(await flow.async_start(fixtures))
+    @flow.chunk("store_results")
+    async def store_results(data):
+        await data.async_set_state("results", data.input)
+        return data.input
+
+    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().to(store_results)
+    execution = flow.create_execution(auto_close=False)
+    await execution.async_start(fixtures)
+    state = await execution.async_close()
+    results = state["results"]
 
     for result in results:
         check(result["name"], result["ok"], result["details"], failures, passes)

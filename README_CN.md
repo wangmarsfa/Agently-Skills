@@ -38,6 +38,20 @@ Agently 是一个用于构建模型应用和工作流的框架。
 
 Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 
+它和现在已经进入 Agently 框架运行时的 **Skills Executor** 不是一回事：
+
+- `Agently-Skills` —— 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
+- Agently `Skills Executor` —— Agently app / agent 在真实任务里安装并应用外部 skills 的 runtime 能力
+
+伴生仓仍然只是 coding-agent 包，不会变成 Agently 应用的运行时依赖。
+
+不过，单个 skill 目录本身仍然是纯文本包。Agently 框架内的 Skills Executor 也可以在明确需要时，把这些目录当作 **guidance-only runtime skill source** 安装进去，用于运行时的设计引导或策略注入。此时它贡献的是 guidance 资产，而不是独立可执行 runtime。
+
+Agently 主仓库现在提供了两个对应的 runtime 消费案例，帮助说明这个边界：
+
+- 一个 DeepSeek 驱动的规划型案例，打印 skill 解析计划和模型设计回答
+- 一个更具体的产物生成案例，在同一组 skills 外层再包 structured output、validation 和文件落盘，让生成结果可以直接查看
+
 它解决的不只是 API 用法说明，还包括：
 
 - 如何从自然语言产品诉求里识别出适合 Agently 的场景
@@ -83,6 +97,18 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - 面向服务、streaming、TriggerFlow、tool 并发、长连接消费的场景，优先选择异步 API
 - 同步 API 更适合作为本地脚本、教学最小示例或兼容桥接层
 - 如果目标形态是 HTTP、SSE、WebSocket、后台 worker 或任何需要重叠执行的系统，除非有明确限制，否则默认按异步优先设计
+
+## 4.1 之后的默认推荐
+
+当 skills 描述 Agently `4.1+` 的推荐路径时，应收敛到这几条默认用法：
+
+- 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时 `ensure_keys` 只用于条件路径或运行时决定的路径
+- Actions：优先 `@agent.action_func` 加 `agent.use_actions(...)`；tool 别名保留为兼容入口
+- TriggerFlow lifecycle：优先 `close()` / `async_close()` 和 close snapshot；不要把 `.end()`、`set_result()`、`get_result()`、`wait_for_result=` 当成新代码默认入口
+- TriggerFlow state：单 execution 数据优先 `get_state(...)` / `set_state(...)`；`flow_data` 视为有意共享且有风险的作用域
+- Settings 加载：文件型 provider 配置优先 `Agently.load_settings("yaml_file", path, auto_load_env=True)`；`Agently.set_settings(...)` 留给内联覆盖
+- 执行风格：服务、流式、工作流默认 async-first
+- 响应复用：一次模型结果需要多种消费方式时，优先 `get_response()` 并复用同一个 response 对象
 
 ## 标准项目形态
 

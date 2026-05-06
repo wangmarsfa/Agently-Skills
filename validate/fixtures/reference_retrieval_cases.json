@@ -23,7 +23,7 @@
         },
         {
           "id": "settings_auto_load_env",
-          "description": "Provider settings can keep `${ENV.xxx}` placeholders and be applied through `Agently.set_settings(..., auto_load_env=True)`."
+          "description": "Provider settings can keep `${ENV.xxx}` placeholders and be applied through `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`."
         },
         {
           "id": "playbook_owns_initialization",
@@ -70,7 +70,7 @@
     },
     {
       "id": "model-settings-env-en",
-      "query": "After model-setup is already matched, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.set_settings(..., auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
+      "query": "After model-setup is already matched, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
       "matched_skills": [
         "agently-model-setup"
       ],
@@ -86,7 +86,7 @@
         },
         {
           "id": "auto_load_env",
-          "description": "Use `Agently.set_settings(..., auto_load_env=True)` when the settings payload depends on `.env`."
+          "description": "Use `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)` when file-backed settings depend on `.env`."
         },
         {
           "id": "fail_fast_validate_env",

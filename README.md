@@ -38,6 +38,20 @@ It provides native surfaces for:
 
 Agently-Skills is the official skills package for coding agents that need to build with Agently.
 
+It is not the same thing as the framework-side **Skills Executor** that now lives inside the Agently runtime:
+
+- `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
+- Agently `Skills Executor` — runtime capability for Agently apps and agents to install and apply external skills during real task execution
+
+The companion repo stays a coding-agent package. It does not become a runtime dependency of Agently applications.
+
+That said, individual skill directories are still plain-text packages. Agently's framework-side Skills Executor can install them as **guidance-only runtime skill sources** when a project intentionally wants to consume `Agently-Skills` at runtime for steering or design guidance. In that case the skill contributes guidance assets, not a standalone executable runtime.
+
+The main Agently repository now includes two runtime consumption examples for this boundary:
+
+- a DeepSeek-driven planning example that prints the resolved skill plan and the model's design answer
+- a more concrete artifact-generation example that wraps the same skills with structured output, validation, and file persistence so the generated files can be inspected directly
+
 It does more than explain API syntax. It teaches coding agents:
 
 - how to recognize Agently-appropriate scenarios from natural-language product requests
@@ -83,6 +97,18 @@ Async should usually be the default execution stance:
 - prefer async APIs for service code, streaming, TriggerFlow, tool concurrency, and any path that may benefit from overlap or cancellation
 - treat sync APIs as convenience wrappers for local scripts, teaching examples, or compatibility bridges
 - if the solution will live behind HTTP, SSE, WebSocket, or a long-running worker, assume async-first unless a concrete constraint proves otherwise
+
+## Post-4.1 Defaults
+
+When skills describe the recommended path for Agently `4.1+`, they should converge on these defaults:
+
+- structured output: fixed required leaves belong in tuple `ensure` form inside `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent paths
+- actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool aliases remain compatibility surfaces
+- TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close snapshot; do not present `.end()`, `set_result()`, `get_result()`, or `wait_for_result=` as normal new-code entrypoints
+- TriggerFlow state: prefer `get_state(...)` / `set_state(...)` for per-execution data; treat `flow_data` as intentionally shared and risky
+- settings loading: prefer `Agently.load_settings("yaml_file", path, auto_load_env=True)` for file-backed provider config; keep `Agently.set_settings(...)` for inline overrides
+- execution style: default to async-first for services, streaming, and workflows
+- response reuse: when one model result must be consumed multiple ways, prefer `get_response()` and reuse the same response object
 
 ## Standard Project Shape
 

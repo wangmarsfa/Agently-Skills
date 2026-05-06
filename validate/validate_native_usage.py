@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
@@ -45,10 +46,16 @@ def main() -> None:
             continue
         content = example_path.read_text(encoding="utf-8")
         for required in case["required_primitives"]:
+            if required == "tuple_ensure":
+                condition = re.search(r"\([^)\n]+,\s*True\)", content) is not None
+                details = "required primitive tuple ensure is present"
+            else:
+                condition = required in content
+                details = f"required primitive {required} is present"
             check(
                 f"{case['id']}_{required}",
-                required in content,
-                f"required primitive {required} is present",
+                condition,
+                details,
                 failures,
                 passes,
             )
