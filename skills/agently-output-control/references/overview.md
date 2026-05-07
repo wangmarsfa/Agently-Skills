@@ -8,4 +8,6 @@ For Agently `4.1.0.1+`, use tuple `ensure` in `.output(...)` for fixed required 
 
 Use `.validate(...)` or `validate_handler=` when the path exists but the value still needs business validation, such as enum checks, score ranges, or cross-field consistency.
 
+In advanced retry flows, validators may also tune later retries by writing through `context.prompt` or `context.settings`. Prefer `context.prompt.set("options", {...})` or `context.settings.set(...)` over mutating the object returned by `get()`, and document clearly that these writes affect later retries, not the current finished attempt, and do not leak into later fresh requests.
+
 When one request result will be read multiple ways, prefer `response = ...get_response()` and reuse `response.result`; validate runs once per response and is cached across later `get_data()` / `get_data_object()` reads.
