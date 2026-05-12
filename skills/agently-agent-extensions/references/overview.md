@@ -1,15 +1,52 @@
 # Overview
 
-This skill owns Agently-native extension surfaces: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation/evaluation tooling.
+This skill owns Agently-native extension surfaces: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation/evaluation tooling.
 
 Use it when:
 
 - the user needs built-in actions or tools such as `Browse`, including `@agent.action_func`, `agent.use_actions(...)`, MCP, or sandbox-backed execution
 - the user wants MCP or FastAPIHelper without hand-rolled wrappers
+- the user needs managed MCP, Bash, or Python sandbox lifecycle through `Agently.execution_environment`
+- the user is deciding whether a capability belongs in core, a plugin/provider, a built-in Action, or an Agent Component
 - the user wants local observation, evaluation, playground, or logs support through `agently-devtools`
 - the app owner layer is already known and the work is about attaching tooling around that app instead of redesigning the workflow itself
 
 For the public DevTools integration path, read `references/devtools.md`.
+
+## Execution Environment Boundary
+
+Use Execution Environment when a capability needs a managed live dependency before
+an Action or TriggerFlow execution can run.
+
+- `Agently.execution_environment` owns lifecycle, policy, approval, scope, health, and release for managed dependencies.
+- Action owns what is callable and how one call is normalized into an `ActionResult`.
+- TriggerFlow `runtime_resources` remains the execution-local live handle surface. Managed resources can be injected there, but TriggerFlow does not create or release them.
+- Built-in MCP, Bash sandbox, and Python sandbox actions should declare or consume Execution Environment resources rather than owning lifecycle inside the executor.
+
+Audience split:
+
+- App developers should normally use built-in Actions and Agent Components such as `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, and future `agent.enable_coding_workspace(...)`.
+- Action developers can use `register_action(..., execution_environments=[...])` when one action requires a managed dependency.
+- Plugin developers implement `ExecutionEnvironmentProvider` for environment kinds such as Bash, Python, Node.js, Docker, SQLite, vector store, browser, or remote runner.
+- Framework maintainers decide whether a feature belongs to core, provider, built-in capability, or Agent Component.
+- `enable_*` helper `desc=` parameters supplement default capability descriptions by default. Use `desc_mode="override"` only when replacing baseline usage and safety guidance is intentional.
+- Public helper APIs should use explicit typing for IDE assistance. Prefer `Literal` for finite option sets, including `desc_mode`.
+
+Do not design custom ActionExecutors that secretly start long-lived MCP servers,
+processes, or broad sandboxes when the environment can be declared and managed
+through Execution Environment.
+
+For runnable main-repo examples, check `examples/execution_environment/`.
+Start with the local `agent.enable_python(...)` quickstart, then use the
+Ollama/DeepSeek examples for model-driven Action selection. The TriggerFlow
+example is for workflow or framework developers who need managed
+execution-local resources.
+
+Do not turn Skills into a parallel executor. Skill scripts should map to built-in
+Actions and component helpers such as `agent.enable_python(...)`,
+`agent.enable_shell(...)`, and future Node.js helpers; MCP assets should map to
+MCP-backed Actions plus Execution Environment requirements; workflow templates
+should map to TriggerFlow.
 
 ## Practical Permission Profiles
 

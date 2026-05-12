@@ -8,7 +8,7 @@ Conceptually this is observability work. It belongs to `agently-agent-extensions
 
 Route here when the user wants:
 
-- local runtime observation for requests, tools, actions, or TriggerFlow executions
+- local observation for requests, tools, actions, or TriggerFlow executions
 - a local console, logs view, developer guide, or playground for an existing Agently app
 - scenario evaluation runs that compare prompt, settings, or flow variants
 - a local observation API app through `create_local_observation_app(...)`
@@ -43,7 +43,7 @@ bridge.register(Agently.event_center)
 Recommended environment split:
 
 - `AGENTLY_DEVTOOLS_BASE_URL` for local console and evaluation APIs
-- `AGENTLY_DEVTOOLS_INGEST_URL` for runtime event upload
+- `AGENTLY_DEVTOOLS_INGEST_URL` for observation event upload
 
 Keep this wiring in the app or observability layer, not inside prompt helpers or chunk handlers.
 
@@ -83,11 +83,11 @@ This keeps evaluation setup aligned with the same skill boundaries used during i
 
 - attach DevTools through `Agently.event_center` instead of writing a custom upload bridge first
 - keep DevTools optional and local-first; it should support development and debugging without becoming a runtime hard dependency
-- let TriggerFlow and request runtimes emit native observation events rather than inventing a second debug event schema
+- let TriggerFlow and requests emit native observation events rather than inventing a second debug event schema
 - prefer official console modules such as Runtime Observation, Evaluations, Playground, and Logs before building ad hoc dashboards
 
 ## Anti-Patterns
 
 - do not tell users to depend on unpublished or internal DevTools source layout
 - do not couple production request logic to DevTools-only classes
-- do not rewrite workflow logic just to make it observable when native runtime events already exist
+- do not rewrite workflow logic just to make it observable when native observation events already exist

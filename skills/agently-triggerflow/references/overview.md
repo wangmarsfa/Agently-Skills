@@ -14,6 +14,8 @@ Treat auto-close as the default for short workflows and manual close as the serv
 
 Use execution state (`get_state(...)`, `set_state(...)`, and async variants) for per-execution data. Flow data is shared across executions and should be treated as a risky internal/shared-state surface rather than normal workflow memory.
 
+For service packaging, prefer module-level named chunks and conditions with a small builder/factory that only assembles the flow. Put stable live dependencies such as `agent_factory`, clients, prompt paths, or loggers into flow-level `runtime_resources`; put request- or tenant-specific values into execution-level `runtime_resources`. Chunks should read required live dependencies with `data.require_resource(...)` and write per-request business values to execution state. Closures are acceptable for compact scripts, but they are not the recommended service shape because they reduce handler reuse, testing, and config/blueprint round-trip clarity.
+
 In Agently `v4.1.1`, TriggerFlow definitions, chunk signal metadata, and origin-chunk payloads are also strong enough to support graph-oriented debugging and local DevTools visualization without duplicating the workflow description.
 
 For the concrete `instant -> runtime stream` pattern, read `references/stream-bridge.md`.

@@ -18,6 +18,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - use `emit_nowait(...)` / `async_emit_nowait(...)` when a chunk must fan out without blocking the current handler, and rely on execution close to drain registered tasks
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
+- for service packaging, prefer module-level named chunks plus a small flow builder/factory; inject stable dependencies through flow-level `runtime_resources` and request-specific dependencies through execution-level `runtime_resources`
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
 - name chunks and stage boundaries so exported flow configs, Mermaid diagrams, and runtime graphs stay readable
@@ -32,6 +33,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - do not recommend `.end()`, `get_result()`, or `set_result()` as the default lifecycle path for new TriggerFlow code
 - do not use `get_runtime_data(...)` / `set_runtime_data(...)` in new guidance when `get_state(...)` / `set_state(...)` communicates the same intent
 - do not use flow data for per-execution state
+- do not make service chunks depend on closure-captured business context when `runtime_resources` would keep the handler reusable, testable, and export-friendly
 - do not pass raw model stream paths directly to the UI when the workflow can translate them into stable business events
 - do not hide draft/judge/revise or similar loops inside one opaque helper
 - do not make DevTools or graph tooling the source of truth for workflow structure when TriggerFlow definitions already are
