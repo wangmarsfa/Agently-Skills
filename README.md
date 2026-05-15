@@ -17,7 +17,7 @@ For unpublished cross-repo work, match against Agently companion protocols first
 - DevTools guidance protocol: `agently-skills.devtools-guidance.v1`
 
 The source of truth for a published framework release remains Agently's release registry entry under `../Agently/compatibility/releases/`.
-The public next-release development target lives in `../Agently/compatibility/in-development.json`. It currently targets `4.1.1.1`.
+The public next-release development target lives in `../Agently/compatibility/in-development.json`. It currently targets `4.1.2`.
 
 ## What Is Agently?
 

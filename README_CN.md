@@ -17,7 +17,7 @@
 - DevTools guidance protocol：`agently-skills.devtools-guidance.v1`
 
 已发布框架版本的事实来源仍然是 Agently 主仓库下 `../Agently/compatibility/releases/` 的分版本 registry 文件。
-公开的下一个发布目标位于 `../Agently/compatibility/in-development.json`，当前目标版本是 `4.1.1.1`。
+公开的下一个发布目标位于 `../Agently/compatibility/in-development.json`，当前目标版本是 `4.1.2`。
 
 ## 什么是 Agently？
 
