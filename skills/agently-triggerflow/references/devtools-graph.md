@@ -2,7 +2,7 @@
 
 Use this reference when the workflow design needs to stay inspectable in local DevTools, exported configs, or review artifacts.
 
-## Why This Matters In v4.0.9
+## Why This Matters In v4.1.1
 
 TriggerFlow execution metadata is now rich enough for graph-oriented debugging without inventing a second workflow description.
 
@@ -61,7 +61,7 @@ Keep runtime resources and flow structure separate:
 
 When the user wants local visualization through `agently-devtools`, keep the responsibilities split:
 
-- `agently-agent-extensions` owns attaching `ObservationBridge`, evaluation tooling, and the local console
+- `agently-runtime` owns attaching `ObservationBridge`, evaluation tooling, and the local console
 - `agently-triggerflow` owns making the workflow readable, stable, and graph-friendly enough to observe well
 
 Do not move workflow responsibility into DevTools. Make the TriggerFlow clearer.

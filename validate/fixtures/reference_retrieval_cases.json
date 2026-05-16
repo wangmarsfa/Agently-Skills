@@ -23,7 +23,7 @@
         },
         {
           "id": "settings_auto_load_env",
-          "description": "Provider settings can keep `${ENV.xxx}` placeholders and be applied through `Agently.set_settings(..., auto_load_env=True)`."
+          "description": "Provider settings can keep `${ENV.xxx}` placeholders and be applied through `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`."
         },
         {
           "id": "playbook_owns_initialization",
@@ -39,13 +39,13 @@
     },
     {
       "id": "prompt-placeholder-config-en",
-      "query": "After prompt-management is already matched, I need the supporting doc that explains keeping `${topic}` and `${language}` inside YAML prompt files, injecting them through mappings, and using config files as a bridge for request-side behavior. Which file should I open first?",
+      "query": "After agently-request is already matched for prompt management, I need the supporting doc that explains keeping `${topic}` and `${language}` inside YAML prompt files, injecting them through mappings, and using config files as a bridge for request-side behavior. Which file should I open first?",
       "matched_skills": [
-        "agently-prompt-management"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
-          "skills/agently-prompt-management/SKILL.md"
+          "skills/agently-request/references/prompt-management.md"
         ]
       ],
       "concepts": [
@@ -70,13 +70,13 @@
     },
     {
       "id": "model-settings-env-en",
-      "query": "After model-setup is already matched, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.set_settings(..., auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
+      "query": "After agently-request is already matched for model setup, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
       "matched_skills": [
-        "agently-model-setup"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
-          "skills/agently-model-setup/SKILL.md"
+          "skills/agently-request/references/model-setup.md"
         ]
       ],
       "concepts": [
@@ -86,7 +86,7 @@
         },
         {
           "id": "auto_load_env",
-          "description": "Use `Agently.set_settings(..., auto_load_env=True)` when the settings payload depends on `.env`."
+          "description": "Use `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)` when file-backed settings depend on `.env`."
         },
         {
           "id": "fail_fast_validate_env",
@@ -104,8 +104,7 @@
       "query": "Routing already decided this is TriggerFlow plus response reuse and structured output. I now need the concrete supporting file that shows one workflow step producing a stable plan object, reusing the same response as preview text and parsed actions, and dispatching downstream work after that plan is available. Which file should I open first?",
       "matched_skills": [
         "agently-triggerflow",
-        "agently-model-response",
-        "agently-output-control"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
@@ -130,6 +129,95 @@
         "structured_output_contract",
         "response_reuse_no_rerequest",
         "workflow_dispatch_after_plan"
+      ]
+    },
+    {
+      "id": "triggerflow-lifecycle-close-zh",
+      "query": "我已经确定要用 TriggerFlow，现在需要先看哪份参考来理解 execution lifecycle、auto_close、manual close、以及为什么新代码要用 close 或 async_close 做收尾？",
+      "matched_skills": [
+        "agently-triggerflow"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/overview.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "execution_lifecycle_control",
+          "description": "TriggerFlow execution should be explicitly closed for cleanup and final state."
+        },
+        {
+          "id": "auto_close_manual_close",
+          "description": "Short workflows can use auto-close while long-running services use manual close."
+        },
+        {
+          "id": "close_over_result_polling",
+          "description": "New TriggerFlow guidance prefers close over result polling."
+        }
+      ],
+      "required_concepts": [
+        "execution_lifecycle_control",
+        "auto_close_manual_close",
+        "close_over_result_polling"
+      ]
+    },
+    {
+      "id": "triggerflow-runtime-stream-close-en",
+      "query": "After routing to TriggerFlow, which reference explains bridging model instant updates into runtime stream events and closing the execution so stream consumers get a stop signal?",
+      "matched_skills": [
+        "agently-triggerflow",
+        "agently-request"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/stream-bridge.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "stable_runtime_stream_events",
+          "description": "Workflow stream items should be stable business events rather than raw parser paths."
+        },
+        {
+          "id": "execution_close_stops_stream",
+          "description": "Execution close is responsible for stopping the runtime stream."
+        },
+        {
+          "id": "model_stream_bridge",
+          "description": "Model-side instant updates can be accumulated and emitted as workflow-owned events."
+        }
+      ],
+      "required_concepts": [
+        "stable_runtime_stream_events",
+        "execution_close_stops_stream",
+        "model_stream_bridge"
+      ]
+    },
+    {
+      "id": "triggerflow-state-vs-flow-data-zh",
+      "query": "我需要确认 TriggerFlow 里每次执行自己的状态应该放哪里，以及为什么不该把 flow_data 当成并发 execution 的普通状态存储。应该先看哪份参考？",
+      "matched_skills": [
+        "agently-triggerflow"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-triggerflow/references/overview.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "execution_state",
+          "description": "Per-run data belongs in execution state."
+        },
+        {
+          "id": "flow_data_risk",
+          "description": "Flow data is shared across executions and is risky under concurrency."
+        }
+      ],
+      "required_concepts": [
+        "execution_state",
+        "flow_data_risk"
       ]
     }
   ]

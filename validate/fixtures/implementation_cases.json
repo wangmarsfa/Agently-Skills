@@ -3,10 +3,10 @@
   "cases": [
     {
       "id": "output-contract-native",
-      "reference_example": "skills/agently-output-control/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/output-control-minimal.py",
       "required_primitives": [
         ".output(",
-        "ensure_keys"
+        "tuple_ensure"
       ],
       "forbidden_antipatterns": [
         "json.loads(",
@@ -17,7 +17,7 @@
     },
     {
       "id": "response-reuse-native",
-      "reference_example": "skills/agently-model-response/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/model-response-minimal.py",
       "required_primitives": [
         "get_response()",
         "result.get_data("
@@ -34,7 +34,8 @@
       "reference_example": "skills/agently-triggerflow/examples/minimal.py",
       "required_primitives": [
         "TriggerFlow",
-        ".to("
+        ".to(",
+        "async_close"
       ],
       "forbidden_antipatterns": [
         "while True",
@@ -49,7 +50,8 @@
       "required_primitives": [
         "TriggerFlow",
         ".output(",
-        "get_response()"
+        "get_response()",
+        "async_close"
       ],
       "forbidden_antipatterns": [
         "while True",
@@ -60,7 +62,7 @@
     },
     {
       "id": "provider-setup-native",
-      "reference_example": "skills/agently-model-setup/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/model-setup-minimal.py",
       "required_primitives": [
         "Agently.set_settings(",
         "\"OpenAICompatible\""

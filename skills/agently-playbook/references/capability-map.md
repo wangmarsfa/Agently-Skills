@@ -14,12 +14,7 @@ Examples that should still start here:
 
 - unresolved business, product, or refactor request -> stay here first
 - project initialization, repo skeleton, or first-pass standard structure for a model app -> stay here first
-- provider wiring, settings-file model separation, `${ENV.xxx}` placeholders, or auto `.env` loading -> `agently-model-setup`
-- prompt composition, prompt config, placeholder mappings, or config-file bridge for prompt behavior -> `agently-prompt-management`
-- output contract and required keys -> `agently-output-control`
-- response reuse, metadata, and stream consumption -> `agently-model-response`
-- session continuity or restore -> `agently-session-memory`
-- tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation/evaluation/playground integration -> `agently-agent-extensions`
-- embeddings and retrieval -> `agently-knowledge-base`
+- model setup, prompt management, output control, response reuse, session memory, embeddings, KB, or retrieval-to-answer -> `agently-request`
+- Action Runtime, built-in actions, tools compatibility, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation/evaluation/playground integration -> `agently-runtime`
 - branching, concurrency, waiting/resume, mixed sync/async orchestration, event-driven fan-out, process-clarity refactors, graph-friendly workflow definitions, or multi-stage quality loops -> `agently-triggerflow`
-- unresolved migration ownership -> `agently-migration-playbook`
+- unresolved migration ownership -> `agently-migration`

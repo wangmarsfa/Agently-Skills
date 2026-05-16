@@ -48,12 +48,12 @@ async def run_model_smoke(failures: list[str], passes: list[str]) -> None:
     agent = Agently.create_agent("v2-live-validator")
     response = (
         agent.input("Return answer=ok and one checklist item.")
-        .output({"answer": (str,), "checklist": [(str,)]})
+        .output({"answer": (str, None, True), "checklist": [(str, None, True)]})
         .get_response()
     )
     try:
         data = await asyncio.wait_for(
-            response.result.async_get_data(ensure_keys=["answer", "checklist[*]"], max_retries=1),
+            response.result.async_get_data(max_retries=1),
             timeout=60,
         )
         check(
@@ -131,23 +131,21 @@ async def judge_route_case(case: dict) -> dict:
         "- If one installed non-playbook skill directly and narrowly owns the request, prefer that leaf skill without agently-playbook.\n"
         "- If the request is still unresolved between one request family and workflow orchestration, stop at agently-playbook.\n"
         "- If the request explicitly says it should stay inside one request family, treat that as resolved away from workflow orchestration rather than unresolved.\n"
-        "- If the request clearly stays inside one request family and asks for stable structured fields, required keys, or machine-readable reports, continue with agently-output-control when installed.\n"
-        "- If the same request also needs response reuse, metadata consumption, or partial structured updates, continue with agently-model-response when installed.\n"
+        "- If the request clearly stays inside one request family and asks for model setup, prompt management, structured fields, required keys, response reuse, session memory, retrieval, or machine-readable reports, continue with agently-request when installed.\n"
         "- If the request clearly needs branching, concurrency, approvals, waiting and resume, runtime stream, or explicit draft-review-revise loops, continue with agently-triggerflow when installed.\n"
         "- If the request is about simplifying tangled process expression, making stages or dependencies explicit, or making flow management easier to understand, prefer agently-triggerflow when installed.\n"
         "- If the request is a performance optimization or refactor caused by splitting one transaction across multiple model requests just to separate user-facing progress from structured downstream instructions, prefer agently-triggerflow when installed.\n"
-        "- If the workflow request also needs one response instance to serve text, parsed data, metadata, or partial updates without re-requesting, append agently-model-response after agently-triggerflow when installed.\n"
-        "- If the workflow request explicitly mentions stable structured objects, required keys, machine-readable blocks, action lists, or downstream branches/workers consuming the result, append agently-output-control after agently-triggerflow when installed.\n"
-        "- Do not omit agently-output-control when the request explicitly asks for required keys or a stable machine-readable object from one model step.\n"
+        "- If the workflow request also needs one response instance to serve text, parsed data, metadata, partial updates, stable structured objects, required keys, machine-readable blocks, or downstream branches/workers consuming a model result, append agently-request after agently-triggerflow when installed.\n"
+        "- Do not omit agently-request when the request explicitly asks for required keys, response reuse, prompt config, provider settings, retrieval, or a stable machine-readable object from one model step.\n"
         "- If both workflow-side response reuse and workflow-side structured fan-out are explicit, prefer agently-triggerflow first and then add the most central companion skill before any secondary companion.\n"
         "- If the request is about mixed sync and async function, module, or process orchestration, branch-collect, or waiting for multiple events, prefer agently-triggerflow even when some steps are not model calls.\n"
-        "- If the request explicitly wants prompt management, model setup, and business workflow split into separate layers, prefer agently-triggerflow first for the workflow layer, then append agently-prompt-management and agently-model-setup when installed.\n"
-        "- If the request explicitly wants config files or YAML to bridge frontend-controlled behavior into prompt or request behavior, prefer agently-prompt-management when installed.\n"
-        "- If that same config-bridge request also says the config should drive workflow stages or flow parameters, append agently-triggerflow after agently-prompt-management when installed.\n"
-        "- If the request explicitly says provider settings, model selection, or auth should stay in settings or env placeholders rather than workflow code, append agently-model-setup when installed.\n"
+        "- If the request explicitly wants prompt management, model setup, and business workflow split into separate layers, prefer agently-triggerflow first for the workflow layer, then append agently-request when installed.\n"
+        "- If the request explicitly wants config files or YAML to bridge frontend-controlled behavior into prompt or request behavior, prefer agently-request when installed.\n"
+        "- If that same config-bridge request also says the config should drive workflow stages or flow parameters, append agently-triggerflow after agently-request when installed.\n"
+        "- If the request explicitly says provider settings, model selection, or auth should stay in settings or env placeholders rather than workflow code, append agently-request when installed.\n"
         "- If the request is about initializing or scaffolding a new model-powered project and the owner layers are not decided yet, stop at agently-playbook.\n"
         "- If the request is about initializing or scaffolding a new project into separate settings, prompt, and workflow layers, keep agently-playbook first even when later leaf skills are explicit.\n"
-        "- If the request is mainly provider wiring or connectivity, continue with agently-model-setup when installed.\n"
+        "- If the request is mainly provider wiring or connectivity, continue with agently-request when installed.\n"
         f"- Every item in route_path must be exactly one of: {allowed}.\n"
     )
 
@@ -160,18 +158,16 @@ async def judge_route_case(case: dict) -> dict:
                 "decision": (
                     Literal["sure", "unsure"],
                     "Routing confidence. Use sure only when metadata boundaries clearly support the chosen path.",
+                    True,
                 ),
-                "route_path": [(str, f"Exact skill name. Must be one of: {allowed}.")],
-                "reason": (str, "Short explanation of why this route path is correct."),
-                "evidence": [(str, "Short metadata evidence supporting the selected route.")],
+                "route_path": [(str, f"Exact skill name. Must be one of: {allowed}.", True)],
+                "reason": (str, "Short explanation of why this route path is correct.", True),
+                "evidence": [(str, "Short metadata evidence supporting the selected route.", True)],
             }
         )
         .get_response()
     )
-    data = await response.result.async_get_data(
-        ensure_keys=["decision", "route_path[*]", "reason", "evidence[*]"],
-        max_retries=1,
-    )
+    data = await response.result.async_get_data(max_retries=1)
     data["decision"] = str(data["decision"]).strip().lower()
     data["route_path"] = [normalize_skill_name(item) for item in data["route_path"]]
     return data
@@ -220,8 +216,16 @@ async def run_route_live_validation(
     async def validate_in_flow(data):
         return await validate_route_case(data.value, timeout_seconds=timeout_seconds)
 
-    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().end()
-    results = await flow.async_start(fixtures)
+    @flow.chunk("store_results")
+    async def store_results(data):
+        await data.async_set_state("results", data.input)
+        return data.input
+
+    flow.for_each(concurrency=concurrency).to(validate_in_flow).end_for_each().to(store_results)
+    execution = flow.create_execution(auto_close=False)
+    await execution.async_start(fixtures)
+    state = await execution.async_close()
+    results = state["results"]
 
     for result in results:
         check(result["name"], result["ok"], result["details"], failures, passes)

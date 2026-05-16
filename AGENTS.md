@@ -5,7 +5,9 @@ description: Central catalog and documentation for Agently Skills V2. Use when w
 
 # Agently Skills Catalog
 
-This package publishes the Agently Skills V2 catalog under `skills/`.
+This package publishes the current Agently Skills catalog generation `v2` under
+`skills/`. The frozen V1 catalog is archived under `legacy/v1/` and is not part
+of default installation, routing, or bundle guidance.
 
 Use this file as installation-time guidance after the skills are added into another project or agent environment.
 
@@ -17,6 +19,16 @@ Use this file as installation-time guidance after the skills are added into anot
 - Treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source-repo dependency.
 - Keep public skill boundaries capability-first and mutually exclusive.
 - Treat multi-agent, judge, and review flows as scenario recipes unless they need a dedicated framework surface.
+- Do not recommend `legacy/v1/` for new projects; it exists only for explicit
+  rollback or historical projects.
+
+## Model Example Guidance
+
+- Agently recommended examples, cookbook examples, public teaching examples, and training-derived examples must exercise a real model through DeepSeek or local Ollama.
+- DeepSeek credentials may be loaded through dotenv by the example itself. Do not mark DeepSeek unavailable only because `DEEPSEEK_API_KEY` is absent from the parent shell environment.
+- Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
+- Local functions may be used only as business capabilities, Actions, fake external systems, executor/provider smoke targets, or deterministic resources called by the model-driven flow.
+- Low-level infrastructure smoke examples may run without a model only when they are explicitly scoped to executor/provider behavior and are not presented as model-app patterns.
 
 ## Project Defaults
 
@@ -29,12 +41,10 @@ Use this file as installation-time guidance after the skills are added into anot
 ## Skill Routing Reminders
 
 - `agently-playbook`: unresolved owner layer, project shape, or broad product request
-- `agently-model-setup`: provider wiring, env placeholders, model settings, namespace placement, and connectivity checks
-- `agently-prompt-management`: prompt config, mappings, reusable request contracts, and prompt-side output contracts
-- `agently-output-control`: structured output shape, required keys, reliability, and structured streaming
-- `agently-model-response`: response reuse, async getters, metadata, and stream consumption
-- `agently-agent-extensions`: tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
+- `agently-request`: provider wiring, env placeholders, model settings, prompt config, structured output, response reuse, session memory, embeddings, and retrieval
+- `agently-runtime`: Action Runtime, tools, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
 - `agently-triggerflow`: explicit orchestration, branching, concurrency, runtime stream, workflow-owned business events, and execution-graph-friendly workflow definitions
+- `agently-migration`: migration from LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently-native layers
 
 ## Anti-Patterns
 

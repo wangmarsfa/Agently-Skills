@@ -2,11 +2,29 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "validate" / "fixtures" / "implementation_cases.json"
+TRIGGERFLOW_EXAMPLES = ROOT / "skills" / "agently-triggerflow" / "examples"
+TRIGGERFLOW_LEGACY_ALLOWLIST: set[Path] = set()
+DEPRECATED_TRIGGERFLOW_TOKENS = [
+    ".end(",
+    ".start(",
+    "get_result(",
+    "set_result(",
+    "get_runtime_data(",
+    "set_runtime_data(",
+    "append_runtime_data(",
+    "del_runtime_data(",
+    "get_flow_data(",
+    "set_flow_data(",
+    "append_flow_data(",
+    "del_flow_data(",
+    "get_runtime_stream(",
+]
 
 
 def check(name: str, condition: bool, details: str, failures: list[str], passes: list[str]) -> None:
@@ -28,10 +46,16 @@ def main() -> None:
             continue
         content = example_path.read_text(encoding="utf-8")
         for required in case["required_primitives"]:
+            if required == "tuple_ensure":
+                condition = re.search(r"\([^)\n]+,\s*True\)", content) is not None
+                details = "required primitive tuple ensure is present"
+            else:
+                condition = required in content
+                details = f"required primitive {required} is present"
             check(
                 f"{case['id']}_{required}",
-                required in content,
-                f"required primitive {required} is present",
+                condition,
+                details,
                 failures,
                 passes,
             )
@@ -47,6 +71,27 @@ def main() -> None:
             f"{case['id']}_profile",
             case["live_smoke_profile"] in {"deepseek", "local"},
             "live smoke profile is valid",
+            failures,
+            passes,
+        )
+
+    for example_path in sorted(TRIGGERFLOW_EXAMPLES.glob("*.py")):
+        relative_path = example_path.relative_to(ROOT)
+        if relative_path in TRIGGERFLOW_LEGACY_ALLOWLIST:
+            continue
+        content = example_path.read_text(encoding="utf-8")
+        for token in DEPRECATED_TRIGGERFLOW_TOKENS:
+            check(
+                f"triggerflow_examples_no_deprecated_{example_path.stem}_{token}",
+                token not in content,
+                f"recommended TriggerFlow example does not use deprecated token {token}",
+                failures,
+                passes,
+            )
+        check(
+            f"triggerflow_examples_close_{example_path.stem}",
+            "async_close" in content or ".close(" in content,
+            "recommended TriggerFlow example uses explicit execution close",
             failures,
             passes,
         )
