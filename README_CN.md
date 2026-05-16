@@ -10,9 +10,8 @@
 默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.2
 开发线和新的 5-skill 结构对齐。
 
-机器可读兼容声明位于 `compatibility/support.json`。未发布跨仓协作的事实
-来源是 Agently 主仓库的公开开发清单：
-`../Agently/compatibility/in-development.json`。
+机器可读兼容声明位于 `compatibility/support.json`。未发布跨仓协作应匹配
+当前 Agently development compatibility target。
 
 未发布工作应优先匹配 companion protocols 和 catalog generation：
 
@@ -21,8 +20,7 @@
 - 当前 catalog generation：`v2`
 - 推荐 bundle：`app`
 
-已发布框架版本的事实来源仍然是 Agently 主仓库下
-`../Agently/compatibility/releases/` 的分版本 registry 文件。
+已发布框架版本应遵循对应 Agently release 的 compatibility registry。
 
 ## 什么是 Agently？
 

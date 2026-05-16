@@ -11,8 +11,8 @@ The default public catalog is the current Agently-Skills generation `v2`, aligne
 with the Agently 4.1.2 development line and the compact 5-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
-The source of truth for unpublished cross-repo work is Agently's public
-development manifest at `../Agently/compatibility/in-development.json`.
+For unpublished cross-repo work, match the active Agently development
+compatibility target.
 
 For unpublished work, match companion protocols and catalog generation first:
 
@@ -21,8 +21,8 @@ For unpublished work, match companion protocols and catalog generation first:
 - current catalog generation: `v2`
 - recommended bundle: `app`
 
-The source of truth for a published framework release remains Agently's release
-registry entry under `../Agently/compatibility/releases/`.
+For a published framework release, follow the compatibility registry entry for
+that Agently release.
 
 ## What Is Agently?
 
