@@ -19,48 +19,16 @@ Use this file as installation-time guidance after the skills are added into anot
 - Treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source-repo dependency.
 - Keep public skill boundaries capability-first and mutually exclusive.
 - Treat multi-agent, judge, and review flows as scenario recipes unless they need a dedicated framework surface.
-- Treat `catalog_generation` and `recommended_bundle` as compatibility fields
-  that must stay aligned with `../Agently/compatibility/in-development.json`.
 - Do not recommend `legacy/v1/` for new projects; it exists only for explicit
   rollback or historical projects.
 
-## Source Alignment Rule
-
-- This repository is the official companion guidance repository for `github.com/AgentEra/Agently`.
-- Skills must follow Agently public APIs, recommended usage, deprecation policy, and runtime behavior.
-- Machine-readable compatibility support lives in `compatibility/support.json` and must stay aligned with the Agently release registry under `../Agently/compatibility/`.
-- Do not present deprecated Agently APIs as the default path. Deprecated APIs may appear only in explicit legacy or migration notes.
-- When Agently changes a public API, runtime behavior, or recommendation, update affected Skills guidance, examples, fixtures, and validation rules in the same work item.
-
-## Companion Change Rule
-
-- TriggerFlow changes require checking `skills/agently-triggerflow/`,
-  `skills/agently-playbook/references/project-framework.md`, route fixtures,
-  reference fixtures, native usage validation, and README guidance.
-- Action Runtime, ModelResponse, Session, FastAPIHelper, settings, prompt
-  config, tools, MCP, knowledge-base, and DevTools integration changes require
-  the same companion impact review through `skills/agently-request/` and
-  `skills/agently-runtime/`.
-- If the Agently source repository is unavailable, record that source alignment could not be verified.
-
-## Examples Validation
+## Model Example Guidance
 
 - Agently recommended examples, cookbook examples, public teaching examples, and training-derived examples must exercise a real model through DeepSeek or local Ollama.
 - DeepSeek credentials may be loaded through dotenv by the example itself. Do not mark DeepSeek unavailable only because `DEEPSEEK_API_KEY` is absent from the parent shell environment.
 - Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
 - Local functions may be used only as business capabilities, Actions, fake external systems, executor/provider smoke targets, or deterministic resources called by the model-driven flow.
 - Low-level infrastructure smoke examples may run without a model only when they are explicitly scoped to executor/provider behavior and are not presented as model-app patterns.
-- Every recommended model-app example must include an `Expected key output` source comment that records stable key results from a real run.
-- Do not invent example outputs. Re-run the example with DeepSeek or local Ollama and update the comment when model behavior materially changes.
-
-## Validation Rule
-
-- After changing skill content, run the relevant validation scripts under `validate/`.
-- Run `python validate/validate_compatibility.py` whenever compatibility guidance, release-line claims, or DevTools integration guidance changes.
-- At minimum for TriggerFlow guidance changes, run `python validate/validate_catalog.py`, `python validate/validate_bundle_manifest.py`, `python validate/validate_native_usage.py`, `python validate/validate_trigger_paths.py`, and `python validate/validate_reference_retrieval.py` when model/runtime credentials are available.
-- Validation should fail if recommended TriggerFlow examples use deprecated lifecycle, result, runtime-data, or flow-data APIs outside an explicit legacy allowlist.
-- Validation should fail if the default catalog contains anything other than the
-  current 5 public skills, or if default bundles reference `legacy/v1/`.
 
 ## Project Defaults
 
