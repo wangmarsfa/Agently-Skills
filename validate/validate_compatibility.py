@@ -7,6 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORT = ROOT / "compatibility" / "support.json"
+DEFAULT_BUNDLE_MANIFEST = ROOT / "bundles" / "manifest.json"
+LEGACY_V1_SUPPORT = ROOT / "legacy" / "v1" / "compatibility" / "support.json"
 AGENTLY_ROOT = ROOT.parent / "Agently"
 AGENTLY_INDEX = AGENTLY_ROOT / "compatibility" / "index.json"
 AGENTLY_IN_DEVELOPMENT = AGENTLY_ROOT / "compatibility" / "in-development.json"
@@ -19,6 +21,10 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
         failures.append(f"{name}: {details}")
 
 
+def version_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in value.split("."))
+
+
 def main() -> None:
     passes: list[str] = []
     failures: list[str] = []
@@ -27,22 +33,85 @@ def main() -> None:
     protocols = support.get("supported_protocols", {})
     authoring = protocols.get("authoring", [])
     devtools_guidance = protocols.get("devtools_guidance", [])
+    catalog_generation = support.get("catalog_generation")
+    supported_catalog_generations = support.get("supported_catalog_generations", [])
+    recommended_bundle = support.get("recommended_bundle")
+    aligned_version = support.get("aligned_framework_version")
 
     check("schema_version", support.get("schema_version") == 1, "support manifest schema is 1", failures, passes)
     check("framework", support.get("framework") == "agently", "framework is agently", failures, passes)
-    check("aligned_framework_version", isinstance(support.get("aligned_framework_version"), str), "aligned framework version exists", failures, passes)
+    check("aligned_framework_version", isinstance(aligned_version, str), "aligned framework version exists", failures, passes)
+    check("catalog_generation", catalog_generation == "v2", "current support manifest declares catalog generation v2", failures, passes)
+    check(
+        "supported_catalog_generations",
+        isinstance(supported_catalog_generations, list) and catalog_generation in supported_catalog_generations,
+        "current generation is listed in supported catalog generations",
+        failures,
+        passes,
+    )
+    check("recommended_bundle", recommended_bundle == "app", "current support manifest recommends app bundle", failures, passes)
     check("authoring_protocols", bool(authoring), "authoring protocols declared", failures, passes)
     check("devtools_guidance_protocols", bool(devtools_guidance), "devtools guidance protocols declared", failures, passes)
 
+    default_manifest = json.loads(DEFAULT_BUNDLE_MANIFEST.read_text(encoding="utf-8"))
+    check(
+        "default_bundle_manifest_generation",
+        default_manifest.get("catalog_generation") == catalog_generation,
+        "default bundle manifest catalog generation matches support manifest",
+        failures,
+        passes,
+    )
+    check(
+        "recommended_bundle_exists",
+        any(bundle.get("id") == recommended_bundle for bundle in default_manifest.get("bundles", [])),
+        "recommended bundle exists in default bundle manifest",
+        failures,
+        passes,
+    )
+
+    legacy_support = json.loads(LEGACY_V1_SUPPORT.read_text(encoding="utf-8"))
+    legacy_generations = support.get("legacy_generations", [])
+    legacy_v1 = next((item for item in legacy_generations if item.get("generation") == "v1"), None)
+    check("legacy_v1_listed", isinstance(legacy_v1, dict), "support manifest lists legacy V1 generation", failures, passes)
+    if isinstance(legacy_v1, dict):
+        check(
+            "legacy_v1_last_supported_matches",
+            legacy_v1.get("last_supported_framework_version") == legacy_support.get("last_supported_framework_version"),
+            "root support legacy V1 last-supported version matches legacy/v1 support manifest",
+            failures,
+            passes,
+        )
+        default_skills = {
+            skill
+            for bundle in default_manifest.get("bundles", [])
+            for skill in bundle.get("active_skills", [])
+        }
+        legacy_default_refs = {skill for skill in default_skills if skill.startswith("legacy/")}
+        check(
+            "legacy_v1_not_default_bundle",
+            not legacy_default_refs,
+            "default bundle active skills do not reference legacy paths",
+            failures,
+            passes,
+        )
+
     if AGENTLY_INDEX.exists():
         index = json.loads(AGENTLY_INDEX.read_text(encoding="utf-8"))
-        aligned_version = support.get("aligned_framework_version")
         release_files = index.get("release_files", {})
         release_path = release_files.get(aligned_version)
+        if not isinstance(release_path, str) and AGENTLY_IN_DEVELOPMENT.exists():
+            in_development = json.loads(AGENTLY_IN_DEVELOPMENT.read_text(encoding="utf-8"))
+            check(
+                "aligned_development_target",
+                in_development.get("target_version") == aligned_version,
+                "aligned framework version may point at the Agently in-development target before release",
+                failures,
+                passes,
+            )
         check(
             "aligned_release_manifest_entry",
-            isinstance(release_path, str),
-            "Agently compatibility registry contains the aligned release entry",
+            isinstance(release_path, str) or AGENTLY_IN_DEVELOPMENT.exists(),
+            "Agently compatibility registry contains the aligned release entry or matching in-development target",
             failures,
             passes,
         )
@@ -67,6 +136,7 @@ def main() -> None:
     if AGENTLY_IN_DEVELOPMENT.exists():
         in_development = json.loads(AGENTLY_IN_DEVELOPMENT.read_text(encoding="utf-8"))
         skills = in_development.get("companions", {}).get("skills", {})
+        target_version = in_development.get("target_version")
         check(
             "in_development_authoring_protocol_supported",
             skills.get("authoring_protocol") in authoring,
@@ -81,14 +151,68 @@ def main() -> None:
             failures,
             passes,
         )
+        check(
+            "in_development_catalog_generation_supported",
+            skills.get("catalog_generation") == catalog_generation,
+            "Agently in-development Skills catalog generation is supported by Agently-Skills",
+            failures,
+            passes,
+        )
+        check(
+            "in_development_recommended_bundle_supported",
+            skills.get("recommended_bundle") == recommended_bundle,
+            "Agently in-development recommended Skills bundle is supported by Agently-Skills",
+            failures,
+            passes,
+        )
+        in_dev_legacy = skills.get("legacy_generations", [])
+        in_dev_legacy_v1 = next((item for item in in_dev_legacy if item.get("generation") == "v1"), None)
+        check(
+            "in_development_legacy_v1_declared",
+            isinstance(in_dev_legacy_v1, dict),
+            "Agently in-development manifest declares legacy V1 generation",
+            failures,
+            passes,
+        )
+        if isinstance(in_dev_legacy_v1, dict):
+            last_supported = in_dev_legacy_v1.get("last_supported_framework_version")
+            check(
+                "in_development_legacy_v1_last_supported_matches",
+                last_supported == legacy_support.get("last_supported_framework_version"),
+                "Agently in-development legacy V1 last-supported version matches Agently-Skills",
+                failures,
+                passes,
+            )
+            if isinstance(target_version, str) and isinstance(last_supported, str):
+                check(
+                    "legacy_v1_not_after_target",
+                    version_tuple(last_supported) <= version_tuple(target_version),
+                    "legacy V1 last-supported version is not newer than the current development target",
+                    failures,
+                    passes,
+                )
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     readme_cn = (ROOT / "README_CN.md").read_text(encoding="utf-8")
-    aligned_version = str(support.get("aligned_framework_version"))
+    aligned_version = str(aligned_version)
     check(
         "readme_mentions_aligned_version",
         f"Agently {aligned_version}" in readme,
         "README mentions the aligned Agently release line",
+        failures,
+        passes,
+    )
+    check(
+        "readme_mentions_legacy_v1",
+        "legacy/v1" in readme and "4.1.1" in readme,
+        "README documents legacy V1 rollback and last supported Agently version",
+        failures,
+        passes,
+    )
+    check(
+        "readme_cn_mentions_legacy_v1",
+        "legacy/v1" in readme_cn and "4.1.1" in readme_cn,
+        "README_CN documents legacy V1 rollback and last supported Agently version",
         failures,
         passes,
     )

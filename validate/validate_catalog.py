@@ -8,9 +8,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
+LEGACY_V1 = ROOT / "legacy" / "v1"
+LEGACY_V1_SKILLS_DIR = LEGACY_V1 / "skills"
 ROUTE_FIXTURES = ROOT / "validate" / "fixtures" / "route_cases.json"
 REFERENCE_FIXTURES = ROOT / "validate" / "fixtures" / "reference_retrieval_cases.json"
 EXPECTED_SKILLS = {
+    "agently-playbook",
+    "agently-request",
+    "agently-runtime",
+    "agently-triggerflow",
+    "agently-migration",
+}
+LEGACY_V1_SKILLS = {
     "agently-playbook",
     "agently-model-setup",
     "agently-prompt-management",
@@ -32,6 +41,16 @@ PUBLIC_FILES = [
     ROOT / "compatibility" / "support.json",
 ]
 RETIRED_SKILLS = [
+    "agently-model-setup",
+    "agently-prompt-management",
+    "agently-output-control",
+    "agently-model-response",
+    "agently-session-memory",
+    "agently-agent-extensions",
+    "agently-knowledge-base",
+    "agently-migration-playbook",
+    "agently-langchain-to-agently",
+    "agently-langgraph-to-triggerflow",
     "agently-model-request-playbook",
     "agently-input-composition",
     "agently-tools",
@@ -75,8 +94,9 @@ def main() -> None:
         failures,
         passes,
     )
+    check("legacy_v1_dir_exists", LEGACY_V1.exists(), "legacy/v1 directory exists", failures, passes)
     actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
-    check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches V2 skill set", failures, passes)
+    check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches current 5-skill set", failures, passes)
 
     playbook_text = (SKILLS / "agently-playbook" / "SKILL.md").read_text(encoding="utf-8")
     triggerflow_text = (SKILLS / "agently-triggerflow" / "SKILL.md").read_text(encoding="utf-8")
@@ -128,6 +148,21 @@ def main() -> None:
                     failures,
                     passes,
                 )
+                description_match = re.search(r"^description:\s*(.+)$", block, re.MULTILINE)
+                if description_match is not None:
+                    description_value = description_match.group(1).strip()
+                    check(
+                        f"{skill_name}_description_yaml_safe",
+                        ": " not in description_value
+                        or (
+                            len(description_value) >= 2
+                            and description_value[0] in {"'", '"'}
+                            and description_value[-1] == description_value[0]
+                        ),
+                        "frontmatter description is safe for YAML-based skill installers",
+                        failures,
+                        passes,
+                    )
             for ref in re.findall(r"`(references/[^`]+)`", text):
                 check(
                     f"{skill_name}_{ref}",
@@ -137,15 +172,106 @@ def main() -> None:
                     passes,
                 )
 
+    legacy_actual_skills = {path.name for path in LEGACY_V1_SKILLS_DIR.iterdir() if path.is_dir()} if LEGACY_V1_SKILLS_DIR.exists() else set()
+    check(
+        "legacy_v1_catalog_exact",
+        legacy_actual_skills == LEGACY_V1_SKILLS,
+        "legacy/v1 catalog preserves the frozen 12-skill V1 set",
+        failures,
+        passes,
+    )
+    legacy_support_path = LEGACY_V1 / "compatibility" / "support.json"
+    legacy_readme_path = LEGACY_V1 / "README.md"
+    check("legacy_v1_support_exists", legacy_support_path.exists(), "legacy/v1 compatibility support exists", failures, passes)
+    check("legacy_v1_readme_exists", legacy_readme_path.exists(), "legacy/v1 README exists", failures, passes)
+    if legacy_support_path.exists():
+        legacy_support = json.loads(legacy_support_path.read_text(encoding="utf-8"))
+        check(
+            "legacy_v1_generation",
+            legacy_support.get("catalog_generation") == "v1",
+            "legacy/v1 declares catalog_generation v1",
+            failures,
+            passes,
+        )
+        check(
+            "legacy_v1_last_supported_framework_version",
+            isinstance(legacy_support.get("last_supported_framework_version"), str)
+            and bool(legacy_support.get("last_supported_framework_version")),
+            "legacy/v1 declares last_supported_framework_version",
+            failures,
+            passes,
+        )
+        check(
+            "legacy_v1_frozen",
+            legacy_support.get("status") == "frozen",
+            "legacy/v1 support manifest marks V1 frozen",
+            failures,
+            passes,
+        )
+    if legacy_readme_path.exists():
+        legacy_readme = legacy_readme_path.read_text(encoding="utf-8")
+        check(
+            "legacy_v1_readme_last_supported",
+            "4.1.1" in legacy_readme and "frozen" in legacy_readme.lower(),
+            "legacy/v1 README states the last supported framework version and frozen status",
+            failures,
+            passes,
+        )
+    for skill_name in sorted(LEGACY_V1_SKILLS):
+        skill_dir = LEGACY_V1_SKILLS_DIR / skill_name
+        skill_md = skill_dir / "SKILL.md"
+        check(f"legacy_v1_{skill_name}_skill_md", skill_md.exists(), "legacy V1 SKILL.md exists", failures, passes)
+        if skill_md.exists():
+            text = skill_md.read_text(encoding="utf-8")
+            frontmatter = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+            check(f"legacy_v1_{skill_name}_frontmatter", frontmatter is not None, "legacy V1 frontmatter exists", failures, passes)
+            if frontmatter is not None:
+                block = frontmatter.group(1)
+                check(
+                    f"legacy_v1_{skill_name}_name",
+                    f"name: {skill_name}" in block,
+                    "legacy V1 frontmatter name matches directory",
+                    failures,
+                    passes,
+                )
+                check(
+                    f"legacy_v1_{skill_name}_description",
+                    "description:" in block,
+                    "legacy V1 frontmatter description exists",
+                    failures,
+                    passes,
+                )
+
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
-    check("old_skills_ignored", "/old_skills/" in gitignore, "old_skills is ignored", failures, passes)
+    retired_archive_name = "old" + "_skills"
+    check(
+        "legacy_archive_uses_versioned_path",
+        not (ROOT / retired_archive_name).exists(),
+        "legacy archive uses legacy/v1 rather than the retired archive name",
+        failures,
+        passes,
+    )
+    check(
+        "gitignore_does_not_preserve_retired_archive_name",
+        retired_archive_name not in gitignore,
+        "gitignore does not preserve the retired archive name",
+        failures,
+        passes,
+    )
 
     for public_file in PUBLIC_FILES:
         text = public_file.read_text(encoding="utf-8")
         check(
-            f"{public_file.name}_no_old_skills",
-            "old_skills/" not in text,
-            "public file does not reference old_skills",
+            f"{public_file.name}_no_retired_archive_name",
+            f"{retired_archive_name}/" not in text,
+            "public file does not reference the retired archive name",
+            failures,
+            passes,
+        )
+        check(
+            f"{public_file.name}_no_legacy_v1_default_path",
+            "legacy/v1/skills" not in text or public_file.name in {"README.md", "README_CN.md"},
+            "public file does not use legacy/v1 as a default skill path",
             failures,
             passes,
         )

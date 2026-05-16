@@ -39,13 +39,13 @@
     },
     {
       "id": "prompt-placeholder-config-en",
-      "query": "After prompt-management is already matched, I need the supporting doc that explains keeping `${topic}` and `${language}` inside YAML prompt files, injecting them through mappings, and using config files as a bridge for request-side behavior. Which file should I open first?",
+      "query": "After agently-request is already matched for prompt management, I need the supporting doc that explains keeping `${topic}` and `${language}` inside YAML prompt files, injecting them through mappings, and using config files as a bridge for request-side behavior. Which file should I open first?",
       "matched_skills": [
-        "agently-prompt-management"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
-          "skills/agently-prompt-management/SKILL.md"
+          "skills/agently-request/references/prompt-management.md"
         ]
       ],
       "concepts": [
@@ -70,13 +70,13 @@
     },
     {
       "id": "model-settings-env-en",
-      "query": "After model-setup is already matched, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
+      "query": "After agently-request is already matched for model setup, I need the supporting doc that explains keeping provider settings in config files, using `${ENV.xxx}` placeholders, calling `Agently.load_settings(\"yaml_file\", path, auto_load_env=True)`, and optionally failing fast on missing env names. Which file should I read first?",
       "matched_skills": [
-        "agently-model-setup"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
-          "skills/agently-model-setup/SKILL.md"
+          "skills/agently-request/references/model-setup.md"
         ]
       ],
       "concepts": [
@@ -104,8 +104,7 @@
       "query": "Routing already decided this is TriggerFlow plus response reuse and structured output. I now need the concrete supporting file that shows one workflow step producing a stable plan object, reusing the same response as preview text and parsed actions, and dispatching downstream work after that plan is available. Which file should I open first?",
       "matched_skills": [
         "agently-triggerflow",
-        "agently-model-response",
-        "agently-output-control"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [
@@ -168,7 +167,7 @@
       "query": "After routing to TriggerFlow, which reference explains bridging model instant updates into runtime stream events and closing the execution so stream consumers get a stop signal?",
       "matched_skills": [
         "agently-triggerflow",
-        "agently-model-response"
+        "agently-request"
       ],
       "expected_reference_sets": [
         [

@@ -3,7 +3,7 @@
   "cases": [
     {
       "id": "output-contract-native",
-      "reference_example": "skills/agently-output-control/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/output-control-minimal.py",
       "required_primitives": [
         ".output(",
         "tuple_ensure"
@@ -17,7 +17,7 @@
     },
     {
       "id": "response-reuse-native",
-      "reference_example": "skills/agently-model-response/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/model-response-minimal.py",
       "required_primitives": [
         "get_response()",
         "result.get_data("
@@ -62,7 +62,7 @@
     },
     {
       "id": "provider-setup-native",
-      "reference_example": "skills/agently-model-setup/examples/minimal.py",
+      "reference_example": "skills/agently-request/examples/model-setup-minimal.py",
       "required_primitives": [
         "Agently.set_settings(",
         "\"OpenAICompatible\""
