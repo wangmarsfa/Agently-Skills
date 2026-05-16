@@ -74,7 +74,7 @@ Reason:
 
 - initialization is not one mutually exclusive capability surface
 - the first job is choosing owner layers and boundaries, which is what `agently-playbook` already owns
-- only after that decision should work fan out into `agently-request`, `agently-runtime`, `agently-triggerflow`, or another owning skill
+- only after that decision should work fan out into `agently-model-setup`, `agently-prompt-management`, `agently-triggerflow`, or other leaf skills
 
 ## Reference Pattern
 

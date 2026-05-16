@@ -27,10 +27,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 
 ## Capability Routing
 
-- model setup, prompt management, output control, response reuse, session memory, embeddings, KB, or retrieval-to-answer -> `agently-request`
-- Action Runtime, built-in actions, tools compatibility, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation and evaluation integration -> `agently-runtime`
+- model provider setup, settings-file-based model separation, or `${ENV.xxx}`-backed settings loading -> `agently-model-setup`
+- request-side prompt design, prompt placeholder injection, or config-file prompt bridge -> `agently-prompt-management`
+- output schema and reliability -> `agently-output-control`
+- response reuse, metadata, or streaming consumption -> `agently-model-response`
+- session continuity or restore -> `agently-session-memory`
+- Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation and evaluation integration -> `agently-agent-extensions`
+- embeddings, KB, or retrieval-to-answer -> `agently-knowledge-base`
 - branching, concurrency, waiting/resume, mixed sync/async orchestration, event-driven fan-out, process-clarity refactors, runtime stream, graph-friendly workflow definitions, or explicit multi-stage quality loops -> `agently-triggerflow`
-- migration choice between LangChain and LangGraph -> `agently-migration`
+- migration choice between LangChain and LangGraph -> `agently-migration-playbook`
 
 ## Anti-Patterns
 

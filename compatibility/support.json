@@ -2,7 +2,20 @@
   "schema_version": 1,
   "repository": "Agently-Skills",
   "framework": "agently",
-  "aligned_framework_version": "4.1.1",
+  "aligned_framework_version": "4.1.2",
+  "catalog_generation": "v2",
+  "supported_catalog_generations": [
+    "v2"
+  ],
+  "recommended_bundle": "app",
+  "legacy_generations": [
+    {
+      "generation": "v1",
+      "path": "legacy/v1",
+      "last_supported_framework_version": "4.1.1",
+      "status": "frozen"
+    }
+  ],
   "supported_protocols": {
     "authoring": [
       "agently-skills.authoring.v1"

@@ -23,7 +23,8 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - keep workflow stages visible instead of hiding nested request loops
 - name chunks and stage boundaries so exported flow configs, Mermaid diagrams, and runtime graphs stay readable
 - let TriggerFlow definition export and runtime metadata drive visualization instead of maintaining a second manual graph description
-- combine with `agently-request` when one workflow step needs model setup, prompt contracts, structured output, response reuse, session behavior, or retrieval
+- combine with `agently-model-response` when one workflow step must reuse one model result as text, parsed data, metadata, or partial updates
+- combine with `agently-output-control` when downstream branches need stable structured fields, required keys, or value-level validation
 
 ## Anti-Patterns
 

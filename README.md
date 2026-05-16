@@ -7,17 +7,22 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 
 ## Compatibility
 
-This catalog is aligned with the Agently 4.1.1 release line and its current TriggerFlow execution lifecycle guidance.
+The default public catalog is the current Agently-Skills generation `v2`, aligned
+with the Agently 4.1.2 development line and the compact 5-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
+The source of truth for unpublished cross-repo work is Agently's public
+development manifest at `../Agently/compatibility/in-development.json`.
 
-For unpublished cross-repo work, match against Agently companion protocols first, not against a future package version that has not been released yet:
+For unpublished work, match companion protocols and catalog generation first:
 
 - authoring protocol: `agently-skills.authoring.v1`
 - DevTools guidance protocol: `agently-skills.devtools-guidance.v1`
+- current catalog generation: `v2`
+- recommended bundle: `app`
 
-The source of truth for a published framework release remains Agently's release registry entry under `../Agently/compatibility/releases/`.
-The public next-release development target lives in `../Agently/compatibility/in-development.json`. It currently targets `4.1.2`.
+The source of truth for a published framework release remains Agently's release
+registry entry under `../Agently/compatibility/releases/`.
 
 ## What Is Agently?
 
@@ -36,198 +41,142 @@ It provides native surfaces for:
 
 ## What Is Agently-Skills?
 
-Agently-Skills is the official skills package for coding agents that need to build with Agently.
+Agently-Skills is the official skills package for coding agents that need to
+build with Agently.
 
-It is not the same thing as the framework-side **Skills Executor** that now lives inside the Agently runtime:
+It is not the same thing as the framework-side **Skills Executor** that lives
+inside the Agently runtime:
 
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — runtime capability for Agently apps and agents to install and apply external skills during real task execution
 
-The companion repo stays a coding-agent package. It does not become a runtime dependency of Agently applications.
+The companion repo stays a coding-agent package. It does not become a runtime
+dependency of Agently applications.
 
-That said, individual skill directories are still plain-text packages. Agently's framework-side Skills Executor can install them as **guidance-only runtime skill sources** when a project intentionally wants to consume `Agently-Skills` at runtime for steering or design guidance. In that case the skill contributes guidance assets, not a standalone executable runtime.
-
-The main Agently repository now includes two runtime consumption examples for this boundary:
-
-- a DeepSeek-driven planning example that prints the resolved skill plan and the model's design answer
-- a more concrete artifact-generation example that wraps the same skills with structured output, validation, and file persistence so the generated files can be inspected directly
-
-It does more than explain API syntax. It teaches coding agents:
-
-- how to recognize Agently-appropriate scenarios from natural-language product requests
-- how to choose the right skill or skill combination
-- how to structure projects around Agently-native capability boundaries
-- how to apply best-practice project layout, orchestration, and performance refactors
-- how to stay inside Agently's design philosophy instead of writing generic glue first
-
-The goal is not shallow snippet generation. The goal is to help a coding agent produce a complete project that actually fits Agently.
-
-For example, a broad request such as `build a travel planning tool on top of local Ollama` should not be treated as just one local model call. The skills should help the coding agent decide the right setup path, prompt structure, workflow shape, and project layout from that natural-language intent.
-
-## Why Use The Official Skills?
-
-- They improve scenario capture for broad, under-specified model-app requests.
-- They encode Agently-native best practices instead of generic framework-agnostic habits.
-- They include guidance on project layout, routing, performance optimization, and design philosophy.
-- They are checked against realistic scenario language instead of relying only on hand-written snippets.
+Individual skill directories are still plain-text packages. Agently's
+framework-side Skills Executor can install them as **guidance-only runtime skill
+sources** when a project intentionally wants runtime steering or design
+guidance. In that case the skill contributes guidance assets, not a standalone
+executable runtime.
 
 ## Routing Model
 
+The default catalog contains 5 public skills:
+
+- `agently-playbook`
+  Top-level router for unresolved model-powered product, assistant,
+  internal-tool, automation, evaluator, workflow, or project-structure refactor
+  requests.
+- `agently-request`
+  Request-side model setup, provider settings, prompt management, structured
+  output, response reuse, streaming consumption, session memory, embeddings,
+  knowledge-base indexing, retrieval, and retrieval-backed answers.
+- `agently-runtime`
+  Action Runtime, built-in action packages, tool compatibility, MCP,
+  Execution Environment lifecycle, service exposure, auto-function helpers,
+  `KeyWaiter`, and optional `agently-devtools` integration.
+- `agently-triggerflow`
+  Explicit orchestration, branching, concurrency, approvals, waiting and resume,
+  runtime stream, restart-safe execution, mixed sync/async function or module
+  orchestration, and graph-friendly workflow definitions.
+- `agently-migration`
+  Migration from LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems
+  into Agently-native request/runtime or TriggerFlow layers.
+
 Use this mental model when choosing a skill:
 
-- If the request starts from business goals, product behavior, refactor intent, or an unclear owner layer, start with `agently-playbook`.
-- If the request is already narrow and explicit, route directly to the owning leaf skill.
-- Prefer native Agently surfaces before custom wrappers, custom parsers, custom retry loops, or custom workflow infrastructure.
-
-The most important routing rules are:
-
-- unresolved product, assistant, automation, or workflow request -> `agently-playbook`
-- provider wiring, env vars, or model settings separation -> `agently-model-setup`
-- prompt structure, prompt config, YAML-backed prompt behavior, or config-file prompt bridge -> `agently-prompt-management`
-- stable structured fields, required keys, value-level validation, or machine-readable output -> `agently-output-control`
-- reuse one response as text, data, metadata, or streaming updates -> `agently-model-response`
-- session continuity or restore-after-restart -> `agently-session-memory`
-- Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, or optional `agently-devtools` observation/evaluation tooling -> `agently-agent-extensions`
-- embeddings, indexing, retrieval, or KB-to-answer -> `agently-knowledge-base`
-- explicit orchestration, TriggerFlow, execution lifecycle control, mixed sync/async execution, event-driven fan-out, process-clarity refactors, graph-friendly workflow definitions, or resumable multi-stage flows -> `agently-triggerflow`
-- migration from LangChain or LangGraph -> `agently-migration-playbook`, then the matching migration leaf
+- If the request starts from business goals, product behavior, refactor intent,
+  or an unclear owner layer, start with `agently-playbook`.
+- If the request stays inside one request family, route to `agently-request`.
+- If the request needs model-callable capabilities, managed execution
+  dependencies, service exposure, or DevTools wiring, route to
+  `agently-runtime`.
+- If the request needs explicit orchestration, route to `agently-triggerflow`.
+- If the request is a framework migration, route to `agently-migration`.
+- Prefer native Agently surfaces before custom wrappers, custom parsers, custom
+  retry loops, or custom workflow infrastructure.
 
 Async should usually be the default execution stance:
 
-- prefer async APIs for service code, streaming, TriggerFlow, tool concurrency, and any path that may benefit from overlap or cancellation
-- treat sync APIs as convenience wrappers for local scripts, teaching examples, or compatibility bridges
-- if the solution will live behind HTTP, SSE, WebSocket, or a long-running worker, assume async-first unless a concrete constraint proves otherwise
+- prefer async APIs for service code, streaming, TriggerFlow, tool concurrency,
+  and any path that may benefit from overlap or cancellation
+- treat sync APIs as convenience wrappers for local scripts, teaching examples,
+  or compatibility bridges
+- if the solution will live behind HTTP, SSE, WebSocket, or a long-running
+  worker, assume async-first unless a concrete constraint proves otherwise
 
 ## Post-4.1 Defaults
 
-When skills describe the recommended path for Agently `4.1+`, they should converge on these defaults:
+When skills describe the recommended path for Agently `4.1+`, they should
+converge on these defaults:
 
-- structured output: fixed required leaves belong in tuple `ensure` form inside `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent paths
-- actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool aliases remain compatibility surfaces
-- TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close snapshot; do not present `.end()`, `set_result()`, `get_result()`, or `wait_for_result=` as normal new-code entrypoints
-- TriggerFlow state: prefer `get_state(...)` / `set_state(...)` for per-execution data; treat `flow_data` as intentionally shared and risky
-- settings loading: prefer `Agently.load_settings("yaml_file", path, auto_load_env=True)` for file-backed provider config; keep `Agently.set_settings(...)` for inline overrides
+- structured output: fixed required leaves belong in tuple `ensure` form inside
+  `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
+  paths
+- actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool
+  aliases remain compatibility surfaces
+- TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close
+  snapshot; do not present `.end()`, `set_result()`, `get_result()`, or
+  `wait_for_result=` as normal new-code entrypoints
+- TriggerFlow state: prefer `get_state(...)` / `set_state(...)` for
+  per-execution data; treat `flow_data` as intentionally shared and risky
+- settings loading: prefer `Agently.load_settings("yaml_file", path,
+  auto_load_env=True)` for file-backed provider config; keep
+  `Agently.set_settings(...)` for inline overrides
 - execution style: default to async-first for services, streaming, and workflows
-- response reuse: when one model result must be consumed multiple ways, prefer `get_response()` and reuse the same response object
+- response reuse: when one model result must be consumed multiple ways, prefer
+  `get_response()` and reuse the same response object
 
 ## Standard Project Shape
 
-When an Agently project needs to stay maintainable, initialize or refactor it around explicit capability boundaries instead of one oversized `app.py`.
+When an Agently project needs to stay maintainable, initialize or refactor it
+around explicit capability boundaries instead of one oversized `app.py`.
 
 The default shape should usually separate:
 
-- `SETTINGS.yaml` or a settings layer for provider config, `${ENV.xxx}` placeholders, workflow/search/browse knobs, and other deployment-time switches
-- `app/` or another application wiring layer that loads settings, validates required env names when needed, chooses async boundaries, and wires tools plus the main flow
-- `prompts/` for YAML or JSON prompt contracts that own `input`, `info`, `instruct`, and `output`
-- `services/` for request wrappers, response normalization, and business-facing adapters
-- `domain/` or `schemas/` for enums, request/response contracts, and shared value objects
+- `SETTINGS.yaml` or a settings layer for provider config, `${ENV.xxx}`
+  placeholders, workflow/search/browse knobs, and other deployment-time switches
+- `app/` or another application wiring layer that loads settings, validates
+  required env names when needed, chooses async boundaries, and wires tools plus
+  the main flow
+- `prompts/` for YAML or JSON prompt contracts that own `input`, `info`,
+  `instruct`, and `output`
+- `services/` for request wrappers, response normalization, and business-facing
+  adapters
+- `domain/` or `schemas/` for enums, request/response contracts, and shared
+  value objects
 - `workflow/` for TriggerFlow graphs and chunk implementations
 - `tools/` for replaceable search, browse, MCP, or external adapters
-- `tests/` for settings smoke checks, prompt/response checks, and API or flow validation
-- `outputs/` and `logs/` for runtime artifacts instead of mixing them into source folders
-- optional `agently-devtools` wiring in the app or observability layer for local observation, evaluation, playground, and logs
+- `tests/` for settings smoke checks, prompt/response checks, and API or flow
+  validation
+- `outputs/` and `logs/` for runtime artifacts instead of mixing them into
+  source folders
+- optional `agently-devtools` wiring in the app or observability layer for local
+  observation, evaluation, playground, and logs
 
-Two source-backed details matter here:
-
-- Configure Prompt supports placeholder mappings recursively across prompt values and keys. Keep `${topic}`, `${language}`, `${column_title}`, and similar variables in prompt files and inject them through `load_yaml_prompt(..., mappings={...})` or `load_json_prompt(...)`.
-- Model settings can keep `${ENV.NAME}` placeholders and let `Agently.load_settings("yaml_file", "...", auto_load_env=True)` resolve them by finding and loading a local `.env` file. If settings are created inline instead of in a file, use `Agently.set_settings(...)`.
-
-Two high-frequency rules prevent common drift:
-
-- keep stable shared output contracts in prompt config rather than scattering them across Python helpers
-- keep provider settings under the plugin namespace that the requester actually reads, for example `plugins.ModelRequester.OpenAICompatible.*` or `plugins.ModelRequester.AnthropicCompatible.*`
-- keep optional DevTools endpoints and bridge wiring outside prompt files and workflow helpers; use `ObservationBridge`, `EvaluationBridge`, or `create_local_observation_app(...)` from the public `agently-devtools` package instead of repo-specific install guidance
-
-This is the pattern used by `Agently-Daily-News-Collector`: settings stay in `SETTINGS.yaml`, prompt contracts stay in `prompts/`, flow construction stays in `workflow/`, and the app layer does env loading plus Agently wiring.
-
-Project initialization should not be a separate public skill. It belongs to `agently-playbook`: decide the owner layers, create the skeleton, and then hand implementation work to the owning leaf skills.
-
-A fuller public reference lives in [`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md).
-
-## Public Catalog
-
-The public catalog currently contains 12 skills.
-
-### Entry
-
-- `agently-playbook`
-  Top-level router for unresolved model-powered product, assistant, internal-tool, automation, evaluator, workflow, or project-structure refactor requests.
-
-### Request Side
-
-- `agently-model-setup`
-  Provider connection, dotenv-based settings, model transport setup, and settings-file-based model separation.
-- `agently-prompt-management`
-  Prompt composition, prompt config, YAML-backed prompt behavior, mappings, and reusable request-side prompt structure.
-- `agently-output-control`
-  Output schema, field ordering, required keys, value-level validation, and structured output reliability.
-- `agently-model-response`
-  `get_response()`, parsed results, metadata, streaming consumption, and response reuse.
-- `agently-session-memory`
-  Session-backed continuity, memo, restore, and request-side conversational state.
-
-### Request Extensions
-
-- `agently-agent-extensions`
-  Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, Browse with Playwright or PyAutoGUI, and optional `agently-devtools` observation/evaluation tooling.
-- `agently-knowledge-base`
-  Embeddings plus Chroma-backed indexing, retrieval, and retrieval-to-answer flows.
-
-### Workflow
-
-- `agently-triggerflow`
-  TriggerFlow orchestration, execution lifecycle, runtime state, runtime stream, workflow-side model execution, event-driven fan-out, process-clarity refactors, mixed sync/async orchestration, and graph-friendly workflow definitions for debugging and visualization.
-
-## Optional Companion Package
-
-Agently 4.1.1 keeps `agently-devtools` as an optional developer-tooling companion package.
-
-```bash
-pip install agently-devtools
-agently-devtools init my_project    # scaffold a new Agently project
-```
-
-- Install: `pip install -U agently agently-devtools`
-- Compatibility line: `agently-devtools 0.1.x` targets `agently >=4.1.0,<4.2.0`
-- Public entrypoints: `ObservationBridge`, `EvaluationBridge`, `EvaluationRunner`, and `create_local_observation_app`
-- Recommended startup: `agently-devtools start`
-
-For release automation and unpublished branch work, treat the Agently compatibility registry as the machine-readable source of truth. This repository only declares which Agently skills protocols it supports.
-
-Use this package when an Agently app needs local runtime observation, evaluations, logs, or playground support during development and debugging. The skills package treats this as optional observability tooling, not as a required source-repo dependency.
-
-### Migration
-
-- `agently-migration-playbook`
-  Migration router for existing LangChain or LangGraph systems.
-- `agently-langchain-to-agently`
-  Direct LangChain agent-side migration guidance.
-- `agently-langgraph-to-triggerflow`
-  Direct LangGraph orchestration migration guidance.
+A fuller public reference lives in
+[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md).
 
 ## Install
 
-Choose the target agent first. The recommended path is to install one bundle into one agent-specific skill directory, for example Codex:
+Choose the target agent first. The recommended path is to install one bundle
+into one agent-specific skill directory, for example Codex:
 
 ```bash
 export AGENT=codex
 ```
 
-Use `AGENT=claude`, `AGENT=cursor`, or another supported agent when that is your actual target.
+Use `AGENT=claude`, `AGENT=cursor`, or another supported agent when that is your
+actual target.
 
 `app`
-Default bundle for building new Agently applications. It combines the skills normally needed together: core model request setup, TriggerFlow, service and tool wrapping, response handling, output control, session continuity, and knowledge-base guidance.
+Default bundle for building new Agently applications:
 
 ```bash
 for skill in \
   agently-playbook \
-  agently-model-setup \
-  agently-prompt-management \
-  agently-output-control \
-  agently-model-response \
-  agently-agent-extensions \
-  agently-session-memory \
-  agently-knowledge-base \
+  agently-request \
+  agently-runtime \
   agently-triggerflow
 do
   npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
@@ -235,16 +184,12 @@ done
 ```
 
 `migration`
-Bundle for moving existing LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently. Install the `app` bundle first, then add the migration skills:
+Bundle for moving existing LangChain, LangGraph, LlamaIndex, CrewAI, or similar
+systems into Agently. Install the `app` bundle first, then add the migration
+skill:
 
 ```bash
-for skill in \
-  agently-migration-playbook \
-  agently-langchain-to-agently \
-  agently-langgraph-to-triggerflow
-do
-  npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
-done
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migration -y
 ```
 
 Install only the router when you want the smallest possible starting point:
@@ -253,12 +198,48 @@ Install only the router when you want the smallest possible starting point:
 npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
 ```
 
-Advanced multi-agent install:
+Inspect the default public catalog:
 
 ```bash
-npx skills add AgentEra/Agently-Skills --all
+npx skills add . --list
 ```
 
-`--all` intentionally installs across all detected agents. In repositories where several coding agents are configured, that can create multiple hidden directories such as `.agents/`, `.claude/`, `.cursor/`, and `.codex/`, so it is no longer the default recommendation.
+The default listing and standard install path expose only the current 5-skill
+catalog.
 
-The machine-readable bundle definitions live in `bundles/manifest.json`.
+## Legacy V1 Rollback
+
+The previous 12-skill catalog is archived under `legacy/v1/`.
+
+- path: `legacy/v1/skills/`
+- bundle manifest: `legacy/v1/bundles/manifest.json`
+- compatibility manifest: `legacy/v1/compatibility/support.json`
+- last supported Agently framework version: `4.1.1`
+- status: frozen
+
+V1 exists only for explicit rollback and historical projects. It does not track
+Agently `4.1.2+` compatibility manifests, new Action Runtime guidance,
+Execution Environment restructuring, or future catalog protocols. Do not use V1
+as the recommended path for new projects.
+
+## Optional Companion Package
+
+Agently keeps `agently-devtools` as an optional developer-tooling companion
+package.
+
+```bash
+pip install agently-devtools
+agently-devtools init my_project
+```
+
+- Install: `pip install -U agently agently-devtools`
+- Compatibility line: use the Agently compatibility registry for the active
+  release or development target
+- Public entrypoints: `ObservationBridge`, `EvaluationBridge`,
+  `EvaluationRunner`, and `create_local_observation_app`
+- Recommended startup: `agently-devtools start`
+
+Use this package when an Agently app needs local runtime observation,
+evaluations, logs, or playground support during development and debugging. The
+skills package treats this as optional observability tooling, not as a required
+source-repo dependency.

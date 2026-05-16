@@ -5,7 +5,9 @@ description: Central catalog and documentation for Agently Skills V2. Use when w
 
 # Agently Skills Catalog
 
-This package publishes the Agently Skills V2 catalog under `skills/`.
+This package publishes the current Agently Skills catalog generation `v2` under
+`skills/`. The frozen V1 catalog is archived under `legacy/v1/` and is not part
+of default installation, routing, or bundle guidance.
 
 Use this file as installation-time guidance after the skills are added into another project or agent environment.
 
@@ -17,6 +19,10 @@ Use this file as installation-time guidance after the skills are added into anot
 - Treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source-repo dependency.
 - Keep public skill boundaries capability-first and mutually exclusive.
 - Treat multi-agent, judge, and review flows as scenario recipes unless they need a dedicated framework surface.
+- Treat `catalog_generation` and `recommended_bundle` as compatibility fields
+  that must stay aligned with `../Agently/compatibility/in-development.json`.
+- Do not recommend `legacy/v1/` for new projects; it exists only for explicit
+  rollback or historical projects.
 
 ## Source Alignment Rule
 
@@ -28,9 +34,24 @@ Use this file as installation-time guidance after the skills are added into anot
 
 ## Companion Change Rule
 
-- TriggerFlow changes require checking `skills/agently-triggerflow/`, `skills/agently-playbook/references/project-framework.md`, `skills/agently-langgraph-to-triggerflow/`, route fixtures, reference fixtures, native usage validation, and README guidance.
-- Action Runtime, ModelResponse, Session, FastAPIHelper, settings, prompt config, tools, MCP, knowledge-base, and DevTools integration changes require the same companion impact review.
+- TriggerFlow changes require checking `skills/agently-triggerflow/`,
+  `skills/agently-playbook/references/project-framework.md`, route fixtures,
+  reference fixtures, native usage validation, and README guidance.
+- Action Runtime, ModelResponse, Session, FastAPIHelper, settings, prompt
+  config, tools, MCP, knowledge-base, and DevTools integration changes require
+  the same companion impact review through `skills/agently-request/` and
+  `skills/agently-runtime/`.
 - If the Agently source repository is unavailable, record that source alignment could not be verified.
+
+## Examples Validation
+
+- Agently recommended examples, cookbook examples, public teaching examples, and training-derived examples must exercise a real model through DeepSeek or local Ollama.
+- DeepSeek credentials may be loaded through dotenv by the example itself. Do not mark DeepSeek unavailable only because `DEEPSEEK_API_KEY` is absent from the parent shell environment.
+- Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
+- Local functions may be used only as business capabilities, Actions, fake external systems, executor/provider smoke targets, or deterministic resources called by the model-driven flow.
+- Low-level infrastructure smoke examples may run without a model only when they are explicitly scoped to executor/provider behavior and are not presented as model-app patterns.
+- Every recommended model-app example must include an `Expected key output` source comment that records stable key results from a real run.
+- Do not invent example outputs. Re-run the example with DeepSeek or local Ollama and update the comment when model behavior materially changes.
 
 ## Validation Rule
 
@@ -38,6 +59,8 @@ Use this file as installation-time guidance after the skills are added into anot
 - Run `python validate/validate_compatibility.py` whenever compatibility guidance, release-line claims, or DevTools integration guidance changes.
 - At minimum for TriggerFlow guidance changes, run `python validate/validate_catalog.py`, `python validate/validate_bundle_manifest.py`, `python validate/validate_native_usage.py`, `python validate/validate_trigger_paths.py`, and `python validate/validate_reference_retrieval.py` when model/runtime credentials are available.
 - Validation should fail if recommended TriggerFlow examples use deprecated lifecycle, result, runtime-data, or flow-data APIs outside an explicit legacy allowlist.
+- Validation should fail if the default catalog contains anything other than the
+  current 5 public skills, or if default bundles reference `legacy/v1/`.
 
 ## Project Defaults
 
@@ -50,12 +73,10 @@ Use this file as installation-time guidance after the skills are added into anot
 ## Skill Routing Reminders
 
 - `agently-playbook`: unresolved owner layer, project shape, or broad product request
-- `agently-model-setup`: provider wiring, env placeholders, model settings, namespace placement, and connectivity checks
-- `agently-prompt-management`: prompt config, mappings, reusable request contracts, and prompt-side output contracts
-- `agently-output-control`: structured output shape, required keys, value-level validation, reliability, and structured streaming
-- `agently-model-response`: response reuse, async getters, metadata, and stream consumption
-- `agently-agent-extensions`: Action Runtime, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
+- `agently-request`: provider wiring, env placeholders, model settings, prompt config, structured output, response reuse, session memory, embeddings, and retrieval
+- `agently-runtime`: Action Runtime, tools, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
 - `agently-triggerflow`: explicit orchestration, branching, concurrency, runtime stream, workflow-owned business events, and execution-graph-friendly workflow definitions
+- `agently-migration`: migration from LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently-native layers
 
 ## Anti-Patterns
 

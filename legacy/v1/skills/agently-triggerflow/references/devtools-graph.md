@@ -61,7 +61,7 @@ Keep runtime resources and flow structure separate:
 
 When the user wants local visualization through `agently-devtools`, keep the responsibilities split:
 
-- `agently-runtime` owns attaching `ObservationBridge`, evaluation tooling, and the local console
+- `agently-agent-extensions` owns attaching `ObservationBridge`, evaluation tooling, and the local console
 - `agently-triggerflow` owns making the workflow readable, stable, and graph-friendly enough to observe well
 
 Do not move workflow responsibility into DevTools. Make the TriggerFlow clearer.

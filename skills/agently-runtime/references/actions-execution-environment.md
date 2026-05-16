@@ -6,7 +6,7 @@ Use it when:
 
 - the user needs built-in actions or tools such as `Browse`, including `@agent.action_func`, `agent.use_actions(...)`, MCP, or sandbox-backed execution
 - the user wants MCP or FastAPIHelper without hand-rolled wrappers
-- the user needs managed MCP, Bash, or Python sandbox lifecycle through `Agently.execution_environment`
+- the user needs managed MCP, Bash, Python, Node.js, Docker, Browser, or SQLite lifecycle through `Agently.execution_environment`
 - the user is deciding whether a capability belongs in core, a plugin/provider, a built-in Action, or an Agent Component
 - the user wants local observation, evaluation, playground, or logs support through `agently-devtools`
 - the app owner layer is already known and the work is about attaching tooling around that app instead of redesigning the workflow itself
@@ -21,11 +21,12 @@ an Action or TriggerFlow execution can run.
 - `Agently.execution_environment` owns lifecycle, policy, approval, scope, health, and release for managed dependencies.
 - Action owns what is callable and how one call is normalized into an `ActionResult`.
 - TriggerFlow `runtime_resources` remains the execution-local live handle surface. Managed resources can be injected there, but TriggerFlow does not create or release them.
-- Built-in MCP, Bash sandbox, and Python sandbox actions should declare or consume Execution Environment resources rather than owning lifecycle inside the executor.
+- Built-in MCP, Bash, Python, Node.js, Docker, Browser, and SQLite actions should declare or consume Execution Environment resources rather than owning lifecycle inside the executor.
+- Search does not belong in Execution Environment. Its proxy, timeout, backend, and region settings belong to the Search package/executor configuration.
 
 Audience split:
 
-- App developers should normally use built-in Actions and Agent Components such as `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, and future `agent.enable_coding_workspace(...)`.
+- App developers should normally use built-in Actions and Agent Components such as `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, `agent.enable_sqlite(...)`, and future `agent.enable_coding_workspace(...)`.
 - Action developers can use `register_action(..., execution_environments=[...])` when one action requires a managed dependency.
 - Plugin developers implement `ExecutionEnvironmentProvider` for environment kinds such as Bash, Python, Node.js, Docker, SQLite, vector store, browser, or remote runner.
 - Framework maintainers decide whether a feature belongs to core, provider, built-in capability, or Agent Component.
@@ -41,10 +42,11 @@ Start with the local `agent.enable_python(...)` quickstart, then use the
 Ollama/DeepSeek examples for model-driven Action selection. The TriggerFlow
 example is for workflow or framework developers who need managed
 execution-local resources.
+For built-in Search/Browse package examples, check `examples/builtin_actions/`.
 
 Do not turn Skills into a parallel executor. Skill scripts should map to built-in
 Actions and component helpers such as `agent.enable_python(...)`,
-`agent.enable_shell(...)`, and future Node.js helpers; MCP assets should map to
+`agent.enable_shell(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)`; MCP assets should map to
 MCP-backed Actions plus Execution Environment requirements; workflow templates
 should map to TriggerFlow.
 
@@ -59,7 +61,7 @@ Use `Search` when the task is only to discover web results and you do not need p
 ```python
 import asyncio
 
-from agently.builtins.tools import Search
+from agently.builtins.actions import Search
 
 search = Search(timeout=15, backend="duckduckgo")
 
@@ -70,7 +72,9 @@ async def main():
 results = asyncio.run(main())
 ```
 
-Keep the agent on `agent.use_actions([search.search])` or `agent.use_actions([search.search_news])` only. Do not add `Browse` or any sandbox executor if the job is just retrieval.
+Keep the agent on `agent.use_actions(search)` when the model may choose any
+Search action, or call `search.search(...)` directly when no agent loop is
+needed. Do not add `Browse` or any sandbox executor if the job is just retrieval.
 
 ### Local Files Only
 
@@ -98,7 +102,7 @@ Use `Search` plus `Browse` when the task needs internet access but should not mu
 ```python
 import os
 
-from agently.builtins.tools import Browse, Search
+from agently.builtins.actions import Browse, Search
 
 search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15)
 browse = Browse(
@@ -111,7 +115,8 @@ browse = Browse(
 ```
 
 Prefer this for “read web pages”, “summarize docs”, or “verify an online page”. Keep shell sandboxes out of the path unless the task truly needs command execution.
-Attach them with `agent.use_actions([search.search, browse.browse])` when you want the agent to call both.
+Attach them with `agent.use_actions([search, browse])` when you want the agent
+to call both packages.
 
 ### Dependency Install Or Other Broad Shell Work
 

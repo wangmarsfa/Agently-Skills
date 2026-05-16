@@ -9,14 +9,15 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 
 ## Native-First Rules
 
-- prefer the native Action Runtime, built-in tools, and MCP surfaces before handwritten wrappers
+- prefer the native Action Runtime, built-in action packages, legacy tool facades, and MCP surfaces before handwritten wrappers
 - keep extension choice explicit: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
 - treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
-- use `agent.enable_python(...)`, `agent.enable_shell(...)`, and `agent.enable_workspace(...)` for common Python, shell, and workspace access
+- use `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` for common Python, shell, workspace, Node.js, and SQLite access
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
+- use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep the permission profile explicit: search-only, local-files-only, network-read, install-capable shell, or trusted broad executor
 - use Python sandbox for pure computation or small data shaping; do not use it for imports, filesystem mutation, network access, or dependency installation
 - use Bash sandbox or a custom executor when the task needs shell access, package install, or broader command control

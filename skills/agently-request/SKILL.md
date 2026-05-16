@@ -1,0 +1,50 @@
+---
+name: agently-request
+description: "Use when the user is shaping Agently request-side behavior: model setup, settings files, prompt management, structured output, response reuse, streaming consumption, session memory, embeddings, knowledge-base indexing, retrieval, or retrieval-backed answers within one request family."
+---
+
+# Agently Request
+
+Use this skill when the work stays on the request side: provider setup, prompt
+contracts, output contracts, response consumption, session continuity, or
+retrieval.
+
+If the owner layer is still unclear, start with `agently-playbook`. If the
+request clearly needs branching, waiting, resume, or durable orchestration, use
+`agently-triggerflow` and read this skill only for model-step details.
+
+## Route Inside This Skill
+
+- model endpoint, env vars, `${ENV.xxx}`, settings namespaces, or connectivity checks -> `references/model-setup.md`
+- prompt slots, prompt config, YAML/JSON prompt files, mappings, or reusable request contracts -> `references/prompt-management.md`
+- stable fields, required keys, machine-readable output, `.output(...)`, `ensure_keys`, or validation -> `references/output-control.md`
+- one response consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
+- conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
+- embeddings, Chroma collections, retrieval, or KB-to-answer -> `references/knowledge-base.md`
+
+## Native-First Rules
+
+- keep provider settings outside prompt and workflow code; prefer settings files with `${ENV.xxx}` placeholders when deployment values differ by environment
+- keep stable prompt and output contracts in prompt config when shared across a request family
+- use `.output(...)` tuple ensure flags for fixed required leaves; use runtime `ensure_keys` only for runtime-dependent paths
+- use `get_response()` when the same model result must be read multiple ways
+- keep Session memory separate from TriggerFlow execution state
+- keep retrieval explicit when its results feed a later request or workflow step
+- default to async-first response consumption in services, streaming paths, and workflows
+
+## Anti-Patterns
+
+- do not handwrite provider HTTP calls before checking native model requester settings
+- do not rebuild prompt templates with ad hoc string formatting when prompt mappings fit
+- do not handwrite JSON repair/retry loops before using output contracts and validation
+- do not re-request the same model call only to get text, parsed data, or metadata separately
+- do not hide retrieval inside unrelated prompt code
+
+## Read Next
+
+- `references/model-setup.md`
+- `references/prompt-management.md`
+- `references/output-control.md`
+- `references/model-response.md`
+- `references/session-memory.md`
+- `references/knowledge-base.md`
