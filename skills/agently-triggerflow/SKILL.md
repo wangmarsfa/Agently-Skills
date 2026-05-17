@@ -18,7 +18,9 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - use `emit_nowait(...)` / `async_emit_nowait(...)` when a chunk must fan out without blocking the current handler, and rely on execution close to drain registered tasks
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
-- for service packaging, prefer module-level named chunks plus a small flow builder/factory; inject stable dependencies through flow-level `runtime_resources` and request-specific dependencies through execution-level `runtime_resources`
+- for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
+- for model-app dynamic planning, build request-local or plan-local executors from model-generated To-Do Lists / dependency graphs; use task ids as dynamic stage identities and keep generated plan data in execution state or execution input, not shared flow data
+- use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
 - name chunks and stage boundaries so exported flow configs, Mermaid diagrams, and runtime graphs stay readable
