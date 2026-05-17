@@ -25,12 +25,13 @@ Use this file as installation-time guidance after the skills are added into anot
 ## Coordinated Release Rules
 
 - For an Agently framework release, validate the main repository and companion repositories before merging or publishing.
+- Version numbers are part of the release-prep change and must be updated before final validation, merging, or publishing; do not rely on post-publish metadata-only edits to trigger a release workflow.
 - The main repository release commit must update `pyproject.toml`, `agently/compatibility.py`, `compatibility/index.json`, and the matching `compatibility/releases/<version>.json`; keep `compatibility/in-development.json` aligned until the release line moves on.
-- If the release recommends a new `agently-devtools` build, update the DevTools package version in `../Agently-Devtools/packages/python/pyproject.toml`; changing only docs, tests, or compatibility text does not trigger the DevTools publish workflow.
+- If the release recommends a new `agently-devtools` build, update the DevTools package version in `../Agently-Devtools/packages/python/pyproject.toml` during the same release-prep pass; changing only docs, tests, or compatibility text does not trigger the DevTools publish workflow.
 - Keep the Agently DevTools `recommended_version_specifier` in the current release manifest aligned with the version that will be published to PyPI.
-- Before creating or updating the main repository PR, run `python -m pytest` in the main repository.
+- Before creating or updating the main repository PR, run `pyright` and `python -m pytest` in the main repository, using the same Python environment that will validate the release.
 - Before considering this Skills repository aligned, run `python validate/validate_compatibility.py`, `python validate/validate_catalog.py`, `python validate/validate_bundle_manifest.py`, `python validate/validate_trigger_paths.py`, and `python validate/validate_native_usage.py`.
-- Before considering `../Agently-Devtools` aligned, run `python -m pytest packages/python/tests` and confirm the GitHub Actions CI run passes after push.
+- Before considering `../Agently-Devtools` aligned, run `pyright --pythonpath "$(command -v python)"` and `python -m pytest packages/python/tests`; after push, confirm the GitHub Actions CI and publish workflow results.
 - DevTools CI must work with the checkout layout used by `.github/workflows/ci.yml`; tests must not assume only a sibling `../Agently` checkout when the workflow checks Agently out as `agently-src`.
 - Check whether companion repository heads are already merged into `origin/main`; if they are, treat them as no-op rather than creating unnecessary merge commits.
 - If a companion repository has unrelated local dirty files, do not overwrite them. Report the dirty state if it affects release validation.
