@@ -15,6 +15,8 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - default to async-first workflow handlers, execution entrypoints, and runtime stream consumers
 - treat sync TriggerFlow APIs as wrappers for scripts or compatibility bridges, not as the default service interface
 - prefer explicit execution lifecycle control with `close()` / `async_close()` for completion and cleanup
+- for human approvals, webhooks, or externally resumed waits, use `pause_for(..., resume_to="next" | "self" | {"event": ...})`; treat it as a durable graph interrupt, not Python coroutine stack persistence; teach model-decided autonomous interrupts with model-owned `pause_for(..., resume_to="self")`, and teach prearranged approval gates with an explicit pause chunk plus `when(...)`
+- when a sub-flow can pause, keep the external API rooted at the parent execution id plus projected root interrupt id; do not require callers to manage child execution ids
 - use `emit_nowait(...)` / `async_emit_nowait(...)` when a chunk must fan out without blocking the current handler, and rely on execution close to drain registered tasks
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
@@ -34,6 +36,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - do not recommend `.end()`, `get_result()`, or `set_result()` as the default lifecycle path for new TriggerFlow code
 - do not use `get_runtime_data(...)` / `set_runtime_data(...)` in new guidance when `get_state(...)` / `set_state(...)` communicates the same intent
 - do not use flow data for per-execution state
+- do not write guidance that depends on code after `await data.async_pause_for(...)` surviving a process restart; put post-resume logic in the downstream chunk, `data.is_resume` branch, or explicit resume event handler
 - do not make service chunks depend on closure-captured business context when `runtime_resources` would keep the handler reusable, testable, and export-friendly
 - do not pass raw model stream paths directly to the UI when the workflow can translate them into stable business events
 - do not hide draft/judge/revise or similar loops inside one opaque helper
