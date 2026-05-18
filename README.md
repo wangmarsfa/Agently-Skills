@@ -118,6 +118,12 @@ converge on these defaults:
 - TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close
   snapshot; do not present `.end()`, `set_result()`, `get_result()`, or
   `wait_for_result=` as normal new-code entrypoints
+- deprecation signal: Agently emits each deprecated API warning once per Python
+  process; repeated silence after the first warning does not make legacy APIs
+  recommended
+- production noise: `runtime.show_deprecation_warnings=False` may silence
+  Agently deprecation warnings globally, but skills must still migrate away from
+  deprecated APIs instead of treating the silence as approval
 - TriggerFlow state: prefer `get_state(...)` / `set_state(...)` for
   per-execution data; treat `flow_data` as intentionally shared and risky
 - settings loading: prefer `Agently.load_settings("yaml_file", path,

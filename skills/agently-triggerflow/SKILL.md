@@ -33,6 +33,8 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - do not use untracked `asyncio.create_task(data.async_emit(...))` as the default nowait pattern when execution-managed `emit_nowait(...)` is available
 - do not recommend `.end()`, `get_result()`, or `set_result()` as the default lifecycle path for new TriggerFlow code
 - do not use `get_runtime_data(...)` / `set_runtime_data(...)` in new guidance when `get_state(...)` / `set_state(...)` communicates the same intent
+- do not treat repeated silence after one deprecation warning as approval; Agently emits each deprecated API warning once per Python process
+- do not treat `runtime.show_deprecation_warnings=False` as a migration substitute; it is only a production noise-control setting
 - do not use flow data for per-execution state
 - do not make service chunks depend on closure-captured business context when `runtime_resources` would keep the handler reusable, testable, and export-friendly
 - do not pass raw model stream paths directly to the UI when the workflow can translate them into stable business events
