@@ -44,8 +44,11 @@ async def main():
     await execution.async_start("demo")
     state = await execution.async_close()
     assert state["kick"] == {"input": "demo", "queued": True}
-    assert state["audit"] == {"received": "demo", "queued_by": "kick"}
-    print(state["audit"])
+    assert execution.result.get_state("audit") == {
+        "received": "demo",
+        "queued_by": "kick",
+    }
+    print({"audit": state["audit"], "meta": execution.result.get_meta()})
 
 
 asyncio.run(main())

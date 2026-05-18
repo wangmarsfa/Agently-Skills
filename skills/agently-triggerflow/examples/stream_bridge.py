@@ -64,7 +64,17 @@ def _build_judge_response(draft: str):
     )
     return (
         agent.input(f"Score this draft and explain strengths: {draft}")
-        .output({"judge_items": [{"name": (str, None, True), "score": (int, None, True), "comment": (str, None, True)}]})
+        .output(
+            {
+                "judge_items": [
+                    {
+                        "name": (str, None, True),
+                        "score": (int, None, True),
+                        "comment": (str, None, True),
+                    }
+                ]
+            }
+        )
         .get_response()
     )
 
@@ -124,13 +134,14 @@ async def main():
     items = [item async for item in execution.get_async_runtime_stream(timeout=None)]
     state = await close_task
     assert [item["stage"] for item in items] == ["judge_item_ready", "judge_item_ready"]
-    assert state["judge_result"]["judge_items"][0]["name"] == "clarity"
-    assert state["judge_result"]["judge_items"][0]["score"] == 8
-    assert state["judge_result"]["judge_items"][0]["comment"] == "Clear and direct."
-    assert state["judge_result"]["judge_items"][1]["name"] == "evidence"
-    assert state["judge_result"]["judge_items"][1]["score"] == 7
-    assert state["judge_result"]["judge_items"][1]["comment"] == "Backed by examples."
-    print(items)
+    judge_result = execution.result.get_state("judge_result")
+    assert judge_result["judge_items"][0]["name"] == "clarity"
+    assert judge_result["judge_items"][0]["score"] == 8
+    assert judge_result["judge_items"][0]["comment"] == "Clear and direct."
+    assert judge_result["judge_items"][1]["name"] == "evidence"
+    assert judge_result["judge_items"][1]["score"] == 7
+    assert judge_result["judge_items"][1]["comment"] == "Backed by examples."
+    print({"items": items, "meta": execution.result.get_meta()})
     return state
 
 

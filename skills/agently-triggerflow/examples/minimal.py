@@ -15,8 +15,13 @@ flow.to(finish)
 async def main():
     execution = flow.create_execution()
     await execution.async_start("demo")
-    state = await execution.async_close()
-    print(state["output"])
+    await execution.async_close()
+    print(
+        {
+            "output": execution.result.get_state("output"),
+            "meta": execution.result.get_meta(),
+        }
+    )
 
 
 asyncio.run(main())

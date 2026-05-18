@@ -15,6 +15,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - default to async-first workflow handlers, execution entrypoints, and runtime stream consumers
 - treat sync TriggerFlow APIs as wrappers for scripts or compatibility bridges, not as the default service interface
 - prefer explicit execution lifecycle control with `close()` / `async_close()` for completion and cleanup
+- use `execution.result` when services, UIs, stream consumers, or intervention-aware workflows need multiple views of one execution outcome, such as state, compatibility final result, interventions, and metadata; use `execution.close()` / `execution.async_close()` for close snapshots
 - use `emit_nowait(...)` / `async_emit_nowait(...)` when a chunk must fan out without blocking the current handler, and rely on execution close to drain registered tasks
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
@@ -32,6 +33,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - do not invent a custom event bus or state machine before checking TriggerFlow
 - do not use untracked `asyncio.create_task(data.async_emit(...))` as the default nowait pattern when execution-managed `emit_nowait(...)` is available
 - do not recommend `.end()`, `get_result()`, or `set_result()` as the default lifecycle path for new TriggerFlow code
+- do not add custom result containers around TriggerFlow executions when `execution.result` can expose the needed state/final-result/intervention/meta view
 - do not use `get_runtime_data(...)` / `set_runtime_data(...)` in new guidance when `get_state(...)` / `set_state(...)` communicates the same intent
 - do not treat repeated silence after one deprecation warning as approval; Agently emits each deprecated API warning once per Python process
 - do not treat `runtime.show_deprecation_warnings=False` as a migration substitute; it is only a production noise-control setting

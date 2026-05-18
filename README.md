@@ -95,6 +95,9 @@ Use this mental model when choosing a skill:
 - If the request is a framework migration, route to `agently-migration`.
 - Prefer native Agently surfaces before custom wrappers, custom parsers, custom
   retry loops, or custom workflow infrastructure.
+- Apply Occam's razor when shaping guidance: do not add a new entity, method,
+  facade, or compatibility patch when an existing Agently surface already carries
+  the concept clearly; prefer a narrow alias or docs clarification for unclear names.
 
 Async should usually be the default execution stance:
 
@@ -110,6 +113,9 @@ Async should usually be the default execution stance:
 When skills describe the recommended path for Agently `4.1+`, they should
 converge on these defaults:
 
+- API shape: apply Occam's razor before adding methods, facades, or compatibility
+  patches. If the existing surface is semantically correct but unclear, propose a
+  narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
   paths
@@ -132,6 +138,15 @@ converge on these defaults:
 - execution style: default to async-first for services, streaming, and workflows
 - response reuse: when one model result must be consumed multiple ways, prefer
   `get_response()` and reuse the same response object
+
+Feature acceptance requires spec reconciliation: update each relevant spec to the
+final implemented design, move fully landed planned specs into `spec/implemented/`,
+and update `spec/README.md` in the same work item.
+
+When reporting API, recommended usage, examples, or compatibility changes,
+include concise sample code that shows the updated usage shape. Prefer current
+usage snippets or before/after snippets over abstract prose when that makes the
+change easier to inspect.
 
 ## Standard Project Shape
 
