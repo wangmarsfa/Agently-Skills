@@ -50,6 +50,13 @@ Use this file as installation-time guidance after the skills are added into anot
 
 ## Model Example Guidance
 
+- User-visible feature work must add or update examples for the scenario the
+  feature enables before the task is considered complete. The example should be
+  runnable in its declared environment, use the current recommended API shape,
+  and keep an `Expected key output` comment with stable key values from one real
+  run. Do not replace that with a generic statement such as "shows X". When the
+  behavior is not obvious from output alone, add concise working-principle notes
+  or an ASCII flow diagram in the example comment.
 - Agently recommended examples, cookbook examples, public teaching examples, and training-derived examples must exercise a real model through DeepSeek or local Ollama.
 - DeepSeek credentials may be loaded through dotenv by the example itself. Do not mark DeepSeek unavailable only because `DEEPSEEK_API_KEY` is absent from the parent shell environment.
 - Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
