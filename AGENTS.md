@@ -15,6 +15,9 @@ Use this file as installation-time guidance after the skills are added into anot
 
 - Route unresolved product, assistant, and workflow requests through `agently-playbook` first.
 - Prefer Agently-native capabilities before custom output parsers, retry loops, or orchestration layers.
+- Apply Occam's razor to APIs, architecture, and examples: do not add a new entity,
+  method, facade, or compatibility patch when an existing Agently surface already
+  carries the concept clearly. Prefer a narrow alias or docs clarification for unclear names.
 - Default to async-first guidance for services, streaming, TriggerFlow, and concurrent execution. Treat sync APIs as wrappers for scripts, REPL use, or compatibility bridges unless there is a clear reason not to.
 - Treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source-repo dependency.
 - Keep public skill boundaries capability-first and mutually exclusive.
@@ -25,6 +28,13 @@ Use this file as installation-time guidance after the skills are added into anot
 ## Coordinated Release Rules
 
 - For an Agently framework release, validate the main repository and companion repositories before merging or publishing.
+- Feature acceptance is not complete until each relevant spec records the final
+  implemented design, any fully landed planned spec has moved to `spec/implemented/`,
+  and `spec/README.md` points to the completed location.
+- When reporting public API, recommended usage, examples, or compatibility-line
+  changes, include concise sample code that shows the updated usage shape.
+  Prefer current usage snippets or before/after snippets over abstract prose
+  when that will make the change easier to inspect.
 - Version numbers are part of the release-prep change and must be updated before final validation, merging, or publishing; do not rely on post-publish metadata-only edits to trigger a release workflow.
 - The main repository release commit must update `pyproject.toml`, `agently/compatibility.py`, `compatibility/index.json`, and the matching `compatibility/releases/<version>.json`; keep `compatibility/in-development.json` aligned until the release line moves on.
 - If the release recommends a new `agently-devtools` build, update the DevTools package version in `../Agently-Devtools/packages/python/pyproject.toml` during the same release-prep pass; changing only docs, tests, or compatibility text does not trigger the DevTools publish workflow.

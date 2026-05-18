@@ -86,11 +86,12 @@ flow.to(plan_step).to(dispatch_step)
 async def main():
     execution = flow.create_execution()
     await execution.async_start("demo")
-    state = await execution.async_close()
-    assert state["dispatch"]["status"] == "ready"
-    assert state["dispatch"]["actions"] == ["draft", "review", "ship"]
-    assert isinstance(state["dispatch"]["preview"], str) and state["dispatch"]["preview"].strip()
-    print(state["dispatch"])
+    snapshot = await execution.async_close()
+    dispatch = execution.result.get_state("dispatch")
+    assert dispatch["status"] == "ready"
+    assert dispatch["actions"] == ["draft", "review", "ship"]
+    assert isinstance(dispatch["preview"], str) and dispatch["preview"].strip()
+    print({"dispatch": snapshot["dispatch"], "meta": execution.result.get_meta()})
 
 
 asyncio.run(main())

@@ -15,6 +15,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - default to async-first workflow handlers, execution entrypoints, and runtime stream consumers
 - treat sync TriggerFlow APIs as wrappers for scripts or compatibility bridges, not as the default service interface
 - prefer explicit execution lifecycle control with `close()` / `async_close()` for completion and cleanup
+- use `execution.result` when services, UIs, stream consumers, or intervention-aware workflows need multiple views of one execution outcome, such as state, compatibility final result, interventions, and metadata; use `execution.close()` / `execution.async_close()` for close snapshots
 - for human approvals, webhooks, or externally resumed waits, use `pause_for(..., resume_to="next" | "self" | {"event": ...})`; treat it as a durable graph interrupt, not Python coroutine stack persistence; teach model-decided autonomous interrupts with model-owned `pause_for(..., resume_to="self")`, and teach prearranged approval gates with an explicit pause chunk plus `when(...)`
 - when a sub-flow can pause, keep the external API rooted at the parent execution id plus projected root interrupt id; do not require callers to manage child execution ids
 - use `emit_nowait(...)` / `async_emit_nowait(...)` when a chunk must fan out without blocking the current handler, and rely on execution close to drain registered tasks
@@ -34,7 +35,10 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - do not invent a custom event bus or state machine before checking TriggerFlow
 - do not use untracked `asyncio.create_task(data.async_emit(...))` as the default nowait pattern when execution-managed `emit_nowait(...)` is available
 - do not recommend `.end()`, `get_result()`, or `set_result()` as the default lifecycle path for new TriggerFlow code
+- do not add custom result containers around TriggerFlow executions when `execution.result` can expose the needed state/final-result/intervention/meta view
 - do not use `get_runtime_data(...)` / `set_runtime_data(...)` in new guidance when `get_state(...)` / `set_state(...)` communicates the same intent
+- do not treat repeated silence after one deprecation warning as approval; Agently emits each deprecated API warning once per Python process
+- do not treat `runtime.show_deprecation_warnings=False` as a migration substitute; it is only a production noise-control setting
 - do not use flow data for per-execution state
 - do not write guidance that depends on code after `await data.async_pause_for(...)` surviving a process restart; put post-resume logic in the downstream chunk, `data.is_resume` branch, or explicit resume event handler
 - do not make service chunks depend on closure-captured business context when `runtime_resources` would keep the handler reusable, testable, and export-friendly

@@ -106,6 +106,10 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - TriggerFlow lifecycle：优先 `close()` / `async_close()` 和 close snapshot；
   不要把 `.end()`、`set_result()`、`get_result()`、`wait_for_result=` 当成
   新代码默认入口
+- deprecation 信号：Agently 对每个 deprecated API 在每个 Python 进程内只发
+  一次 warning；首次之后不再重复 warning 不代表旧 API 重新成为推荐路径
+- 生产降噪：`runtime.show_deprecation_warnings=False` 可以全局关闭 Agently
+  deprecation warning，但 skill 仍必须迁移 deprecated API，不得把静默当成推荐
 - TriggerFlow state：单 execution 数据优先 `get_state(...)` / `set_state(...)`；
   `flow_data` 视为有意共享且有风险的作用域
 - Settings 加载：文件型 provider 配置优先

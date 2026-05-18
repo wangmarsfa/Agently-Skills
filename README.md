@@ -95,6 +95,9 @@ Use this mental model when choosing a skill:
 - If the request is a framework migration, route to `agently-migration`.
 - Prefer native Agently surfaces before custom wrappers, custom parsers, custom
   retry loops, or custom workflow infrastructure.
+- Apply Occam's razor when shaping guidance: do not add a new entity, method,
+  facade, or compatibility patch when an existing Agently surface already carries
+  the concept clearly; prefer a narrow alias or docs clarification for unclear names.
 
 Async should usually be the default execution stance:
 
@@ -110,6 +113,9 @@ Async should usually be the default execution stance:
 When skills describe the recommended path for Agently `4.1+`, they should
 converge on these defaults:
 
+- API shape: apply Occam's razor before adding methods, facades, or compatibility
+  patches. If the existing surface is semantically correct but unclear, propose a
+  narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
   paths
@@ -118,6 +124,12 @@ converge on these defaults:
 - TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close
   snapshot; do not present `.end()`, `set_result()`, `get_result()`, or
   `wait_for_result=` as normal new-code entrypoints
+- deprecation signal: Agently emits each deprecated API warning once per Python
+  process; repeated silence after the first warning does not make legacy APIs
+  recommended
+- production noise: `runtime.show_deprecation_warnings=False` may silence
+  Agently deprecation warnings globally, but skills must still migrate away from
+  deprecated APIs instead of treating the silence as approval
 - TriggerFlow state: prefer `get_state(...)` / `set_state(...)` for
   per-execution data; treat `flow_data` as intentionally shared and risky
 - settings loading: prefer `Agently.load_settings("yaml_file", path,
@@ -126,6 +138,15 @@ converge on these defaults:
 - execution style: default to async-first for services, streaming, and workflows
 - response reuse: when one model result must be consumed multiple ways, prefer
   `get_response()` and reuse the same response object
+
+Feature acceptance requires spec reconciliation: update each relevant spec to the
+final implemented design, move fully landed planned specs into `spec/implemented/`,
+and update `spec/README.md` in the same work item.
+
+When reporting API, recommended usage, examples, or compatibility changes,
+include concise sample code that shows the updated usage shape. Prefer current
+usage snippets or before/after snippets over abstract prose when that makes the
+change easier to inspect.
 
 ## Standard Project Shape
 

@@ -102,7 +102,8 @@ async def main():
     async for item in execution.get_async_runtime_stream(timeout=None):
         print(item)
     state = await close_task
-    return state["judge_result"]
+    meta = execution.result.get_meta()
+    return {"judge_result": state["judge_result"], "execution_id": meta["execution_id"]}
 
 
 asyncio.run(main())
