@@ -4,12 +4,12 @@ Use runtime intervention when outside code may add optional supplemental context
 while a TriggerFlow execution is already running. It is an execution-local
 ledger and visibility mechanism, not a wait gate and not graph mutation.
 
-Choose the mode at execution creation:
+Runtime intervention is disabled unless execution creation opts in or the flow
+declares an explicit intervention point:
 
 ```python
 execution = flow.create_execution(
     auto_close=False,
-    intervention_mode="planned",  # "planned" | "auto"
 )
 ```
 
@@ -23,6 +23,10 @@ Prefer `planned` mode when workflow authors know the safe insertion boundary:
     .to(risk_assessment)
 )
 ```
+
+When a flow declares `intervention_point(...)`, `create_execution(...)` infers
+planned mode if `intervention_mode` is omitted. Pass `intervention_mode=None`
+only when you deliberately want to disable intervention for that execution.
 
 Use `auto` mode when the service wants TriggerFlow's boundary policy: targeted
 items insert before the first matching operator id, name, kind, group id, or
@@ -53,14 +57,14 @@ async def risk_assessment(data):
     for item in supplements:
         await data.async_mark_intervention_consumed(
             item["id"],
-            consumer="risk_assessment",
             status="applied",
         )
     return result
 ```
 
 Reading is not consumption. Consumption is explicit per consumer and supports
-`"applied"` or `"ignored"`.
+`"applied"` or `"ignored"`. Runtime data defaults `consumer` to the current
+chunk name; execution-level consumption calls still pass a consumer explicitly.
 
 At close, still-pending interventions become `"expired"`. The ledger remains
 available through `execution.result.get_interventions(...)` and the close
