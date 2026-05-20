@@ -48,16 +48,20 @@ It is not the same thing as the framework-side **Skills Executor** that lives
 inside the Agently runtime:
 
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
-- Agently `Skills Executor` — runtime capability for Agently apps and agents to install and apply external skills during real task execution
+- Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
 
 Individual skill directories are still plain-text packages. Agently's
-framework-side Skills Executor can install them as **guidance-only runtime skill
-sources** when a project intentionally wants runtime steering or design
-guidance. In that case the skill contributes guidance assets, not a standalone
-executable runtime.
+framework-side Skills Executor can install them as **guidance-heavy runtime
+skill sources** when a project intentionally wants runtime steering or design
+guidance. In that case the skill contributes cards, guidance assets, and
+declarative constraints; it does not become a standalone `skill.run()` runtime.
+The framework may disclose bounded primary `SKILL.md` guidance to a model
+request when an app explicitly enables a skill candidate with
+`agent.use_skills(...)`; package scripts and helpers still remain inert assets
+unless the app binds them through controlled Actions.
 
 ## Routing Model
 
