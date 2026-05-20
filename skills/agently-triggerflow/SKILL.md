@@ -23,7 +23,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
 - for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
-- for model-app dynamic planning inside Agently core/framework work, split the path into `AgentlyDynamicTaskGraphPlanner` for model-owned DAG generation, `DynamicTaskGraphValidator` for DAG contract checks, and `DynamicTaskGraphExecutor` for already-planned typed DAG execution; the executor uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
+- for model-app dynamic planning inside Agently core/framework work, use the framework facade `Agently.create_dynamic_task_graph(...)` or `agent.create_dynamic_task_graph(...)` for ordinary app code; split the path into `AgentlyDynamicTaskGraphPlanner`, `DynamicTaskGraphValidator`, and `DynamicTaskGraphExecutor` only when staged control is needed; the executor uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
@@ -57,7 +57,7 @@ For already-planned Todo DAGs, validate the DAG and compile task ids into named
 branches instead of building a custom scheduler:
 
 ```python
-from agently.core import DynamicTaskGraphExecutor, DynamicTaskGraphValidator
+from agently import Agently
 
 async def run_task(context):
     if context.dependency_results:
@@ -67,12 +67,8 @@ async def run_task(context):
         }
     return f"{ context.task.id }:{ context.graph_input['doc'] }"
 
-bindings = {"local": run_task}
-validator = DynamicTaskGraphValidator(bindings=bindings)
-validator.validate(todo_graph)
-
-executor = DynamicTaskGraphExecutor(bindings=bindings, validator=validator)
-snapshot = await executor.async_run(todo_graph, {"doc": "policy"}, timeout=10)
+workflow = Agently.create_dynamic_task_graph({"local": run_task})
+snapshot = await workflow.async_run(todo_graph, {"doc": "policy"}, timeout=10)
 task_results = snapshot["task_results"]
 ```
 
@@ -80,21 +76,17 @@ When a model planner must generate the DAG, use Agently output contracts and
 validation before execution:
 
 ```python
-from agently.builtins.plugins import AgentlyDynamicTaskGraphPlanner
-from agently.core import DynamicTaskGraphExecutor, DynamicTaskGraphValidator
+from agently import Agently
 
 bindings = {"model": run_model_task}
-validator = DynamicTaskGraphValidator(bindings=bindings)
-planner = AgentlyDynamicTaskGraphPlanner(
-    validator=validator,
+workflow = Agently.create_dynamic_task_graph(
+    bindings,
     supported_kinds=["model", "approval"],
 )
 
-todo_graph = await planner.async_plan(planner_agent, {"goal": user_goal}, max_retries=3)
-validator.validate(todo_graph, strict_schema_version=True)
-
-executor = DynamicTaskGraphExecutor(bindings=bindings, validator=validator)
-snapshot = await executor.async_run(todo_graph, {"goal": user_goal}, timeout=30)
+todo_graph = await workflow.async_plan(planner_agent, {"goal": user_goal}, max_retries=3)
+workflow.validate(todo_graph, strict_schema_version=True)
+snapshot = await workflow.async_run(todo_graph, {"goal": user_goal}, timeout=30)
 ```
 
 The planner wires `.output(planner.output_schema())`, required
