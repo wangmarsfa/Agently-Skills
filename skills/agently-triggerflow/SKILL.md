@@ -23,7 +23,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
 - for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
-- for model-app dynamic planning inside Agently core/framework work, use the framework facade `Agently.create_dynamic_task_graph(...)` or `agent.create_dynamic_task_graph(...)` for ordinary app code; split the path into `AgentlyDynamicTaskGraphPlanner`, `DynamicTaskGraphValidator`, and `DynamicTaskGraphExecutor` only when staged control is needed; the executor uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
+- for model-app dynamic planning inside Agently core/framework work, use the framework facade `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code; split the path into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, and `TaskDAGExecutor` only when staged control is needed; the executor uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
@@ -67,8 +67,12 @@ async def run_task(context):
         }
     return f"{ context.task.id }:{ context.graph_input['doc'] }"
 
-workflow = Agently.create_dynamic_task_graph({"local": run_task})
-snapshot = await workflow.async_run(todo_graph, {"doc": "policy"}, timeout=10)
+task = Agently.create_dynamic_task(
+    target="review policy",
+    plan=todo_graph,
+    handlers={"local_handler": run_task},
+)
+snapshot = await task.async_run(graph_input={"doc": "policy"}, timeout=10)
 task_results = snapshot["task_results"]
 ```
 
@@ -78,25 +82,26 @@ validation before execution:
 ```python
 from agently import Agently
 
-bindings = {"model": run_model_task}
-workflow = Agently.create_dynamic_task_graph(
-    bindings,
-    supported_kinds=["model", "approval"],
+task = Agently.create_dynamic_task(
+    target=user_goal,
+    planner=planner_agent,
+    model=worker_agent,
 )
 
-todo_graph = await workflow.async_plan(planner_agent, {"goal": user_goal}, max_retries=3)
-workflow.validate(todo_graph, strict_schema_version=True)
-snapshot = await workflow.async_run(todo_graph, {"goal": user_goal}, timeout=30)
+todo_graph = await task.async_plan(max_retries=3)
+task.validate(todo_graph, strict_schema_version=True)
+snapshot = await task.async_run(todo_graph, {"goal": user_goal}, timeout=30)
 ```
 
 The planner wires `.output(planner.output_schema())`, required
 `planner.ensure_keys()`, and `.validate(planner.validate_output)` so duplicate
 ids, missing dependencies, cycles, unsupported task kinds, side-effect policy
 issues, and schema-version mismatches become retryable model-output failures.
-Planner plugin constraints must declare schema version, supported task kinds,
-required leaves, max task count if any, validation checks, and forbidden
-behavior such as unstable task ids, dependency results inside task inputs, and
-implicit side effects. Compile/run still revalidates the graph before execution.
+Planner plugin constraints must declare schema version, available task kinds and
+binding names, required leaves, max task count if any, validation checks, and
+forbidden behavior such as unstable task ids, dependency results inside task
+inputs, and implicit side effects. Compile/run still revalidates the graph
+before execution.
 
 When editing older code or examples without the Core executor available, use the
 native TriggerFlow signal pattern:
