@@ -8,7 +8,7 @@
 ## 兼容性
 
 默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.2.3
-开发线和新的 5-skill 结构对齐。
+版本线和新的 6-skill 结构对齐。
 
 机器可读兼容声明位于 `compatibility/support.json`。未发布跨仓协作应匹配
 当前 Agently development compatibility target。
@@ -34,6 +34,7 @@ Agently 是一个用于构建模型应用和工作流的框架。
 - 结构化输出与 required keys 约束
 - 响应复用、metadata 读取与 streaming 消费
 - Action Runtime、tools、MCP、memory、knowledge-base 等扩展能力
+- 一等 Dynamic Task DAG 规划、校验和执行
 - 基于 TriggerFlow 的 lifecycle-aware 工作流编排
 - 通过 `agently-devtools` 提供的可选开发者工具能力
 
@@ -55,7 +56,7 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 
 ## 路由模型
 
-默认 catalog 一共 5 个公开 skills：
+默认 catalog 一共 6 个公开 skills：
 
 - `agently-playbook`
   未定层级的模型应用、助手、内部工具、自动化、评估器、工作流、项目结构
@@ -68,6 +69,9 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
   Action Runtime、内置 action packages、tool 兼容入口、MCP、Execution
   Environment 生命周期、服务暴露、auto-function helpers、`KeyWaiter`，以及
   可选 `agently-devtools` 接入。
+- `agently-dynamic-task`
+  Dynamic Task DAG 规划、`TaskDAG` 校验、resolver handlers，以及通过
+  `Agently.create_dynamic_task(...)` 使用 `TaskDAGExecutor` 执行。
 - `agently-triggerflow`
   显式工作流编排、分支、并发、审批、等待和恢复、runtime stream、可重启
   执行、混合同异步函数或模块编排，以及便于图调试的工作流定义。
@@ -82,6 +86,8 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - 如果请求保持在一个 request family 内，走 `agently-request`。
 - 如果请求需要模型可调用能力、托管执行依赖、服务暴露或 DevTools wiring，
   走 `agently-runtime`。
+- 如果请求需要让模型生成或应用提交的 DAG 数据被规划、校验、裁剪并执行，
+  走 `agently-dynamic-task`。
 - 如果请求需要显式编排，走 `agently-triggerflow`。
 - 如果请求是框架迁移，走 `agently-migration`。
 - 优先使用 Agently 原生能力，不要先发明自定义 wrapper、parser、retry loop
@@ -118,6 +124,8 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - 执行风格：服务、流式、工作流默认 async-first
 - 响应复用：一次模型结果需要多种消费方式时，优先 `get_response()` 并复用
   同一个 response 对象
+- Dynamic Task：把 `Agently.create_dynamic_task(...)` 视为提交式 DAG 的
+  公共能力面。TriggerFlow 是它的执行基座，不是 owner API。
 
 ## 标准项目形态
 
@@ -135,6 +143,8 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - `services/`，负责请求封装、结果规范化和业务适配
 - `domain/` 或 `schemas/`，负责枚举、输入输出协议和共享值对象
 - `workflow/`，负责 TriggerFlow 图和 chunk 实现
+- `dynamic_task/` 或 service-level modules，用于 Dynamic Task facade、
+  提交式 DAG contract、resolver handlers 和 planner constraints
 - `tools/`，负责可替换的 search、browse、MCP 或其他外部适配层
 - `tests/`，负责 settings smoke check、Prompt/响应检查、API 或 flow 验证
 - `outputs/` 和 `logs/`，负责运行产物，而不是把这些内容混进源码目录
@@ -163,6 +173,7 @@ for skill in \
   agently-playbook \
   agently-request \
   agently-runtime \
+  agently-dynamic-task \
   agently-triggerflow
 do
   npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
@@ -189,7 +200,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook
 npx skills add . --list
 ```
 
-默认列表和常规安装路径只暴露当前 5-skill catalog。
+默认列表和常规安装路径只暴露当前 6-skill catalog。
 
 ## Legacy V1 回退
 

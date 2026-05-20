@@ -8,7 +8,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.3 development line and the compact 5-skill structure.
+with the Agently 4.1.2.3 line and the compact 6-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -37,6 +37,7 @@ It provides native surfaces for:
 - response reuse, metadata access, and streaming consumption
 - Action Runtime, tools, MCP, memory, and knowledge-base flows
 - lifecycle-aware workflow orchestration through TriggerFlow
+- first-class Dynamic Task DAG planning, validation, and execution
 - optional developer tooling through `agently-devtools`
 
 ## What Is Agently-Skills?
@@ -61,7 +62,7 @@ executable runtime.
 
 ## Routing Model
 
-The default catalog contains 5 public skills:
+The default catalog contains 6 public skills:
 
 - `agently-playbook`
   Top-level router for unresolved model-powered product, assistant,
@@ -75,6 +76,9 @@ The default catalog contains 5 public skills:
   Action Runtime, built-in action packages, tool compatibility, MCP,
   Execution Environment lifecycle, service exposure, auto-function helpers,
   `KeyWaiter`, and optional `agently-devtools` integration.
+- `agently-dynamic-task`
+  Dynamic Task DAG planning, `TaskDAG` validation, resolver handlers, and
+  `TaskDAGExecutor` execution through `Agently.create_dynamic_task(...)`.
 - `agently-triggerflow`
   Explicit orchestration, branching, concurrency, approvals, waiting and resume,
   runtime stream, restart-safe execution, mixed sync/async function or module
@@ -91,6 +95,8 @@ Use this mental model when choosing a skill:
 - If the request needs model-callable capabilities, managed execution
   dependencies, service exposure, or DevTools wiring, route to
   `agently-runtime`.
+- If the request needs model-generated or app-submitted DAG data to be planned,
+  validated, pruned, and executed, route to `agently-dynamic-task`.
 - If the request needs explicit orchestration, route to `agently-triggerflow`.
 - If the request is a framework migration, route to `agently-migration`.
 - Prefer native Agently surfaces before custom wrappers, custom parsers, custom
@@ -138,6 +144,8 @@ converge on these defaults:
 - execution style: default to async-first for services, streaming, and workflows
 - response reuse: when one model result must be consumed multiple ways, prefer
   `get_response()` and reuse the same response object
+- Dynamic Task: treat `Agently.create_dynamic_task(...)` as the public surface
+  for submitted DAGs. TriggerFlow is its execution substrate, not its owner API.
 
 Feature acceptance requires spec reconciliation: update each relevant spec to the
 final implemented design, move fully landed planned specs into `spec/implemented/`,
@@ -167,6 +175,9 @@ The default shape should usually separate:
 - `domain/` or `schemas/` for enums, request/response contracts, and shared
   value objects
 - `workflow/` for TriggerFlow graphs and chunk implementations
+- `dynamic_task/` or service-level modules for Dynamic Task facades, submitted
+  DAG contracts, resolver handlers, and planner constraints when the task plan
+  is data
 - `tools/` for replaceable search, browse, MCP, or external adapters
 - `tests/` for settings smoke checks, prompt/response checks, and API or flow
   validation
@@ -198,6 +209,7 @@ for skill in \
   agently-playbook \
   agently-request \
   agently-runtime \
+  agently-dynamic-task \
   agently-triggerflow
 do
   npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill "$skill" -y
@@ -225,7 +237,7 @@ Inspect the default public catalog:
 npx skills add . --list
 ```
 
-The default listing and standard install path expose only the current 5-skill
+The default listing and standard install path expose only the current 6-skill
 catalog.
 
 ## Legacy V1 Rollback

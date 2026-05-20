@@ -14,6 +14,7 @@ APP_SKILLS = {
     "agently-playbook",
     "agently-request",
     "agently-runtime",
+    "agently-dynamic-task",
     "agently-triggerflow",
 }
 MIGRATION_EXTRA_SKILLS = {
@@ -100,7 +101,7 @@ def main() -> None:
     check(
         "app_skills",
         app_active == APP_SKILLS,
-        "app bundle combines playbook, request, runtime, and TriggerFlow skills",
+        "app bundle combines playbook, request, runtime, Dynamic Task, and TriggerFlow skills",
         failures,
         passes,
     )

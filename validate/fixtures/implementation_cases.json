@@ -73,6 +73,22 @@
         "custom_auth_header"
       ],
       "live_smoke_profile": "deepseek"
+    },
+    {
+      "id": "dynamic-task-native",
+      "reference_example": "skills/agently-dynamic-task/examples/minimal.py",
+      "required_primitives": [
+        "Agently.create_dynamic_task(",
+        "\"task_schema_version\"",
+        "\"semantic_outputs\"",
+        "handlers={"
+      ],
+      "forbidden_antipatterns": [
+        "json.loads(",
+        "re.search(",
+        "custom_scheduler"
+      ],
+      "live_smoke_profile": "local"
     }
   ]
 }
