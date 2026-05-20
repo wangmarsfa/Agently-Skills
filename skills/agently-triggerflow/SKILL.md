@@ -24,6 +24,10 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
 - for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
 - for model-app dynamic planning inside Agently core/framework work, use the framework facade `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code; split the path into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, and `TaskDAGExecutor` only when staged control is needed; the executor uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
+- for Dynamic Task model outputs, use the framework's Agently output pipeline: pass `output_schema=...` to `Agently.create_dynamic_task(...)` for semantic output model tasks, or use node-level `inputs.output_schema` / `inputs.ensure_keys` for a specific model task; do not add example-local JSON/code-block parsers or structural retry loops around model text
+- Dynamic Task should not expose action or skill execution to the planner by default; pass `actions=...` or `skills=...` explicitly only when the scenario should allow those task kinds
+- Dynamic Task facade planning should not teach model planners to use internal `validate` or `emit` resolver entries as ordinary task kinds; reserve them for low-level executor integrations or submitted DAGs where the caller owns the plan
+- Dynamic Task planners should not mark ordinary read-only model tasks as network side effects only because they call an LLM provider, and should not add approval gates to analysis, synthesis, drafting, or final response model tasks unless the user explicitly asks for approval
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
@@ -86,6 +90,9 @@ task = Agently.create_dynamic_task(
     target=user_goal,
     planner=planner_agent,
     model=worker_agent,
+    output_schema={
+        "answer": (str, "final user-facing answer", True),
+    },
 )
 
 todo_graph = await task.async_plan(max_retries=3)
