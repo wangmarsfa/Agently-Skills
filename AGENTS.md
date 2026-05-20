@@ -66,6 +66,9 @@ Use this file as installation-time guidance after the skills are added into anot
 - Agently recommended examples, cookbook examples, public teaching examples, and training-derived examples must exercise a real model through DeepSeek or local Ollama.
 - DeepSeek credentials may be loaded through dotenv by the example itself. Do not mark DeepSeek unavailable only because `DEEPSEEK_API_KEY` is absent from the parent shell environment.
 - Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
+- Business-system feedback, such as ticket lookup, billing status, approval records, incident status, CRM writes, or notification delivery, may be mocked when the example is not connected to the real external system. Make the mock boundary explicit and keep it out of model-owned reasoning.
+- Example model-processing stages must use real model output for natural-language analysis, planning, evaluation, and response generation. Do not hard-code final model text, parse a fixed canned answer, or replace model results with deterministic local text.
+- Do not force example correctness by overfitted prompt wording that exists only to make the expected output pass. Prefer realistic business facts, typed output contracts, validation, deterministic non-model business checks, and clear frontend/backend result shaping.
 - Local functions may be used only as business capabilities, Actions, fake external systems, executor/provider smoke targets, or deterministic resources called by the model-driven flow.
 - Low-level infrastructure smoke examples may run without a model only when they are explicitly scoped to executor/provider behavior and are not presented as model-app patterns.
 
