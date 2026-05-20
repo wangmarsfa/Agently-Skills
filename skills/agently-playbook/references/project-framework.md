@@ -11,6 +11,7 @@ The default Agently project should usually separate these layers:
 - `prompts/` for YAML or JSON prompt contracts
 - `services/` for request wrappers, business-facing adapters, and response normalization
 - `domain/` or `schemas/` for enums, input/output contracts, and shared value objects
+- `dynamic_task/` or service modules for Dynamic Task facades, submitted DAG contracts, resolver handlers, and planner constraints when plans are data
 - `workflow/` for TriggerFlow graphs and chunk modules
 - `tools/` for replaceable adapters such as search, browse, MCP, or external services
 - `tests/` for settings smoke checks, prompt or response checks, and API or flow validation
@@ -36,6 +37,7 @@ The default Agently project should usually separate these layers:
 ## Workflow Rules
 
 - keep `workflow/` focused on TriggerFlow graph construction and chunk boundaries
+- keep Dynamic Task facades and handler registries separate from stable TriggerFlow graph definitions when the plan is submitted as DAG data
 - keep business stages explicit as chunks or sub flows instead of helper-to-helper jumps
 - inject tool instances, loggers, and other dependencies as runtime resources rather than hardcoding them inside chunk logic
 - use sub flows when a repeated business pipeline deserves an explicit reusable unit
@@ -74,7 +76,7 @@ Reason:
 
 - initialization is not one mutually exclusive capability surface
 - the first job is choosing owner layers and boundaries, which is what `agently-playbook` already owns
-- only after that decision should work fan out into `agently-request`, `agently-runtime`, `agently-triggerflow`, or another owning skill
+- only after that decision should work fan out into `agently-request`, `agently-runtime`, `agently-dynamic-task`, `agently-triggerflow`, or another owning skill
 
 ## Reference Pattern
 

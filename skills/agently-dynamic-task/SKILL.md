@@ -1,0 +1,136 @@
+---
+name: agently-dynamic-task
+description: Use when the user needs Agently Dynamic Task, model-generated or app-submitted DAG planning, TaskDAG validation, DynamicTaskResolver handlers, or TaskDAGExecutor execution through Agently.create_dynamic_task. Dynamic Task is a first-class Agently API that uses TriggerFlow as an execution substrate.
+---
+
+# Agently Dynamic Task
+
+Use this skill when the problem is a dynamic task graph: a model or application
+submits DAG data that must be planned, validated, pruned, resolved to handlers,
+and executed.
+
+Dynamic Task is an Agently first-class API. It is not a TriggerFlow sub-API.
+TriggerFlow is the execution substrate under `TaskDAGExecutor`, while
+`Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are the
+ordinary app-facing entrypoints.
+
+## Native-First Rules
+
+- use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code
+- split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
+- use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
+- use `planner=<agent-or-provider-settings>` when the model must generate the DAG
+- use `model=<agent-or-provider-settings>` for model task execution resources
+- use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
+- pass `actions=...` or `skills=...` only when the planner should be allowed to use those task kinds; do not expose them by default
+- use Agently output schemas for model-owned semantic outputs instead of parsing model text with example-local JSON/code-block parsers
+- keep backend business-system calls mockable in examples, but keep model-owned planning, classification, drafting, evaluation, revising, and final response generation model-driven
+- require each model task that matters to have a clear output schema, either through facade-level `output_schema` or node-level `inputs.output_schema`
+- let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
+- allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
+- keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
+- do not teach planners to use internal resolver entries such as `validate` or `emit` as ordinary task kinds
+- do not mark ordinary read-only model tasks as network side effects just because they call an LLM provider
+- do not add approval gates to analysis, synthesis, drafting, or final response model tasks unless the user explicitly asks for approval
+
+## API Shape
+
+Submitted DAG:
+
+```python
+from agently import Agently
+
+async def risk_check_handler(context):
+    return {
+        "task_id": context.task.id,
+        "deps": dict(context.dependency_results),
+    }
+
+task = Agently.create_dynamic_task(
+    target="review policy",
+    plan={
+        "graph_id": "review",
+        "task_schema_version": "task_dag/v1",
+        "tasks": [
+            {"id": "extract", "kind": "local", "binding": "risk_check_handler"},
+            {
+                "id": "final",
+                "kind": "local",
+                "binding": "risk_check_handler",
+                "depends_on": ["extract"],
+            },
+        ],
+        "semantic_outputs": {"final": "final"},
+    },
+    handlers={"risk_check_handler": risk_check_handler},
+)
+
+snapshot = await task.async_start(timeout=10)
+result = snapshot["semantic_outputs"]["final"]
+```
+
+Auto-planned DAG:
+
+```python
+from agently import Agently
+
+task = Agently.create_dynamic_task(
+    target=user_goal,
+    planner=planner_agent,
+    model=worker_agent,
+    output_schema={
+        "answer": (str, "final user-facing answer", True),
+    },
+)
+
+graph = await task.async_plan(max_retries=3)
+task.validate(graph, strict_schema_version=True)
+snapshot = await task.async_run(graph_input={"goal": user_goal}, timeout=30)
+```
+
+Lower-level integration:
+
+```python
+from agently.builtins.plugins import AgentlyTaskDAGPlanner
+from agently.core import DynamicTaskResolver, TaskDAGExecutor, TaskDAGValidator
+
+resolver = DynamicTaskResolver({"risk_check_handler": risk_check_handler})
+validator = TaskDAGValidator(resolver)
+planner = AgentlyTaskDAGPlanner(validator=validator)
+
+graph = await planner.async_plan(planner_agent, {"target": "review policy"})
+validation = validator.validate(graph, strict_schema_version=True)
+snapshot = await TaskDAGExecutor(resolver, validator=validator).async_run(graph)
+```
+
+## Planner Constraints
+
+Planner plugins and planner prompts must declare:
+
+- task schema version, normally `task_dag/v1`
+- allowed task kinds and available binding names
+- required semantic output leaves
+- maximum task count when the scenario has a practical limit
+- validation checks that become retryable model-output failures
+- forbidden behavior: unstable task ids, dependency results embedded in static task inputs, implicit side effects, hidden action/skill use, and internal resolver task kinds
+
+The facade planner should wire `.output(planner.output_schema())`, required
+`planner.ensure_keys()`, and `.validate(planner.validate_output)` so structural
+problems become model-output validation failures before execution. Compile/run
+still revalidates the graph.
+
+## Anti-Patterns
+
+- do not put Dynamic Task guidance under TriggerFlow as if it were TriggerFlow syntax
+- do not hand-roll a scheduler for submitted DAG data
+- do not parse model text with `json.loads(...)`, regex marker splits, or code-block extraction when Agently output schemas can own the shape
+- do not expose `actions` or `skills` to the planner by default
+- do not hide model-owned classification, drafting, quality checks, or final response generation behind deterministic local substitutes in recommended examples
+- do not call low-level `TaskDAGExecutor` from ordinary app code when `Agently.create_dynamic_task(...)` is enough
+- do not use vague handler names such as `risk_check`; use `risk_check_handler` or another name that describes the callable role
+- do not duplicate TriggerFlow docs here; explain only that Dynamic Task compiles to TriggerFlow internally
+
+## Read Next
+
+- `references/overview.md`
+- `examples/minimal.py`

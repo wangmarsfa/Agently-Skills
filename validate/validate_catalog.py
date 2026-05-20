@@ -16,6 +16,7 @@ EXPECTED_SKILLS = {
     "agently-playbook",
     "agently-request",
     "agently-runtime",
+    "agently-dynamic-task",
     "agently-triggerflow",
     "agently-migration",
 }
@@ -96,9 +97,10 @@ def main() -> None:
     )
     check("legacy_v1_dir_exists", LEGACY_V1.exists(), "legacy/v1 directory exists", failures, passes)
     actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
-    check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches current 5-skill set", failures, passes)
+    check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches current 6-skill set", failures, passes)
 
     playbook_text = (SKILLS / "agently-playbook" / "SKILL.md").read_text(encoding="utf-8")
+    dynamic_task_text = (SKILLS / "agently-dynamic-task" / "SKILL.md").read_text(encoding="utf-8")
     triggerflow_text = (SKILLS / "agently-triggerflow" / "SKILL.md").read_text(encoding="utf-8")
     check(
         "playbook_framework_name_optional",
@@ -112,6 +114,14 @@ def main() -> None:
         "triggerflow_framework_name_optional",
         "does not need to say TriggerFlow or Agently" in triggerflow_text,
         "triggerflow explicitly allows scenario-led discovery without framework-name requirements",
+        failures,
+        passes,
+    )
+    check(
+        "dynamic_task_first_class",
+        "first-class Agently API" in dynamic_task_text
+        and "not a TriggerFlow sub-API" in dynamic_task_text,
+        "dynamic task is documented as a first-class surface rather than a TriggerFlow sub-API",
         failures,
         passes,
     )

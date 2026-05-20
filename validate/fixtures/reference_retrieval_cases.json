@@ -219,6 +219,37 @@
         "execution_state",
         "flow_data_risk"
       ]
+    },
+    {
+      "id": "dynamic-task-first-class-boundary-en",
+      "query": "After routing to Dynamic Task, which reference explains why Dynamic Task is a first-class Agently API, how it validates TaskDAGs, and how TriggerFlow is only the execution substrate?",
+      "matched_skills": [
+        "agently-dynamic-task"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently-dynamic-task/references/overview.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "dynamic_task_first_class",
+          "description": "Dynamic Task is the public owner API for submitted DAGs."
+        },
+        {
+          "id": "triggerflow_substrate",
+          "description": "TriggerFlow is the executor substrate underneath Dynamic Task."
+        },
+        {
+          "id": "executor_independent",
+          "description": "TaskDAGExecutor does not require Agent directly."
+        }
+      ],
+      "required_concepts": [
+        "dynamic_task_first_class",
+        "triggerflow_substrate",
+        "executor_independent"
+      ]
     }
   ]
 }

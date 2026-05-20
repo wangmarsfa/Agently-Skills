@@ -715,6 +715,48 @@
           "agently-triggerflow"
         ]
       ]
+    },
+    {
+      "id": "dynamic-task-submitted-dag-en",
+      "scenario_id": "dynamic-task-dag-execution",
+      "locale": "en",
+      "intent_style": "submitted-dag-explicit",
+      "query": "Use Agently to run a submitted TaskDAG with validation, local handlers, dependency joins, and semantic outputs without hand-writing a scheduler.",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-dynamic-task",
+        "agently-triggerflow"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-dynamic-task"
+        ],
+        [
+          "agently-playbook",
+          "agently-dynamic-task"
+        ]
+      ]
+    },
+    {
+      "id": "dynamic-task-auto-plan-zh",
+      "scenario_id": "dynamic-task-dag-execution",
+      "locale": "zh",
+      "intent_style": "auto-plan-explicit",
+      "query": "我要让模型先生成一个可校验的 DAG，再用 Agently 执行这个 Dynamic Task，要求输出 schema 和 handler 绑定都明确。",
+      "installed_skills": [
+        "agently-playbook",
+        "agently-dynamic-task",
+        "agently-request"
+      ],
+      "expected_route_paths": [
+        [
+          "agently-dynamic-task"
+        ],
+        [
+          "agently-playbook",
+          "agently-dynamic-task"
+        ]
+      ]
     }
   ]
 }

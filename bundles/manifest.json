@@ -5,18 +5,20 @@
     {
       "id": "app",
       "kind": "core",
-      "purpose": "Build new Agently applications or services with request-side model behavior, runtime capabilities, and TriggerFlow orchestration through the current compact 5-skill catalog.",
+      "purpose": "Build new Agently applications or services with request-side model behavior, runtime capabilities, Dynamic Task DAG execution, and TriggerFlow orchestration through the current compact 6-skill catalog.",
       "entry_skill": "agently-playbook",
       "active_skills": [
         "agently-playbook",
         "agently-request",
         "agently-runtime",
+        "agently-dynamic-task",
         "agently-triggerflow"
       ],
       "recommended_install_order": [
         "agently-playbook",
         "agently-request",
         "agently-runtime",
+        "agently-dynamic-task",
         "agently-triggerflow"
       ]
     },
@@ -30,6 +32,7 @@
         "agently-playbook",
         "agently-request",
         "agently-runtime",
+        "agently-dynamic-task",
         "agently-triggerflow",
         "agently-migration"
       ],
@@ -37,6 +40,7 @@
         "agently-playbook",
         "agently-request",
         "agently-runtime",
+        "agently-dynamic-task",
         "agently-triggerflow",
         "agently-migration"
       ]
