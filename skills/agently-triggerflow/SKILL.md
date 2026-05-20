@@ -23,13 +23,112 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
 - for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
-- for model-app dynamic planning, build request-local or plan-local executors from model-generated To-Do Lists / dependency graphs; use task ids as dynamic stage identities and keep generated plan data in execution state or execution input, not shared flow data
+- for model-app dynamic planning inside Agently core/framework work, prefer the Core-layer `DynamicTaskGraphExecutor` class for already-planned typed DAGs; it uses TriggerFlow as the execution substrate while keeping task ids as dynamic stage identities and generated plan data in execution state or execution input, not shared flow data
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - keep runtime stream consumers safe by relying on execution close to stop the stream
 - keep workflow stages visible instead of hiding nested request loops
 - name chunks and stage boundaries so exported flow configs, Mermaid diagrams, and runtime graphs stay readable
 - let TriggerFlow definition export and runtime metadata drive visualization instead of maintaining a second manual graph description
 - combine with `agently-request` when one workflow step needs model setup, prompt contracts, structured output, response reuse, session behavior, or retrieval
+
+## Python API Shape
+
+When generating or editing Python code, use the actual Agently API shape:
+
+```python
+from agently import TriggerFlow, TriggerFlowRuntimeData
+```
+
+`when`, `emit_nowait`, and `pause_for` are not top-level imports from
+`agently`. They are methods on flow or runtime data objects:
+
+- define graph branches with `flow.when(...).to(handler, name="...")`
+- fan out from inside a chunk with `data.emit_nowait(...)`
+- pause from inside a chunk with `await data.async_pause_for(...)`
+- create and close long-running/manual executions with
+  `execution = flow.create_execution(auto_close=False)`,
+  `await execution.async_start(input_value)`, and
+  `snapshot = await execution.async_close()`
+
+Do not write `from agently import when, emit_nowait, pause_for`, and do not use
+`@flow.when(...)` as a decorator.
+
+For model-generated Todo DAGs, compile task ids into named branches instead of
+building a custom scheduler:
+
+```python
+from agently.core import DynamicTaskGraphExecutor
+
+async def run_task(context):
+    if context.dependency_results:
+        return {
+            "task_id": context.task.id,
+            "deps": dict(context.dependency_results),
+        }
+    return f"{ context.task.id }:{ context.graph_input['doc'] }"
+
+executor = DynamicTaskGraphExecutor(bindings={"local": run_task})
+snapshot = await executor.async_run(todo_graph, {"doc": "policy"}, timeout=10)
+task_results = snapshot["task_results"]
+```
+
+When editing older code or examples without the Core executor available, use the
+native TriggerFlow signal pattern:
+
+```python
+flow = TriggerFlow(name="todo-dag")
+
+async def kickoff(data: TriggerFlowRuntimeData):
+    data.state.set("tasks", data.input["tasks"])
+    data.state.set("results", {})
+    for task in data.input["tasks"]:
+        if not task["depends_on"]:
+            data.emit_nowait(f"start:{ task['id'] }", task)
+
+flow.to(kickoff, name="kickoff")
+
+def run_task_for(selected_task):
+    async def run_task(data: TriggerFlowRuntimeData):
+        # In event-triggered branches, data.value is the triggering event
+        # payload or signal-gate state, not necessarily the target task.
+        task = selected_task
+        results = dict(data.get_state("results", {}) or {})
+        dependency_payload = data.value
+        results[task["id"]] = {"status": "done", "deps": dependency_payload}
+        data.state.set("results", results)
+        data.emit_nowait(f"done:{ task['id'] }", task)
+        if len(results) == len(data.get_state("tasks", []) or []):
+            data.emit_nowait("done:all", results)
+
+    return run_task
+
+for task in todo_plan["tasks"]:
+    deps = task["depends_on"]
+    if not deps:
+        trigger = flow.when(f"start:{ task['id'] }")
+    elif len(deps) == 1:
+        trigger = flow.when(f"done:{ deps[0] }")
+    else:
+        trigger = flow.when({"event": [f"done:{ dep }" for dep in deps]}, mode="and")
+    trigger.to(run_task_for(task), name=f"run:{ task['id'] }")
+
+async def finalize(data: TriggerFlowRuntimeData):
+    data.state.set("final", data.value)
+
+flow.when("done:all").to(finalize, name="finalize")
+
+execution = flow.create_execution(auto_close=False)
+await execution.async_start({"tasks": todo_plan["tasks"]})
+snapshot = await execution.async_close(timeout=10)
+final = snapshot["final"]
+```
+
+`async_close()` returns the close snapshot dict. Do not read `snapshot.state`,
+`snapshot.final_result`, `execution.state`, or `execution.result.state`.
+For event-triggered chunks, `data.value` is the emitted payload or AND-gate
+state that triggered this branch. It is not automatically the target task for
+the branch. Store request-wide plan data with `data.state.set(...)`, and bind
+task-specific branch handlers with closures such as `run_task_for(task)`.
 
 ## Anti-Patterns
 
