@@ -19,6 +19,7 @@ ordinary app-facing entrypoints.
 - use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
+- use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
 - use `model=<agent-or-provider-settings>` for model task execution resources
 - use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
@@ -69,6 +70,26 @@ snapshot = await task.async_start(timeout=10)
 result = snapshot["semantic_outputs"]["final"]
 ```
 
+Config-backed submitted DAG:
+
+```python
+from agently import Agently
+from agently.core import TaskDAG
+
+graph = TaskDAG.from_yaml("plans/review.yaml")
+task = Agently.create_dynamic_task(
+    target="review policy",
+    plan=graph,
+    handlers={"risk_check_handler": risk_check_handler},
+)
+snapshot = await task.async_run(graph_input={"doc": "policy"}, timeout=10)
+```
+
+Use `TaskDAG.from_json(...)` for JSON/JSON5 files or raw content. Both loaders
+support `task_dag_key_path="plans.review"` for selecting one DAG from a larger
+config. Use `graph.get_yaml(path)` or `graph.get_json(path)` to export a
+normalized graph.
+
 Auto-planned DAG:
 
 ```python
@@ -118,6 +139,13 @@ The facade planner should wire `.output(planner.output_schema())`, required
 `planner.ensure_keys()`, and `.validate(planner.validate_output)` so structural
 problems become model-output validation failures before execution. Compile/run
 still revalidates the graph.
+
+Layer ownership:
+
+- `TaskDAG` / `TaskDAGNode` data contracts and YAML/JSON graph config belong to `agently.types.data`
+- `TaskDAGExecutor`, `TaskDAGValidator`, and `DynamicTaskResolver` belong to core
+- `AgentlyTaskDAGPlanner` owns planner output schema, ensure keys, and planner instructions as a plugin concern
+- `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are the app-facing facade entrypoints
 
 ## Anti-Patterns
 
