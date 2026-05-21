@@ -23,6 +23,17 @@ an Action or TriggerFlow execution can run.
 - TriggerFlow `runtime_resources` remains the execution-local live handle surface. Managed resources can be injected there, but TriggerFlow does not create or release them.
 - Built-in MCP, Bash, Python, Node.js, Docker, Browser, and SQLite actions should declare or consume Execution Environment resources rather than owning lifecycle inside the executor.
 - Search does not belong in Execution Environment. Its proxy, timeout, backend, and region settings belong to the Search package/executor configuration.
+- Skills Executor and artifact-producing workflows should repair missing local
+  libraries, binaries, browser runtimes, or MCP packages through controlled
+  install-capable Actions or ExecutionEnvironment ensure steps. Do not silently
+  downgrade the business result just because a local dependency is absent; if
+  repair is blocked or fails, surface an explicit failed or approval-required
+  execution state with the dependency ActionResult attached.
+- Third-party Skill helper scripts are not trusted runtime handlers by default.
+  The executor should first resolve the capability to a controlled Action or
+  managed environment. Bash/shell-style requirements may be satisfied by a
+  policy-bound Bash sandbox; if no controlled replacement exists, return a
+  user-facing blocked explanation and remediation suggestions.
 
 Audience split:
 

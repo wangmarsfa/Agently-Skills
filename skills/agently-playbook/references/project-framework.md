@@ -17,6 +17,20 @@ The default Agently project should usually separate these layers:
 - `tests/` for settings smoke checks, prompt or response checks, and API or flow validation
 - `outputs/` and `logs/` for runtime artifacts
 
+## Model Output Test Rules
+
+- For model-owned semantic content, use an Agently model judge with output
+  control instead of keyword matching. Feed the candidate model output,
+  explicit business rules, expected output contract, and relevant execution
+  context into the judge.
+- The judge output schema should put evidence, missing/weak points, and concise
+  reasons before each final boolean judgment, and put the overall pass/fail
+  boolean last.
+- Tests should assert the judge's structured boolean fields. Keyword,
+  substring, regex, and text snapshot checks may stay as deterministic smoke
+  gates for structure, routing, or required-field presence, but should not be
+  the primary content correctness signal.
+
 ## Prompt Rules
 
 - keep task-specific `input`, `info`, `instruct`, and `output` contracts in prompt files instead of Python string literals

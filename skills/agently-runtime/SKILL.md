@@ -30,6 +30,16 @@ here for Actions, Execution Environment, service, or DevTools details.
 - Action executors should declare or consume managed resources instead of secretly owning long-lived MCP clients, sandboxes, browsers, SQLite connections, or process runners
 - keep permission profiles explicit: search-only, local-files-only, network-read, install-capable shell, or trusted executor
 - treat `agently-devtools` as optional PyPI-installed tooling; wire observation through public bridge APIs, not source-repo paths
+- for framework internals, preserve Agently's core module style: class-owned
+  runtime behavior, typed data contracts, protocol/handler seams for
+  replacement, and high-level packages outside `agently/core` when they compose
+  several core systems
+- for framework-side Skills Executor work, prefer the `Agently.skills_executor`
+  facade backed by the builtin `SkillsExecutor` plugin; do not retain
+  `Agently.skills` as a compatibility alias while this feature is unreleased
+- use `install_skills(...)` for one Agent Skills package,
+  `install_skills_pack(...)` for a repository/group of Skills, and
+  `agent.use_skills(...).input(...).start()` for chain-style model-decision use
 
 ## Anti-Patterns
 

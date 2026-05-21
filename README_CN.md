@@ -47,12 +47,25 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - `Agently-Skills` —— 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
 - Agently `Skills Executor` —— Agently app / agent 在真实任务里安装并应用外部 skills 的 runtime 能力
 
+当前框架开发线中的运行时 facade 是 `Agently.skills_executor`，底层是 core facade
+加 builtin `SkillsExecutor` plugin 实现。框架侧 Skills Executor 尚未发布，
+因此不保留 `Agently.skills` 兼容别名。
+单个 Agent Skills package 使用 `install_skills(...)`，包含多个 Skills 的仓库
+使用 `install_skills_pack(...)`；链式请求可以用
+`agent.use_skills(...).input(...).start()` 让模型自动决策是否使用 skills。
+
 伴生仓仍然是 coding-agent 包，不会变成 Agently 应用的运行时依赖。
 
 单个 skill 目录本身仍然是纯文本包。Agently 框架内的 Skills Executor 也
 可以在明确需要时，把这些目录当作 **guidance-only runtime skill source**
 安装进去，用于运行时设计引导或策略注入。此时它贡献的是 guidance 资产，
 不是独立可执行 runtime。
+
+当运行时 Skill 引用 helper scripts 或 shell 类能力时，框架侧执行器应通过
+受控 Actions 或 ExecutionEnvironment 管理的工具来解析能力，而不是直接执行
+第三方包里的任意 scripts。当前开发线行为包括：在 policy 允许时，把 Bash/shell
+类型需求自动绑定到受控 Bash sandbox；如果找不到受控替代能力，则 fail closed，
+返回面向用户的自然语言说明和修复建议。
 
 ## 路由模型
 
@@ -107,6 +120,10 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
   `ensure_keys` 只用于条件路径或运行时决定的路径
+- 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
+  把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
+  evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
+  关键字、substring、regex 或文本 snapshot 作为模型语义内容正确性的主要信号。
 - Actions：优先 `@agent.action_func` 加 `agent.use_actions(...)`；tool 别名
   保留为兼容入口
 - TriggerFlow lifecycle：优先 `close()` / `async_close()` 和 close snapshot；

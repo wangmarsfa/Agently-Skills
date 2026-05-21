@@ -22,6 +22,14 @@ Use this file as installation-time guidance after the skills are added into anot
 - Treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source-repo dependency.
 - Keep public skill boundaries capability-first and mutually exclusive.
 - Treat multi-agent, judge, and review flows as scenario recipes unless they need a dedicated framework surface.
+- For Agently framework internals, follow the core module style: class-owned
+  runtime state, typed data contracts under `agently/types/data`, protocol or
+  handler seams under `agently/types/plugins`, and retained implementation
+  owners for Action, ExecutionEnvironment, TriggerFlow, and DynamicTask. A
+  high-level capability can live outside `agently/core` when it composes
+  several core systems; split large implementations by registry, planner,
+  executor, adapter, facade, and contract boundaries rather than by arbitrary
+  line count.
 - Do not recommend `legacy/v1/` for new projects; it exists only for explicit
   rollback or historical projects.
 
@@ -68,6 +76,14 @@ Use this file as installation-time guidance after the skills are added into anot
 - Model-owned planner, router, decomposer, evaluator, reviser, action selector, and response generator behavior must not be replaced with mock, deterministic, or hand-written local substitutes.
 - Business-system feedback, such as ticket lookup, billing status, approval records, incident status, CRM writes, or notification delivery, may be mocked when the example is not connected to the real external system. Make the mock boundary explicit and keep it out of model-owned reasoning.
 - Example model-processing stages must use real model output for natural-language analysis, planning, evaluation, and response generation. Do not hard-code final model text, parse a fixed canned answer, or replace model results with deterministic local text.
+- Tests that validate model-output content should use a second Agently
+  model-judge request with output control for semantic rule evaluation: feed the
+  candidate output, explicit rules, expected contracts, and relevant execution
+  context into the judge; require structured per-rule evidence, concise reason,
+  and a final boolean field, then assert the boolean fields. Avoid keyword,
+  substring, regex, or snapshot-style text checks as the primary correctness
+  signal for model-owned semantic content; keep them only as deterministic
+  smoke gates for structure, routing, or presence checks.
 - Do not force example correctness by overfitted prompt wording that exists only to make the expected output pass. Prefer realistic business facts, typed output contracts, validation, deterministic non-model business checks, and clear frontend/backend result shaping.
 - Local functions may be used only as business capabilities, Actions, fake external systems, executor/provider smoke targets, or deterministic resources called by the model-driven flow.
 - Low-level infrastructure smoke examples may run without a model only when they are explicitly scoped to executor/provider behavior and are not presented as model-app patterns.
