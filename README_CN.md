@@ -45,7 +45,7 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 它和 Agently 框架运行时里的 **Skills Executor** 不是一回事：
 
 - `Agently-Skills` —— 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
-- Agently `Skills Executor` —— Agently app / agent 在真实任务里安装并应用外部 skills 的 runtime 能力
+- Agently `Skills Executor` —— Agently app / agent 暴露 declarative skill cards、生成 `SkillExecutionPlan`，并通过 Agent API、Actions 和受管理执行环境运行所选 skill behavior loop 的框架 runtime 能力
 
 当前框架开发线中的运行时 facade 是 `Agently.skills_executor`，底层是 core facade
 加 builtin `SkillsExecutor` plugin 实现。框架侧 Skills Executor 尚未发布，
@@ -57,9 +57,12 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 伴生仓仍然是 coding-agent 包，不会变成 Agently 应用的运行时依赖。
 
 单个 skill 目录本身仍然是纯文本包。Agently 框架内的 Skills Executor 也
-可以在明确需要时，把这些目录当作 **guidance-only runtime skill source**
-安装进去，用于运行时设计引导或策略注入。此时它贡献的是 guidance 资产，
-不是独立可执行 runtime。
+可以在明确需要时，把这些目录当作 **guidance-heavy runtime skill source**
+安装进去，用于运行时设计引导或策略注入。此时它贡献的是 cards、guidance
+资产和 declarative constraints，不会变成独立的 `skill.run()` runtime。
+当应用通过 `agent.use_skills(...)` 显式启用候选 skill 时，框架可以把受限的
+primary `SKILL.md` guidance 披露给模型请求；包内 scripts/helpers 仍然只是资产，
+除非应用把它们绑定为受控 Actions，否则不会执行。
 
 当运行时 Skill 引用 helper scripts 或 shell 类能力时，框架侧执行器应通过
 受控 Actions 或 ExecutionEnvironment 管理的工具来解析能力，而不是直接执行
