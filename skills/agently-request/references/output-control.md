@@ -13,6 +13,19 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation
 - keep output schema explicit when downstream systems, workflow branches, or later model steps consume the result
+- order dependent fields before the final decision or user-facing answer field:
+  put evidence, brief rationale, rule checks, and intermediate structured facts
+  first, then put the final boolean, verdict, `reply`, or action decision last.
+  This lets earlier fields condition the final field during generation; do not
+  ask for verbose hidden reasoning when a concise rationale or evidence list is
+  enough.
+- for tests that validate model-owned semantic content, prefer a second Agently
+  model-judge request with output control: pass the candidate output, explicit
+  rules, expected contract, and relevant context; ask for per-rule evidence,
+  concise reason, and final boolean fields; assert the booleans. Use
+  deterministic keyword/substring/regex checks only as smoke gates for
+  structure, routing, or required-field presence, not as the primary content
+  correctness signal.
 
 ## Anti-Patterns
 
@@ -21,6 +34,8 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - do not build custom retry loops for missing keys before using tuple `ensure` or, when necessary, runtime `ensure_keys`
 - do not overload tuple `ensure` or `ensure_keys` with value checks that belong in `.validate(...)`
 - do not default to sync-only result handling when the caller is already async-capable
+- do not rely on keyword, substring, regex, or text snapshot checks as the main
+  assertion for whether model-generated content satisfies business rules
 
 ## Read Next
 

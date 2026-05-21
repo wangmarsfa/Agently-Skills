@@ -8,7 +8,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.3 line and the compact 6-skill structure.
+with the Agently 4.1.2.4 line and the compact 6-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -49,16 +49,36 @@ It is not the same thing as the framework-side **Skills Executor** that lives
 inside the Agently runtime:
 
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
-- Agently `Skills Executor` — runtime capability for Agently apps and agents to install and apply external skills during real task execution
+- Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
+
+In current framework development, the runtime facade is `Agently.skills_executor`
+with a core facade plus builtin `SkillsExecutor` plugin implementation.
+The framework-side Skills Executor has not shipped yet, so no `Agently.skills`
+compatibility alias is retained.
+Use `install_skills(...)` for one Agent Skills package,
+`install_skills_pack(...)` for repositories that contain multiple Skills, and
+`agent.use_skills(...).input(...).start()` for chain-style model-decision usage.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
 
 Individual skill directories are still plain-text packages. Agently's
-framework-side Skills Executor can install them as **guidance-only runtime skill
-sources** when a project intentionally wants runtime steering or design
-guidance. In that case the skill contributes guidance assets, not a standalone
-executable runtime.
+framework-side Skills Executor can install them as **guidance-heavy runtime
+skill sources** when a project intentionally wants runtime steering or design
+guidance. In that case the skill contributes cards, guidance assets, and
+declarative constraints; it does not become a standalone `skill.run()` runtime.
+The framework may disclose bounded primary `SKILL.md` guidance to a model
+request when an app explicitly enables a skill candidate with
+`agent.use_skills(...)`; package scripts and helpers still remain inert assets
+unless the app binds them through controlled Actions.
+
+When a runtime Skill references helper scripts or shell-like capabilities, the
+framework-side executor should resolve them through controlled Actions or
+ExecutionEnvironment-managed tools instead of executing third-party package
+scripts directly. Current development behavior includes auto-binding
+Bash/shell-style requirements to a controlled Bash sandbox when allowed by
+policy; if no controlled substitute exists, the executor should fail closed with
+a natural-language user message and remediation suggestions.
 
 ## Routing Model
 
@@ -125,6 +145,12 @@ converge on these defaults:
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
   paths
+- model-output tests: use an Agently model judge with output control for
+  content-level semantic validation. Pass the candidate output, explicit rules,
+  expected contracts, and context into the judge; ask for per-rule evidence and
+  concise reason before final boolean fields; assert those booleans. Avoid
+  keyword, substring, regex, and text snapshot checks as the primary correctness
+  signal for model-owned semantic content.
 - actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool
   aliases remain compatibility surfaces
 - TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close

@@ -27,6 +27,12 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - keep provider settings outside prompt and workflow code; prefer settings files with `${ENV.xxx}` placeholders when deployment values differ by environment
 - keep stable prompt and output contracts in prompt config when shared across a request family
 - use `.output(...)` tuple ensure flags for fixed required leaves; use runtime `ensure_keys` only for runtime-dependent paths
+- order output fields from supporting information to final decision: evidence,
+  concise rationale, and rule checks should come before final booleans, verdicts,
+  replies, or actions
+- when testing model-owned content, use an Agently model judge with output
+  control and assert structured boolean rule judgments; avoid keyword,
+  substring, regex, or snapshot checks as the primary semantic correctness test
 - use `get_response()` when the same model result must be read multiple ways
 - keep Session memory separate from TriggerFlow execution state
 - keep retrieval explicit when its results feed a later request or workflow step

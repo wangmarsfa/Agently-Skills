@@ -18,6 +18,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - keep the permission profile explicit: search-only, local-files-only, network-read, install-capable shell, or trusted broad executor
 - use Python sandbox for pure computation or small data shaping; do not use it for imports, filesystem mutation, network access, or dependency installation
 - use Bash sandbox or a custom executor when the task needs shell access, package install, or broader command control
+- for Skills Executor work, do not ask apps to execute third-party Skill
+  scripts directly. Resolve them to controlled Actions, Bash/Python/Node
+  sandboxes, MCP/API bindings, or fallback branches; if no substitute exists,
+  return a blocked or approval-required result with a user-facing explanation.
+- for Skills Executor or artifact-producing workflows, missing local libraries
+  are not a natural degraded-success path; plan a controlled install-capable
+  Action or ExecutionEnvironment ensure step, preserve the ActionResult, and
+  fail closed if policy denies or installation fails
 - treat MCP, Bash, Python sandbox, Node.js, Docker, SQLite, vector-store, browser, and remote-runner lifecycle as Execution Environment concerns when they need managed handles
 - Action executors should declare or consume managed resources instead of hiding lifecycle ownership
 - treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source checkout

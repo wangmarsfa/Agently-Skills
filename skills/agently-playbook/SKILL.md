@@ -24,6 +24,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - default to async-first guidance for service code, streaming, TriggerFlow, and any path that may overlap work or benefit from cancellation
 - treat sync APIs as wrappers for scripts, REPL use, or compatibility bridges unless the host truly requires sync-only integration
 - when the request is a project-shape refactor, separate settings, prompts, services, domain contracts, workflow, and tests before discussing low-level implementation details
+- when a project must test model-generated semantic content, design the test as
+  an Agently model-judge request with output control: explicit rules and context
+  go in, per-rule evidence/reason and final boolean fields come out, and tests
+  assert those booleans
 
 ## Capability Routing
 
@@ -37,6 +41,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 
 - do not skip this playbook when the owner layer is unresolved
 - do not invent custom output parsers, retry loops, or orchestration first
+- do not use keyword, substring, regex, or text snapshot checks as the primary
+  correctness signal for model-owned semantic content; keep them only as smoke
+  gates for structure, routing, or required-field presence
 - do not let sync-first sample code dictate the service architecture when the target is clearly async-capable
 - do not split project initialization into a fake standalone framework surface before the owner layers are chosen
 - do not treat multi-agent, judge, or review flows as separate framework surfaces before checking native Agently capabilities
