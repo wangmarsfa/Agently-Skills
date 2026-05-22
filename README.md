@@ -8,7 +8,9 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.4 line and the compact 6-skill structure.
+with the Agently 4.1.2.4 foundation line and the compact 6-skill structure.
+Unpublished development guidance also tracks the Agently 4.1.3 target for
+Agent auto-orchestration and unified execution/result consumption.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -51,13 +53,26 @@ inside the Agently runtime:
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
-In current framework development, the runtime facade is `Agently.skills_executor`
-with a core facade plus builtin `SkillsExecutor` plugin implementation.
-The framework-side Skills Executor has not shipped yet, so no `Agently.skills`
-compatibility alias is retained.
+In the Agently 4.1.2.4 foundation, the runtime facade is
+`Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
+plugin implementation. No `Agently.skills` compatibility alias was shipped, so
+guidance should keep `Agently.skills_executor` as the global facade.
 Use `install_skills(...)` for one Agent Skills package,
 `install_skills_pack(...)` for repositories that contain multiple Skills, and
-`agent.use_skills(...).input(...).start()` for chain-style model-decision usage.
+`agent.run_skills_task(...)` when the app must explicitly execute a Skill
+behavior loop.
+
+The 4.1.3 target changes the recommended chain-style mental model:
+`agent.use_skills(...).input(...).start()` is route-candidate registration for
+default Agent auto-orchestration, not prompt-only guidance injection by default.
+When the route does not select Skills, ordinary model responses should receive
+only safe capability summaries. Use the explicit compatibility setting only
+when an application intentionally needs the older prompt-only Skills disclosure
+behavior.
+Framework-side auto-orchestration should be described as an `AgentOrchestrator`
+plugin protocol boundary: core owns the public Agent entrypoint, while the
+active orchestrator plugin owns route planning, execution, and process stream
+bridging.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
@@ -67,10 +82,10 @@ framework-side Skills Executor can install them as **guidance-heavy runtime
 skill sources** when a project intentionally wants runtime steering or design
 guidance. In that case the skill contributes cards, guidance assets, and
 declarative constraints; it does not become a standalone `skill.run()` runtime.
-The framework may disclose bounded primary `SKILL.md` guidance to a model
-request when an app explicitly enables a skill candidate with
-`agent.use_skills(...)`; package scripts and helpers still remain inert assets
-unless the app binds them through controlled Actions.
+For 4.1.3 auto-orchestration, `agent.use_skills(...)` should be treated as a
+route candidate. Full primary `SKILL.md` guidance belongs to the Skills route
+that actually executes or plans against that Skill; package scripts and helpers
+still remain inert assets unless the app binds them through controlled Actions.
 
 When a runtime Skill references helper scripts or shell-like capabilities, the
 framework-side executor should resolve them through controlled Actions or
@@ -172,6 +187,18 @@ converge on these defaults:
   `get_response()` and reuse the same response object
 - Dynamic Task: treat `Agently.create_dynamic_task(...)` as the public surface
   for submitted DAGs. TriggerFlow is its execution substrate, not its owner API.
+- 4.1.3 Agent auto-orchestration: treat default `agent.start()` as the accepted
+  candidate-driven route owner across ordinary model requests, Actions, Skills
+  Executor, and Dynamic Task candidates. Prefer `agent.create_execution()` for
+  route diagnostics, multiple result views, and process streaming.
+- AgentOrchestrator: keep auto-orchestration behind a plugin protocol boundary;
+  do not place route-owned Skills or Dynamic Task execution logic directly in
+  core or describe facade/mixin coupling as the extension contract.
+- process streaming: executor layers should compose TriggerFlow runtime stream
+  with ModelRequest `instant` checkpoints for route decisions, plan/graph
+  readiness, task/stage/action progress, selected model field deltas, and final
+  semantic outputs. Field deltas should use stable structured paths such as
+  `task_dag.tasks.<task_id>.fields.<field_path>`, not raw provider token events.
 
 Feature acceptance requires spec reconciliation: update each relevant spec to the
 final implemented design, move fully landed planned specs into `spec/implemented/`,
