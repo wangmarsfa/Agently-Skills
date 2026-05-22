@@ -40,6 +40,11 @@ here for Actions, Execution Environment, service, or DevTools details.
 - use `install_skills(...)` for one Agent Skills package,
   `install_skills_pack(...)` for a repository/group of Skills, and
   `agent.run_skills_task(...)` for explicit Skills execution
+- for framework-side Skill model stages, keep model access behind
+  `SkillsExecutionContext.async_request_model(...)`; the executor should store
+  model outputs in stage state and expose field deltas through
+  `skills.stages.<stage_id>.fields.<field_path>` rather than calling an Agent
+  directly from the plugin
 - for Agently 4.1.3 auto-orchestration work, treat
   `agent.use_skills(...).input(...).start()` as route-candidate registration
   owned by the Agent route planner, not prompt-only Skills guidance injection by
