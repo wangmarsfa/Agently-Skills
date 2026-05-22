@@ -196,7 +196,9 @@ converge on these defaults:
   core or describe facade/mixin coupling as the extension contract.
 - process streaming: executor layers should compose TriggerFlow runtime stream
   with ModelRequest `instant` checkpoints for route decisions, plan/graph
-  readiness, task/stage/action progress, and final semantic outputs.
+  readiness, task/stage/action progress, selected model field deltas, and final
+  semantic outputs. Field deltas should use stable structured paths such as
+  `task_dag.tasks.<task_id>.fields.<field_path>`, not raw provider token events.
 
 Feature acceptance requires spec reconciliation: update each relevant spec to the
 final implemented design, move fully landed planned specs into `spec/implemented/`,

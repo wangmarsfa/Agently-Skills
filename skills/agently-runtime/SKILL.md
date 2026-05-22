@@ -50,7 +50,9 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for unified Agent execution/result work, prefer a response-style
   `agent.create_execution()` object with data/text/meta/stream consumption; use
   TriggerFlow runtime stream plus ModelRequest `instant` checkpoints for process
-  streaming
+  streaming, and expose model field deltas only through stable structured paths
+  such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
+  token events
 
 ## Anti-Patterns
 

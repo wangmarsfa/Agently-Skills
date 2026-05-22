@@ -164,7 +164,9 @@ Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 s
   扩展契约。
 - 过程流式：Executor 层应组合 TriggerFlow runtime stream 与 ModelRequest
   `instant` checkpoint，输出 route decision、plan/graph readiness、
-  task/stage/action 进度和最终 semantic outputs。
+  task/stage/action 进度、选定模型字段 delta 和最终 semantic outputs。字段
+  delta 应使用 `task_dag.tasks.<task_id>.fields.<field_path>` 这类稳定结构化
+  path，而不是直接暴露 provider 原始 token event。
 
 ## 标准项目形态
 
