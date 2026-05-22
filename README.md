@@ -187,8 +187,8 @@ converge on these defaults:
   `get_response()` and reuse the same response object
 - Dynamic Task: treat `Agently.create_dynamic_task(...)` as the public surface
   for submitted DAGs. TriggerFlow is its execution substrate, not its owner API.
-- 4.1.3 Agent auto-orchestration: treat default `agent.start()` as the planned
-  user-layer route owner across ordinary model requests, Actions, Skills
+- 4.1.3 Agent auto-orchestration: treat default `agent.start()` as the accepted
+  candidate-driven route owner across ordinary model requests, Actions, Skills
   Executor, and Dynamic Task candidates. Prefer `agent.create_execution()` for
   route diagnostics, multiple result views, and process streaming.
 - AgentOrchestrator: keep auto-orchestration behind a plugin protocol boundary;

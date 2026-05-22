@@ -157,7 +157,7 @@ Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 s
 - Dynamic Task：把 `Agently.create_dynamic_task(...)` 视为提交式 DAG 的
   公共能力面。TriggerFlow 是它的执行基座，不是 owner API。
 - 4.1.3 Agent 自动编排：默认 `agent.start()` 是普通模型请求、Actions、
-  Skills Executor 和 Dynamic Task candidates 的用户层 route owner。需要路线诊断、
+  Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。需要路线诊断、
   多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
