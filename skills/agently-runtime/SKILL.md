@@ -35,11 +35,22 @@ here for Actions, Execution Environment, service, or DevTools details.
   replacement, and high-level packages outside `agently/core` when they compose
   several core systems
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
-  facade backed by the builtin `SkillsExecutor` plugin; do not retain
-  `Agently.skills` as a compatibility alias while this feature is unreleased
+  facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.4 did not
+  ship `Agently.skills` as a compatibility alias
 - use `install_skills(...)` for one Agent Skills package,
   `install_skills_pack(...)` for a repository/group of Skills, and
-  `agent.use_skills(...).input(...).start()` for chain-style model-decision use
+  `agent.run_skills_task(...)` for explicit Skills execution
+- for Agently 4.1.3 auto-orchestration work, treat
+  `agent.use_skills(...).input(...).start()` as route-candidate registration
+  owned by the Agent route planner, not prompt-only Skills guidance injection by
+  default
+- keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
+  core owns the public `agent.create_execution()` entrypoint, while the active
+  plugin owns route planning, execution, and stream bridging
+- for unified Agent execution/result work, prefer a response-style
+  `agent.create_execution()` object with data/text/meta/stream consumption; use
+  TriggerFlow runtime stream plus ModelRequest `instant` checkpoints for process
+  streaming
 
 ## Anti-Patterns
 
@@ -48,6 +59,10 @@ here for Actions, Execution Environment, service, or DevTools details.
 - do not route package installation or filesystem mutation through the Python sandbox
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits
 - do not make DevTools the source of truth for workflow structure
+- do not present prompt-only Skills disclosure as the default execution meaning
+  of `agent.start()` once the 4.1.3 route planner owns Skills candidates
+- do not put route-owned Skills, Dynamic Task, or stream-composition logic
+  directly in core when a plugin protocol can own the replaceable behavior
 
 ## Read Next
 
