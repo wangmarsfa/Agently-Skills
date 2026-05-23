@@ -9,6 +9,12 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - default to async-first response consumption when structured output will be streamed, reused, or served over an async boundary
 - prefer prompt-config-owned output contracts such as `.request.output` when the schema is stable and shared across a request family
 - prefer `.output(...)` for machine-readable results when the schema is dynamic, exploratory, or easier to keep close to code
+- `.output(...)` defaults to `format="auto"`: all-scalar dicts use
+  `flat_markdown`, mixed scalar-plus-list/dict schemas use `hybrid`, and
+  all-complex or non-dict schemas stay JSON. Use explicit
+  `format="json"` when downstream code needs the legacy JSON-only contract, or
+  explicit `format="flat_markdown"` / `format="hybrid"` when the caller owns
+  that tradeoff.
 - for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed required leaves
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation

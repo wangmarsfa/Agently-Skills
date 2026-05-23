@@ -133,7 +133,9 @@ Actions，否则不会执行。
 当 skills 描述 Agently `4.1+` 的推荐路径时，应收敛到这几条默认用法：
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
-  `ensure_keys` 只用于条件路径或运行时决定的路径
+  `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
+  `format="auto"`，可能为模型可读 schema 选择 flat/hybrid markdown；当下游契约
+  需要旧的 JSON-only 输出时，显式写 `format="json"`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把

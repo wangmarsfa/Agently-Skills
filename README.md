@@ -160,7 +160,9 @@ converge on these defaults:
   narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
-  paths
+  paths. `.output(...)` defaults to `format="auto"` and may choose flat/hybrid
+  markdown for model-readable schemas; use explicit `format="json"` when the
+  downstream contract requires legacy JSON-only output.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and
