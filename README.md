@@ -161,8 +161,11 @@ converge on these defaults:
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
   paths. `.output(...)` defaults to `format="auto"` and may choose flat/hybrid
-  markdown for model-readable schemas; use explicit `format="json"` when the
-  downstream contract requires legacy JSON-only output.
+  markdown for model-readable schemas. Prefer `flat_markdown` for flat
+  structured outputs with large code/HTML/Markdown text blocks, `hybrid` for
+  prose/code fields mixed with structured lists or objects, explicit
+  `format="json"` when the downstream contract requires legacy JSON-only
+  output, and no `.output(...)` for one freeform plain-text artifact.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and
