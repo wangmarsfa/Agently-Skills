@@ -40,15 +40,21 @@ here for Actions, Execution Environment, service, or DevTools details.
 - use `install_skills(...)` for one Agent Skills package,
   `install_skills_pack(...)` for a repository/group of Skills, and
   `agent.run_skills_task(...)` for explicit Skills execution
-- for framework-side Skill model stages, keep model access behind
-  `SkillsExecutionContext.async_request_model(...)`; the executor should store
-  model outputs in stage state and expose field deltas through
-  `skills.stages.<stage_id>.fields.<field_path>` rather than calling an Agent
-  directly from the plugin
-- for Agently 4.1.3 auto-orchestration work, treat
+- for framework-side Skills execution, keep standard `SKILL.md` as the only
+  capability definition; selected Skills run as prompt-first model requests
+  using their full Markdown guidance, while Agently install metadata and
+  decision cards remain descriptive aids
+- for Agently 4.1.2.x auto-orchestration work, treat
   `agent.use_skills(...).input(...).start()` as route-candidate registration
   owned by the Agent route planner, not prompt-only Skills guidance injection by
   default
+- for ambiguous optional route candidates, keep submitted Dynamic Task and
+  required Skills deterministic, but let the model choose among optional auto
+  Dynamic Task, model-decision Skills, and ordinary Action-backed model request
+  routes
+- for framework-side Skills, treat standard `SKILL.md` as the only capability
+  definition; Agently install metadata and decision cards are descriptive
+  runtime aids, not authoring formats or availability gates
 - keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
   core owns the public `agent.create_execution()` entrypoint, while the active
   plugin owns route planning, execution, and stream bridging

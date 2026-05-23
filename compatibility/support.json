@@ -18,7 +18,8 @@
   ],
   "supported_protocols": {
     "authoring": [
-      "agently-skills.authoring.v1"
+      "agently-skills.authoring.v1",
+      "agently-skills.authoring.v2"
     ],
     "devtools_guidance": [
       "agently-skills.devtools-guidance.v1"
