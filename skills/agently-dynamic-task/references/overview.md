@@ -39,6 +39,13 @@ belongs to the facade, planner, model adapter, or resolver handler. That keeps
 the core executor reusable for submitted local DAGs, model DAGs, action DAGs,
 and future Skills Executor integration.
 
+For model tasks, keep result control on the model task contract. Use
+`inputs.output_schema` for the task result shape and `inputs.output_format` for
+the response-control strategy: `json` for compact machine-control data and
+strict extraction, `flat_markdown` for flat scalar long text/code/HTML/Markdown
+fields, `hybrid` for long prose with structured evidence or metadata, and
+`auto` only when schema-driven selection and retry latency are acceptable.
+
 Recommended API boundaries:
 
 - app code: `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)`
