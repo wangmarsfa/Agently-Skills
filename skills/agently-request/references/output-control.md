@@ -25,6 +25,27 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     article, email, explanation, report, Markdown page, HTML page, or other
     single multi-paragraph document; read it with `start()` / `async_start()` or
     `response.result.get_text()`
+- choose streaming mode separately from output format:
+  - use `get_generator(type="instant")` or
+    `get_async_generator(type="instant")` when UI/progress consumers need
+    structured field updates before completion
+  - `instant` is supported for `json`, `flat_markdown`, `hybrid`, and `auto`
+    after auto resolves to one of those structured formats
+  - plain text / `text` has no structured instant paths; use `type="delta"` for
+    token streaming or `get_text()` after completion
+  - treat instant events as provisional UI state; use final `get_data()` /
+    `async_get_data()` for durable writes, validation, and business decisions
+- account for observed model reliability when recommending formats:
+  - 2026-05-23 cross-model acceptance observed 72/72 auto checks pass across
+    6 providers and 12 scenarios; this is compatibility evidence, not a
+    guarantee
+  - `hybrid` had 24/24 native parse success and 0 degradations in that run,
+    making it the lowest observed risk for mixed prose plus structured fields
+  - `flat_markdown` had 9 auto degradations, all recovered by JSON retry; risk
+    concentrated in pure numeric scalar schemas and models that omit
+    `### field` headers, especially some ERNIE/GLM runs
+  - use explicit `format="json"` when retry latency is unacceptable, raw JSON is
+    required, or a target model is known to ignore markdown section headers
 - for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed required leaves
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation

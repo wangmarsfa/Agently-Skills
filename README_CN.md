@@ -137,7 +137,9 @@ Actions，否则不会执行。
   `format="auto"`，可能为模型可读 schema 选择 flat/hybrid markdown。扁平结构且
   含大段代码/HTML/Markdown 文本时优先 `flat_markdown`；prose/code 字段与结构化
   list/object 混合时优先 `hybrid`；下游契约需要旧的 JSON-only 输出时显式
-  `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。
+  `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`instant`
+  streaming 适合 `json`/`flat_markdown`/`hybrid`/resolved `auto` 的临时结构化
+  UI/进度更新；纯文本 streaming 用 `delta`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
