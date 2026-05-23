@@ -16,7 +16,7 @@
 
 未发布工作应优先匹配 companion protocols 和 catalog generation：
 
-- authoring protocol：`agently-skills.authoring.v1`
+- authoring protocol：`agently-skills.authoring.v2`（仅标准 `SKILL.md`）
 - DevTools guidance protocol：`agently-skills.devtools-guidance.v1`
 - 当前 catalog generation：`v2`
 - 推荐 bundle：`app`
@@ -56,29 +56,30 @@ Agently 4.1.2.4 基础能力线中的运行时 facade 是 `Agently.skills_execut
 使用 `install_skills_pack(...)`；当应用必须显式执行 Skill behavior loop 时，
 使用 `agent.run_skills_task(...)`。
 
-4.1.3 目标会调整链式使用的默认心智：
+4.1.2.x fulfillment 线会调整链式使用的默认心智：
 `agent.use_skills(...).input(...).start()` 是默认 Agent 自动编排的 route
 candidate 注册，不再默认表示 prompt-only guidance 注入。未选中 Skills route
 时，普通模型响应只应看到安全的能力摘要。只有应用明确需要旧 prompt-only
 Skills disclosure 行为时，才使用兼容 setting。
+submitted Dynamic Task 和 required Skills 仍是确定性优先；同时存在多个可选
+候选时，默认由模型自主选择 route。
 框架侧自动编排应描述为 `AgentOrchestrator` plugin protocol 边界：core 持有公开
 Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 stream bridge。
 
 伴生仓仍然是 coding-agent 包，不会变成 Agently 应用的运行时依赖。
 
-单个 skill 目录本身仍然是纯文本包。Agently 框架内的 Skills Executor 也
-可以在明确需要时，把这些目录当作 **guidance-heavy runtime skill source**
-安装进去，用于运行时设计引导或策略注入。此时它贡献的是 cards、guidance
-资产和 declarative constraints，不会变成独立的 `skill.run()` runtime。
-在 4.1.3 自动编排中，`agent.use_skills(...)` 应被视为 route candidate。
-完整 primary `SKILL.md` guidance 属于真正执行或规划该 Skill 的 Skills route；
-包内 scripts/helpers 仍然只是资产，除非应用把它们绑定为受控 Actions，否则不会执行。
+单个 skill 目录是标准 `SKILL.md` 包。Agently 框架内的 Skills Executor 可以
+在明确需要时，把这些目录安装为本地 runtime skill source，用于运行时设计引导
+或策略注入。此时它贡献的是 `SKILL.md` 指令、描述性 decision card、资源索引
+和安装元数据，不会变成独立的 `skill.run()` runtime，也不会变成 Agently 自创
+workflow manifest。在 4.1.x 自动编排中，`agent.use_skills(...)` 应被视为
+route candidate。完整 primary `SKILL.md` guidance 属于真正执行该 Skill 的
+Skills route；包内 scripts/helpers 仍然只是资产，除非应用把它们绑定为受控
+Actions，否则不会执行。
 
-当运行时 Skill 引用 helper scripts 或 shell 类能力时，框架侧执行器应通过
-受控 Actions 或 ExecutionEnvironment 管理的工具来解析能力，而不是直接执行
-第三方包里的任意 scripts。当前开发线行为包括：在 policy 允许时，把 Bash/shell
-类型需求自动绑定到受控 Bash sandbox；如果找不到受控替代能力，则 fail closed，
-返回面向用户的自然语言说明和修复建议。
+当运行时 Skill 引用 helper scripts 或 shell 类能力时，Agently 必须把这些文件
+视为资源。宿主应用可以显式暴露受控 Actions 或 ExecutionEnvironment 管理的工具，
+但 Skills Executor 不得直接执行第三方包里的 scripts。
 
 ## 路由模型
 
@@ -132,7 +133,9 @@ Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 s
 当 skills 描述 Agently `4.1+` 的推荐路径时，应收敛到这几条默认用法：
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
-  `ensure_keys` 只用于条件路径或运行时决定的路径
+  `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
+  `format="auto"`，可能为模型可读 schema 选择 flat/hybrid markdown；当下游契约
+  需要旧的 JSON-only 输出时，显式写 `format="json"`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
@@ -156,9 +159,10 @@ Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 s
   同一个 response 对象
 - Dynamic Task：把 `Agently.create_dynamic_task(...)` 视为提交式 DAG 的
   公共能力面。TriggerFlow 是它的执行基座，不是 owner API。
-- 4.1.3 Agent 自动编排：默认 `agent.start()` 是普通模型请求、Actions、
-  Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。需要路线诊断、
-  多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
+- 4.1.2.x Agent 自动编排：默认 `agent.start()` 是普通模型请求、Actions、
+  Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
+  submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
+  选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。

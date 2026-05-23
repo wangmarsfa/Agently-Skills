@@ -27,9 +27,25 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - keep provider settings outside prompt and workflow code; prefer settings files with `${ENV.xxx}` placeholders when deployment values differ by environment
 - keep stable prompt and output contracts in prompt config when shared across a request family
 - use `.output(...)` tuple ensure flags for fixed required leaves; use runtime `ensure_keys` only for runtime-dependent paths
-- order output fields from supporting information to final decision: evidence,
-  concise rationale, and rule checks should come before final booleans, verdicts,
-  replies, or actions
+- order output fields from supporting information to final decision. Agently
+  output schemas are ordered: evidence, assumptions, clarifications, source
+  notes, calculations to perform, concise rationale, and rule checks should
+  come before final booleans, verdicts, replies, summaries, or actions.
+  User-facing rendering may reorder sections for natural reading, but the model
+  generation contract should keep support-before-conclusion order.
+- for grading, judging, evaluation, confidence, trust, usability, relevance, or
+  quality tasks, ask the model for conceptual levels with explicit definitions
+  instead of precise numeric scores. Use labels such as high_trust,
+  moderate_trust, low_trust, excellent, adequate, weak, or failed, and define
+  each label in the prompt. If downstream code needs statistics, thresholds,
+  weighting, or index math, map the labels to deterministic numbers in code
+  after model output; do not ask the model to emit `0.78`, `3/5`, or `8/10` as
+  the primary judgment.
+- do not ask the model to perform complex, long, or high-precision arithmetic,
+  derivations, or data transformations directly. Ask it to produce executable
+  Python, Bash, SQL, or another appropriate calculation plan, run that code with
+  tools, then feed the original question, code, and observed result back into
+  the next model step.
 - when testing model-owned content, use an Agently model judge with output
   control and assert structured boolean rule judgments; avoid keyword,
   substring, regex, or snapshot checks as the primary semantic correctness test
