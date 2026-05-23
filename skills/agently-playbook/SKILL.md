@@ -28,6 +28,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   an Agently model-judge request with output control: explicit rules and context
   go in, per-rule evidence/reason and final boolean fields come out, and tests
   assert those booleans
+- for model-app evaluation, grading, confidence, relevance, or quality
+  judgments, prefer explicit conceptual levels and definitions over direct
+  numeric scores. If later workflow logic needs thresholds or aggregate metrics,
+  map those levels to deterministic numeric values in code after the model
+  response.
+- route complex arithmetic, long-number computation, weighting, aggregation, or
+  statistical work through executable code or tools; use the model to produce or
+  review the calculation plan, not to be the calculator.
 
 ## Capability Routing
 

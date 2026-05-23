@@ -14,11 +14,26 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation
 - keep output schema explicit when downstream systems, workflow branches, or later model steps consume the result
 - order dependent fields before the final decision or user-facing answer field:
-  put evidence, brief rationale, rule checks, and intermediate structured facts
-  first, then put the final boolean, verdict, `reply`, or action decision last.
-  This lets earlier fields condition the final field during generation; do not
-  ask for verbose hidden reasoning when a concise rationale or evidence list is
-  enough.
+  put evidence, assumptions, clarifications, source notes, calculation plans,
+  brief rationale, rule checks, and intermediate structured facts first, then
+  put the final boolean, verdict, `reply`, summary, or action decision last.
+  Agently output schemas are ordered; the model should generate supporting
+  fields before conclusions even if the UI later reorders the final document for
+  human reading. Do not ask for verbose hidden reasoning when a concise
+  rationale, evidence list, or check list is enough.
+- use conceptual grade labels for model-owned evaluation fields instead of
+  precise numeric scores. Define each label in the prompt, for example:
+  `high_trust` means authoritative sources, sufficient evidence, direct
+  evidence-to-claim linkage, and broad domain support; `moderate_trust` means
+  broad sources and direct or indirect support with some cross-domain inference;
+  `low_trust` means missing sources, promotional-only sources, or weak
+  evidence-to-claim linkage. When later code needs a number, map labels to
+  deterministic values after generation.
+- when a task needs complex arithmetic, long-number calculation, weighting,
+  aggregation, or statistical transformations, make the model output an
+  executable calculation plan or code, run it through tools, and pass the code
+  plus raw result into a later model step. Do not make the model's text
+  generation be the calculator.
 - for tests that validate model-owned semantic content, prefer a second Agently
   model-judge request with output control: pass the candidate output, explicit
   rules, expected contract, and relevant context; ask for per-rule evidence,
