@@ -45,7 +45,7 @@ the response-control strategy: `json` for compact machine-control data,
 booleans, numbers, judges, dense nested arrays/objects, and strict extraction;
 `flat_markdown` for flat string long text/code/HTML/Markdown fields; explicit
 `hybrid` for long prose with structured evidence or metadata when retry latency
-is acceptable; and `auto` only when conservative schema-driven selection and
+is acceptable; and `auto` only when structural schema-driven selection and
 retry latency are acceptable.
 
 Submitted DAG `inputs` support runtime placeholders for simple wiring:

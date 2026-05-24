@@ -138,10 +138,9 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
   `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
-  `format="auto"`；当前 auto 是保守策略，扁平且全字符串字段解析为
-  `flat_markdown`，布尔、数字、嵌套数据和混合 schema 解析为 `json`。大段
-  code/HTML/Markdown 字符串字段显式用 `flat_markdown`；prose/code 字段与结构化
-  list/object 混合且能接受重试耗时时显式用 `hybrid`；judge、布尔、数字、密集嵌套数据或下游契约需要 JSON-only 时显式 `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
+  `format="auto"`；当前 auto 是结构规则，扁平且全字符串字段解析为
+  `flat_markdown`，字符串字段 + 复杂 list/object 字段解析为 `hybrid`，布尔、数字、
+  全复杂结构和非 dict 输出解析为 `json`。judge、布尔、数字、密集嵌套数据或下游契约需要 JSON-only 时显式 `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
   缺失，但复杂嵌套数组、占位符回显、布尔/数字字段里填散文、大量 wildcard
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
   `json`/`flat_markdown`/`hybrid`/resolved `auto` 的临时结构化 UI/进度更新；纯文本

@@ -40,7 +40,7 @@ ordinary app-facing entrypoints.
   and dense nested arrays/objects; `flat_markdown` for flat string long
   text/code/HTML/SVG/Markdown/SQL/templates; explicit `hybrid` for long prose
   plus structured lists, tables, citations, metadata, or nested evidence when
-  retry latency is acceptable; `auto` only when conservative schema-driven
+  retry latency is acceptable; `auto` only when structural schema-driven
   selection and retry latency are acceptable
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy

@@ -12,8 +12,10 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - choose output format deliberately:
   - `.output(...)` defaults to `format="auto"`; use it for ordinary structured
     results consumed through Agently's parsed data API. Current auto selection
-    is conservative: flat string-only schemas may resolve to `flat_markdown`;
-    boolean, numeric, nested, and mixed schemas resolve to `json`
+    is structural and does not inspect field names or business meaning:
+    flat string-only schemas may resolve to `flat_markdown`; dict schemas with
+    string fields plus complex list/object fields may resolve to `hybrid`;
+    boolean, numeric, all-complex, and non-dict schemas resolve to `json`
   - use `format="flat_markdown"` for a flat dict of string fields, especially
     when one field may contain large code, HTML, SVG, Markdown, SQL, templates,
     or multi-paragraph prose; section headers avoid JSON escaping failures

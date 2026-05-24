@@ -165,13 +165,11 @@ converge on these defaults:
   narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
-  paths. `.output(...)` defaults to `format="auto"`; current auto is
-  conservative and resolves flat string-only schemas to `flat_markdown`, while
-  booleans, numbers, nested data, and mixed schemas resolve to `json`. Prefer
-  explicit `flat_markdown` for flat string outputs with large
-  code/HTML/Markdown text blocks, explicit `hybrid` for prose/code fields mixed
-  with structured lists or objects when retry latency is acceptable, explicit
-  `format="json"` for judges, booleans, numbers, dense nested data, or legacy
+  paths. `.output(...)` defaults to `format="auto"`; current auto is structural:
+  flat string-only schemas resolve to `flat_markdown`, dict schemas with string
+  fields plus complex list/object fields resolve to `hybrid`, and booleans,
+  numbers, all-complex schemas, and non-dict outputs resolve to `json`. Prefer
+  explicit `format="json"` for judges, booleans, numbers, dense nested data, or legacy
   JSON-only contracts, and no `.output(...)` for one freeform plain-text
   artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
   three additional model attempts, but complex nested arrays, placeholder echo,
