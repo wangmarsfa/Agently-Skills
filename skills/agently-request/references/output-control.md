@@ -20,7 +20,9 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   - use explicit `format="hybrid"` when prose/code scalar fields are mixed with
     structured lists or objects, such as `summary` plus `citations`,
     `analysis` plus `components`, or `notes` plus `next_steps`, and retry
-    latency is acceptable
+    latency is acceptable. Complex hybrid sections must show the nested JSON
+    sub-schema to the model; Agently's built-in prompt generator does this for
+    current `hybrid` output
   - use `format="json"` when downstream code needs the legacy JSON-only
     contract, external API interop, exact raw JSON behavior, model judges,
     booleans, numbers, or dense nested arrays/objects
@@ -45,7 +47,10 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     for booleans, numbers, or nested data because header/scaffold mistakes can
     otherwise become silent field corruption
   - `hybrid` is explicit opt-in for mixed prose plus structured fields; it is
-    useful, but complex nested arrays can still be unstable on some models
+    useful and can handle complex nested arrays when the prompt includes the
+    nested sub-schema. Do not blanket-ban complex structures; instead test the
+    target provider/model with representative schemas such as EDA netlists,
+    citations, tables, and judge result arrays
   - use explicit `format="json"` when retry latency is unacceptable, raw JSON is
     required, a target model is known to ignore markdown section headers, or the
     schema contains judge booleans, numeric fields, or many nested arrays
@@ -59,6 +64,13 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   scaffolding, fills boolean/numeric fields with prose, produces malformed
   nested arrays, is truncated by long context, or must satisfy many wildcard
   paths such as `rule_results[*].evidence`
+- for major output-control changes, run a provider/model-size stability matrix
+  before changing guidance. Track first-attempt success, retry-recovered
+  success, retry count/reasons, fail count, and whether a timeout happened after
+  streaming/reasoning progress. Reasoning or large MoE models need longer
+  windows such as 360s+; do not count a model that is still emitting
+  `model.streaming` or `model.meta` progress the same way as a request with no
+  progress
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation
 - keep output schema explicit when downstream systems, workflow branches, or later model steps consume the result
 - order dependent fields before the final decision or user-facing answer field:
