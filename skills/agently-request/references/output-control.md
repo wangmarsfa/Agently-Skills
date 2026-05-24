@@ -9,16 +9,93 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - default to async-first response consumption when structured output will be streamed, reused, or served over an async boundary
 - prefer prompt-config-owned output contracts such as `.request.output` when the schema is stable and shared across a request family
 - prefer `.output(...)` for machine-readable results when the schema is dynamic, exploratory, or easier to keep close to code
+- choose output format deliberately:
+  - `.output(...)` defaults to `format="auto"`; use it for ordinary structured
+    results consumed through Agently's parsed data API. Current auto selection
+    is structural and does not inspect field names or business meaning:
+    flat string-only schemas may resolve to `flat_markdown`; dict schemas with
+    string fields plus complex list/object fields may resolve to `hybrid`;
+    boolean, numeric, all-complex, and non-dict schemas resolve to `json`
+  - use `format="flat_markdown"` for a flat dict of string fields, especially
+    when one field may contain large code, HTML, SVG, Markdown, SQL, templates,
+    or multi-paragraph prose; section headers avoid JSON escaping failures
+  - use explicit `format="hybrid"` when prose/code scalar fields are mixed with
+    structured lists or objects, such as `summary` plus `citations`,
+    `analysis` plus `components`, or `notes` plus `next_steps`, and retry
+    latency is acceptable. Complex hybrid sections must show the nested JSON
+    sub-schema to the model; Agently's built-in prompt generator does this for
+    current `hybrid` output
+  - use `format="json"` when downstream code needs the legacy JSON-only
+    contract, external API interop, exact raw JSON behavior, model judges,
+    booleans, numbers, or dense nested arrays/objects
+  - use plain text instead of `.output(...)` for one freeform artifact: an
+    article, email, explanation, report, Markdown page, HTML page, or other
+    single multi-paragraph document; read it with `start()` / `async_start()` or
+    `response.result.get_text()`
+- choose streaming mode separately from output format:
+  - use `get_generator(type="instant")` or
+    `get_async_generator(type="instant")` when UI/progress consumers need
+    structured field updates before completion
+  - `instant` is supported for `json`, `flat_markdown`, `hybrid`, and `auto`
+    after auto resolves to one of those structured formats
+  - plain text / `text` has no structured instant paths; use `type="delta"` for
+    token streaming or `get_text()` after completion
+  - treat instant events as provisional UI state; use final `get_data()` /
+    `async_get_data()` for durable writes, validation, and business decisions
+- account for observed model reliability when recommending formats:
+  - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
+    do not depend on retry latency for hot paths
+  - `flat_markdown` is best for flat string artifacts; it is not the default
+    for booleans, numbers, or nested data because header/scaffold mistakes can
+    otherwise become silent field corruption
+  - `hybrid` is explicit opt-in for mixed prose plus structured fields; it is
+    useful and can handle complex nested arrays when the prompt includes the
+    nested sub-schema. Do not blanket-ban complex structures; instead test the
+    target provider/model with representative schemas such as EDA netlists,
+    citations, tables, and judge result arrays
+  - use explicit `format="json"` when retry latency is unacceptable, raw JSON is
+    required, a target model is known to ignore markdown section headers, or the
+    schema contains judge booleans, numeric fields, or many nested arrays
 - for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed required leaves
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
+- `max_retries=3` means Agently may make up to three additional model attempts
+  after the initial call when parsing, required-key extraction, strict output
+  validation, or custom validators fail. Retries commonly recover ordinary
+  omissions, JSON/markdown parse mistakes, and auto-format degradation. They can
+  still fail after all attempts when the model repeatedly echoes placeholder
+  scaffolding, fills boolean/numeric fields with prose, produces malformed
+  nested arrays, is truncated by long context, or must satisfy many wildcard
+  paths such as `rule_results[*].evidence`
+- for major output-control changes, run a provider/model-size stability matrix
+  before changing guidance. Track first-attempt success, retry-recovered
+  success, retry count/reasons, fail count, and whether a timeout happened after
+  streaming/reasoning progress. Reasoning or large MoE models need longer
+  windows such as 360s+; do not count a model that is still emitting
+  `model.streaming` or `model.meta` progress the same way as a request with no
+  progress
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation
 - keep output schema explicit when downstream systems, workflow branches, or later model steps consume the result
 - order dependent fields before the final decision or user-facing answer field:
-  put evidence, brief rationale, rule checks, and intermediate structured facts
-  first, then put the final boolean, verdict, `reply`, or action decision last.
-  This lets earlier fields condition the final field during generation; do not
-  ask for verbose hidden reasoning when a concise rationale or evidence list is
-  enough.
+  put evidence, assumptions, clarifications, source notes, calculation plans,
+  brief rationale, rule checks, and intermediate structured facts first, then
+  put the final boolean, verdict, `reply`, summary, or action decision last.
+  Agently output schemas are ordered; the model should generate supporting
+  fields before conclusions even if the UI later reorders the final document for
+  human reading. Do not ask for verbose hidden reasoning when a concise
+  rationale, evidence list, or check list is enough.
+- use conceptual grade labels for model-owned evaluation fields instead of
+  precise numeric scores. Define each label in the prompt, for example:
+  `high_trust` means authoritative sources, sufficient evidence, direct
+  evidence-to-claim linkage, and broad domain support; `moderate_trust` means
+  broad sources and direct or indirect support with some cross-domain inference;
+  `low_trust` means missing sources, promotional-only sources, or weak
+  evidence-to-claim linkage. When later code needs a number, map labels to
+  deterministic values after generation.
+- when a task needs complex arithmetic, long-number calculation, weighting,
+  aggregation, or statistical transformations, make the model output an
+  executable calculation plan or code, run it through tools, and pass the code
+  plus raw result into a later model step. Do not make the model's text
+  generation be the calculator.
 - for tests that validate model-owned semantic content, prefer a second Agently
   model-judge request with output control: pass the candidate output, explicit
   rules, expected contract, and relevant context; ask for per-rule evidence,

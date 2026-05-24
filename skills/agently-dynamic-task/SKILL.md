@@ -20,6 +20,18 @@ ordinary app-facing entrypoints.
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
+- use submitted DAG `inputs` placeholders for small runtime wiring:
+  `${INIT}` / `${INIT.foo}` for initial graph input,
+  `${DEPS.task_id.path}` for dependency results, `${STATE...}` for
+  execution-local state, and `${TRIGGER...}` for the raw TriggerFlow trigger
+  payload. Slot names are case-insensitive, but examples should use uppercase.
+  Whole-string placeholders preserve the original value type; embedded
+  placeholders stringify into the surrounding text. Missing runtime paths fail
+  closed during execution
+- when a submitted DAG runs through `agent.create_execution()`, let
+  `${INIT...}` read `use_dynamic_task(graph_input=...)` when explicit, otherwise
+  the frozen execution prompt `input` slot, then `{"target": task_target}`; do
+  not add a second `inputs.input` or task-local prompt mapping surface
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
 - use `model=<agent-or-provider-settings>` for model task execution resources
 - use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
@@ -27,9 +39,19 @@ ordinary app-facing entrypoints.
 - use Agently output schemas for model-owned semantic outputs instead of parsing model text with example-local JSON/code-block parsers
 - keep backend business-system calls mockable in examples, but keep model-owned planning, classification, drafting, evaluation, revising, and final response generation model-driven
 - require each model task that matters to have a clear output schema, either through facade-level `output_schema` or node-level `inputs.output_schema`
+- set model-task `inputs.output_format` by result type when the plan is
+  generated or submitted: `json` for compact machine-control data, action
+  arguments, routing flags, booleans, numbers, strict extraction, model judges,
+  and dense nested arrays/objects; `flat_markdown` for flat string long
+  text/code/HTML/SVG/Markdown/SQL/templates; explicit `hybrid` for long prose
+  plus structured lists, tables, citations, metadata, or nested evidence when
+  retry latency is acceptable; `auto` only when structural schema-driven
+  selection and retry latency are acceptable
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
 - keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
+- use `${INIT...}` / `${DEPS...}` placeholders for small declarative input
+  wiring; for larger transformations, keep the logic in a handler or model task
 - do not teach planners to use internal resolver entries such as `validate` or `emit` as ordinary task kinds
 - do not mark ordinary read-only model tasks as network side effects just because they call an LLM provider
 - do not add approval gates to analysis, synthesis, drafting, or final response model tasks unless the user explicitly asks for approval
@@ -59,6 +81,10 @@ task = Agently.create_dynamic_task(
                 "kind": "local",
                 "binding": "risk_check_handler",
                 "depends_on": ["extract"],
+                "inputs": {
+                    "source": "${INIT}",
+                    "extract_result": "${DEPS.extract}",
+                },
             },
         ],
         "semantic_outputs": {"final": "final"},
@@ -135,7 +161,7 @@ Planner plugins and planner prompts must declare:
 - validation checks that become retryable model-output failures
 - forbidden behavior: unstable task ids, dependency results embedded in static task inputs, implicit side effects, hidden action/skill use, and internal resolver task kinds
 
-The facade planner should wire `.output(planner.output_schema())`, required
+The facade planner should wire `.output(planner.output_schema(), format="json")`, required
 `planner.ensure_keys()`, and `.validate(planner.validate_output)` so structural
 problems become model-output validation failures before execution. Compile/run
 still revalidates the graph.

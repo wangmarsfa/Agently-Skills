@@ -35,19 +35,61 @@ here for Actions, Execution Environment, service, or DevTools details.
   replacement, and high-level packages outside `agently/core` when they compose
   several core systems
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
-  facade backed by the builtin `SkillsExecutor` plugin; do not retain
-  `Agently.skills` as a compatibility alias while this feature is unreleased
+  facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
+  ship `Agently.skills` as a compatibility alias
 - use `install_skills(...)` for one Agent Skills package,
   `install_skills_pack(...)` for a repository/group of Skills, and
-  `agent.use_skills(...).input(...).start()` for chain-style model-decision use
+  `agent.run_skills_task(...)` for explicit Skills execution
+- treat Agent quick prompt methods as configuration for every Agent execution
+  surface: `agent.input(...).output(...).run_skills_task(...)` maps the rendered
+  prompt snapshot to the Skill task and maps `output` / `output_format` to
+  `semantic_outputs` / `output_format`; `agent.start()` / `create_execution()`
+  use the same snapshot when the route planner selects Skills or Dynamic Task
+- for framework-side Skills execution, keep standard `SKILL.md` as the only
+  capability definition; selected Skills default to `single_shot` model
+  requests using their full Markdown guidance, while declared staged/react
+  strategies should compose TriggerFlow and ActionFlow/ActionRuntime rather
+  than adding a Skills-local executor
+- for Skills `react` tool use, delegate model-owned action planning and
+  execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
+  approvals, concurrency, and managed resources stay on the Action layer
+- for Agently 4.1.2.x auto-orchestration work, treat
+  `agent.use_skills(...).input(...).start()` as route-candidate registration
+  owned by the Agent route planner, not prompt-only Skills guidance injection by
+  default
+- for ambiguous optional route candidates, keep submitted Dynamic Task and
+  required Skills deterministic, but let the model choose among optional auto
+  Dynamic Task, model-decision Skills, and ordinary Action-backed model request
+  routes
+- for framework-side Skills, treat standard `SKILL.md` as the only capability
+  definition; Agently install metadata and decision cards are descriptive
+  runtime aids, not authoring formats or availability gates
+- for Skills actions, use Action/ExecutionEnvironment approval and resource
+  boundaries; use TriggerFlow `pause_for(...)` / `continue_with(...)` for
+  durable waits instead of storing pending approvals on a Skills snapshot
+- keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
+  core owns the public `agent.create_execution()` entrypoint, while the active
+  plugin owns route planning, execution, and stream bridging
+- for unified Agent execution/result work, prefer a response-style
+  `agent.create_execution()` object with data/text/meta/stream consumption; use
+  TriggerFlow runtime stream plus ModelRequest `instant` checkpoints for process
+  streaming, and expose model field deltas only through stable structured paths
+  such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
+  token events
 
 ## Anti-Patterns
 
 - do not build a parallel action/tool dispatcher before checking Action Runtime
+- do not hand-roll tool schema prompts or kwargs planners in Skills when the
+  Agent ActionRuntime can plan against the registered action list
 - do not expose core Execution Environment manager APIs as the default app-development mental model
 - do not route package installation or filesystem mutation through the Python sandbox
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits
 - do not make DevTools the source of truth for workflow structure
+- do not present prompt-only Skills disclosure as the default execution meaning
+  of `agent.start()` once the 4.1.3 route planner owns Skills candidates
+- do not put route-owned Skills, Dynamic Task, or stream-composition logic
+  directly in core when a plugin protocol can own the replaceable behavior
 
 ## Read Next
 

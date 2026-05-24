@@ -24,7 +24,7 @@ For service packaging, treat ordinary `TriggerFlow(...)` as the definition/plann
 
 For model-app dynamic planning, keep reusable main flows and sub-flow templates module-safe, then compile model-generated To-Do Lists or dependency graphs into request-local or plan-local executors. Use task ids as dynamic stage identities, drive dependency execution with `when(...)` + `emit_nowait(...)`, and store generated plan data and task results in execution input/state rather than shared flow data. Definition idempotence prevents duplicate graph declarations; it must not dedupe runtime signals, because repeated emits are real business events.
 
-In Agently `v4.1.2.4`, TriggerFlow definitions, chunk signal metadata, origin-chunk payloads, resume context, and sub-flow interrupt projection are strong enough to support graph-oriented debugging and local DevTools visualization without duplicating the workflow description.
+In Agently `v4.1.2.5`, TriggerFlow definitions, chunk signal metadata, origin-chunk payloads, resume context, and sub-flow interrupt projection are strong enough to support graph-oriented debugging and local DevTools visualization without duplicating the workflow description.
 
 For the concrete `instant -> runtime stream` pattern, read `references/stream-bridge.md`.
 For graph, export, and observation design, read `references/devtools-graph.md`.

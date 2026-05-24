@@ -8,7 +8,9 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.4 line and the compact 6-skill structure.
+with the Agently 4.1.2.5 foundation line and the compact 6-skill structure.
+Unpublished development guidance also tracks the Agently 4.1.3 target for
+Agent auto-orchestration and unified execution/result consumption.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -16,7 +18,7 @@ compatibility target.
 
 For unpublished work, match companion protocols and catalog generation first:
 
-- authoring protocol: `agently-skills.authoring.v1`
+- authoring protocol: `agently-skills.authoring.v2` (`SKILL.md` standard only)
 - DevTools guidance protocol: `agently-skills.devtools-guidance.v1`
 - current catalog generation: `v2`
 - recommended bundle: `app`
@@ -51,34 +53,53 @@ inside the Agently runtime:
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
-In current framework development, the runtime facade is `Agently.skills_executor`
-with a core facade plus builtin `SkillsExecutor` plugin implementation.
-The framework-side Skills Executor has not shipped yet, so no `Agently.skills`
-compatibility alias is retained.
+In the Agently 4.1.2.5 foundation, the runtime facade is
+`Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
+plugin implementation. No `Agently.skills` compatibility alias was shipped, so
+guidance should keep `Agently.skills_executor` as the global facade.
 Use `install_skills(...)` for one Agent Skills package,
 `install_skills_pack(...)` for repositories that contain multiple Skills, and
-`agent.use_skills(...).input(...).start()` for chain-style model-decision usage.
+`agent.run_skills_task(...)` when the app must explicitly execute a Skill
+behavior loop. The default runtime strategy remains `single_shot`, while
+`execution: staged`, `allowed-tools`, and effort presets can route selected
+Skills through TriggerFlow-backed staged/react execution that delegates action
+work to ActionFlow/ActionRuntime.
+
+The 4.1.2.x fulfillment line changes the recommended chain-style mental model:
+`agent.use_skills(...).input(...).start()` is route-candidate registration for
+default Agent auto-orchestration, not prompt-only guidance injection by default.
+When the route does not select Skills, ordinary model responses should receive
+only safe capability summaries. Use the explicit compatibility setting only
+when an application intentionally needs the older prompt-only Skills disclosure
+behavior.
+Submitted Dynamic Task and required Skills routes remain deterministic; when
+multiple optional candidates are present, model-owned route choice is the
+default.
+Framework-side auto-orchestration should be described as an `AgentOrchestrator`
+plugin protocol boundary: core owns the public Agent entrypoint, while the
+active orchestrator plugin owns route planning, execution, and process stream
+bridging.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
 
-Individual skill directories are still plain-text packages. Agently's
-framework-side Skills Executor can install them as **guidance-heavy runtime
-skill sources** when a project intentionally wants runtime steering or design
-guidance. In that case the skill contributes cards, guidance assets, and
-declarative constraints; it does not become a standalone `skill.run()` runtime.
-The framework may disclose bounded primary `SKILL.md` guidance to a model
-request when an app explicitly enables a skill candidate with
-`agent.use_skills(...)`; package scripts and helpers still remain inert assets
-unless the app binds them through controlled Actions.
+Individual skill directories are standard `SKILL.md` packages. Agently's
+framework-side Skills Executor can install them as local runtime skill sources
+when a project intentionally wants runtime steering or design guidance. In that
+case the skill contributes its `SKILL.md` instructions, a descriptive decision
+card, resource indexes, and install metadata; it does not become a standalone
+`skill.run()` runtime or an Agently-authored workflow manifest.
+For 4.1.x auto-orchestration, `agent.use_skills(...)` should be treated as a
+route candidate. Full primary `SKILL.md` guidance belongs to the Skills route
+that actually executes against that Skill; package scripts and helpers still
+remain inert assets unless the app binds them through controlled Actions or
+ExecutionEnvironment-managed resources.
 
-When a runtime Skill references helper scripts or shell-like capabilities, the
-framework-side executor should resolve them through controlled Actions or
-ExecutionEnvironment-managed tools instead of executing third-party package
-scripts directly. Current development behavior includes auto-binding
-Bash/shell-style requirements to a controlled Bash sandbox when allowed by
-policy; if no controlled substitute exists, the executor should fail closed with
-a natural-language user message and remediation suggestions.
+When a runtime Skill references helper scripts or shell-like capabilities,
+Agently must treat those files as resources. The host application may expose
+explicit controlled Actions or ExecutionEnvironment-managed tools, but the
+Skills Executor must not execute third-party package scripts directly or create
+a parallel approval/resume system outside TriggerFlow and Action Runtime.
 
 ## Routing Model
 
@@ -144,7 +165,18 @@ converge on these defaults:
   narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
-  paths
+  paths. `.output(...)` defaults to `format="auto"`; current auto is structural:
+  flat string-only schemas resolve to `flat_markdown`, dict schemas with string
+  fields plus complex list/object fields resolve to `hybrid`, and booleans,
+  numbers, all-complex schemas, and non-dict outputs resolve to `json`. Prefer
+  explicit `format="json"` for judges, booleans, numbers, dense nested data, or legacy
+  JSON-only contracts, and no `.output(...)` for one freeform plain-text
+  artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
+  three additional model attempts, but complex nested arrays, placeholder echo,
+  prose in boolean/numeric fields, and many wildcard ensure paths can still
+  fail after retries. Use `instant` streaming for provisional structured
+  UI/progress updates on `json`/`flat_markdown`/`hybrid`/resolved `auto`; use
+  `delta` streaming for plain text.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and
@@ -172,6 +204,20 @@ converge on these defaults:
   `get_response()` and reuse the same response object
 - Dynamic Task: treat `Agently.create_dynamic_task(...)` as the public surface
   for submitted DAGs. TriggerFlow is its execution substrate, not its owner API.
+- 4.1.2.x Agent auto-orchestration: treat default `agent.start()` as the accepted
+  candidate-driven route owner across ordinary model requests, Actions, Skills
+  Executor, and Dynamic Task candidates. Submitted Dynamic Task and required
+  Skills remain deterministic; ambiguous optional candidates use model-owned
+  route choice. Prefer `agent.create_execution()` for route diagnostics,
+  multiple result views, and process streaming.
+- AgentOrchestrator: keep auto-orchestration behind a plugin protocol boundary;
+  do not place route-owned Skills or Dynamic Task execution logic directly in
+  core or describe facade/mixin coupling as the extension contract.
+- process streaming: executor layers should compose TriggerFlow runtime stream
+  with ModelRequest `instant` checkpoints for route decisions, plan/graph
+  readiness, task/stage/action progress, selected model field deltas, and final
+  semantic outputs. Field deltas should use stable structured paths such as
+  `task_dag.tasks.<task_id>.fields.<field_path>`, not raw provider token events.
 
 Feature acceptance requires spec reconciliation: update each relevant spec to the
 final implemented design, move fully landed planned specs into `spec/implemented/`,

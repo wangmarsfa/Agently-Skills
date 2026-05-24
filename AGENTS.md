@@ -64,6 +64,14 @@ Use this file as installation-time guidance after the skills are added into anot
 
 ## Model Example Guidance
 
+- Examples are capability probes, not pass-through theater. They must test
+  whether Agently can solve a real business problem with the claimed
+  architecture and runtime capability. If the framework layer is incomplete,
+  missing a protocol seam, missing executor capability, or unable to solve the
+  scenario honestly, stop and report the capability gap so the feature design
+  can be adjusted. Do not fake success with framework-level business mappings,
+  canned outputs, overfitted prompts, deterministic substitutes for
+  model-owned behavior, or test-only branches hidden in production code.
 - User-visible feature work must add or update examples for the scenario the
   feature enables before the task is considered complete. The example should be
   runnable in its declared environment, use the current recommended API shape,
