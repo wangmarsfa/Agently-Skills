@@ -54,7 +54,10 @@ Agently 4.1.2.4 基础能力线中的运行时 facade 是 `Agently.skills_execut
 作为全局 facade。
 单个 Agent Skills package 使用 `install_skills(...)`，包含多个 Skills 的仓库
 使用 `install_skills_pack(...)`；当应用必须显式执行 Skill behavior loop 时，
-使用 `agent.run_skills_task(...)`。
+使用 `agent.run_skills_task(...)`。默认 runtime strategy 仍是
+`single_shot`；`execution: staged`、`allowed-tools` 和 effort presets 可以把
+选中的 Skills 路由到 TriggerFlow 支撑的 staged/react 执行，并把 action 工作委托给
+ActionFlow/ActionRuntime。
 
 4.1.2.x fulfillment 线会调整链式使用的默认心智：
 `agent.use_skills(...).input(...).start()` 是默认 Agent 自动编排的 route
@@ -75,11 +78,12 @@ Agent 入口，active orchestrator plugin 持有路线规划、执行和过程 s
 workflow manifest。在 4.1.x 自动编排中，`agent.use_skills(...)` 应被视为
 route candidate。完整 primary `SKILL.md` guidance 属于真正执行该 Skill 的
 Skills route；包内 scripts/helpers 仍然只是资产，除非应用把它们绑定为受控
-Actions，否则不会执行。
+Actions 或 ExecutionEnvironment 管理资源，否则不会执行。
 
 当运行时 Skill 引用 helper scripts 或 shell 类能力时，Agently 必须把这些文件
 视为资源。宿主应用可以显式暴露受控 Actions 或 ExecutionEnvironment 管理的工具，
-但 Skills Executor 不得直接执行第三方包里的 scripts。
+但 Skills Executor 不得直接执行第三方包里的 scripts，也不得在 TriggerFlow 和
+Action Runtime 之外自建平行的审批/恢复系统。
 
 ## 路由模型
 

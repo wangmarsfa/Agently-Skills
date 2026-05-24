@@ -59,7 +59,9 @@ Do not turn Skills into a parallel executor. Skill scripts should map to built-i
 Actions and component helpers such as `agent.enable_python(...)`,
 `agent.enable_shell(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)`; MCP assets should map to
 MCP-backed Actions plus Execution Environment requirements; workflow templates
-should map to TriggerFlow.
+should map to TriggerFlow. Multi-step Skills strategies should reuse
+TriggerFlow for orchestration and ActionFlow/ActionRuntime for tool/action
+execution, including approval-required and blocked results.
 
 ## Practical Permission Profiles
 

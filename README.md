@@ -60,7 +60,10 @@ guidance should keep `Agently.skills_executor` as the global facade.
 Use `install_skills(...)` for one Agent Skills package,
 `install_skills_pack(...)` for repositories that contain multiple Skills, and
 `agent.run_skills_task(...)` when the app must explicitly execute a Skill
-behavior loop.
+behavior loop. The default runtime strategy remains `single_shot`, while
+`execution: staged`, `allowed-tools`, and effort presets can route selected
+Skills through TriggerFlow-backed staged/react execution that delegates action
+work to ActionFlow/ActionRuntime.
 
 The 4.1.2.x fulfillment line changes the recommended chain-style mental model:
 `agent.use_skills(...).input(...).start()` is route-candidate registration for
@@ -89,12 +92,14 @@ card, resource indexes, and install metadata; it does not become a standalone
 For 4.1.x auto-orchestration, `agent.use_skills(...)` should be treated as a
 route candidate. Full primary `SKILL.md` guidance belongs to the Skills route
 that actually executes against that Skill; package scripts and helpers still
-remain inert assets unless the app binds them through controlled Actions.
+remain inert assets unless the app binds them through controlled Actions or
+ExecutionEnvironment-managed resources.
 
 When a runtime Skill references helper scripts or shell-like capabilities,
 Agently must treat those files as resources. The host application may expose
 explicit controlled Actions or ExecutionEnvironment-managed tools, but the
-Skills Executor must not execute third-party package scripts directly.
+Skills Executor must not execute third-party package scripts directly or create
+a parallel approval/resume system outside TriggerFlow and Action Runtime.
 
 ## Routing Model
 
