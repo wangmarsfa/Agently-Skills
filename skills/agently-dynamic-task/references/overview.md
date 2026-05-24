@@ -48,6 +48,13 @@ booleans, numbers, judges, dense nested arrays/objects, and strict extraction;
 is acceptable; and `auto` only when conservative schema-driven selection and
 retry latency are acceptable.
 
+Submitted DAG `inputs` support runtime placeholders for simple wiring:
+`${INPUT}` / `${INPUT.foo}` read graph input, `${DEPS.task_id.path}` reads
+dependency results, and `${STATE...}` is a compatibility alias for `${DEPS...}`.
+Whole-string placeholders preserve the original value type; embedded
+placeholders stringify into the surrounding text. Use placeholders for direct
+references, and keep larger transformations in handlers or model tasks.
+
 Recommended API boundaries:
 
 - app code: `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)`

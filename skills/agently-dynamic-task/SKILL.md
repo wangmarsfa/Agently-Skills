@@ -20,6 +20,13 @@ ordinary app-facing entrypoints.
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
+- use submitted DAG `inputs` placeholders for small runtime wiring:
+  `${INPUT}` / `${INPUT.foo}` for graph input, `${DEPS.task_id.path}` for
+  dependency results, and `${STATE...}` as a compatibility alias for
+  `${DEPS...}`. Slot names are case-insensitive, but examples should use
+  uppercase. Whole-string placeholders preserve the original value type;
+  embedded placeholders stringify into the surrounding text. Missing runtime
+  paths fail closed during execution
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
 - use `model=<agent-or-provider-settings>` for model task execution resources
 - use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
@@ -38,6 +45,8 @@ ordinary app-facing entrypoints.
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
 - keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
+- use `${INPUT...}` / `${DEPS...}` placeholders for small declarative input
+  wiring; for larger transformations, keep the logic in a handler or model task
 - do not teach planners to use internal resolver entries such as `validate` or `emit` as ordinary task kinds
 - do not mark ordinary read-only model tasks as network side effects just because they call an LLM provider
 - do not add approval gates to analysis, synthesis, drafting, or final response model tasks unless the user explicitly asks for approval
@@ -67,6 +76,10 @@ task = Agently.create_dynamic_task(
                 "kind": "local",
                 "binding": "risk_check_handler",
                 "depends_on": ["extract"],
+                "inputs": {
+                    "source": "${INPUT}",
+                    "extract_result": "${DEPS.extract}",
+                },
             },
         ],
         "semantic_outputs": {"final": "final"},
