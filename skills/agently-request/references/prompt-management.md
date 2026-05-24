@@ -16,6 +16,11 @@ Use this skill when the core problem is how prompt state should be structured be
   extraction
 - keep task-specific request contracts in prompt config, and keep only widely reused persona setup in small code-side factories
 - when the output contract is stable and shared across a request family, keep it in prompt config such as `.request.output` instead of rebuilding it ad hoc in Python
+- set structured output format in prompt config with `$format` inside the
+  `output` block when the contract needs a fixed mode, for example
+  `.request.output.$format: json`, `flat_markdown`, `hybrid`, or `auto`. This
+  maps to the same Prompt slot as `.output(..., format=...)`; `.format`,
+  `$output_format`, and `.output_format` are accepted aliases
 - keep prompt composition separate from transport and orchestration
 - use config files as an editable bridge when UI or product teams need to adjust prompt-driven behavior without rewriting workflow code
 
@@ -27,6 +32,9 @@ Use this skill when the core problem is how prompt state should be structured be
   `${INPUT...}` / `${INFO...}` / `${INSTRUCT...}` references so the rendered
   prompt points at the existing section
 - do not scatter stable prompt or output contracts across multiple Python helpers when one prompt config can own them
+- do not invent a parallel prompt DSL for workflows or task nodes; use a
+  `prompt` field with Configure Prompt shape when an internal model request
+  needs configurable `input`, `instruct`, `output`, or `output_format`
 - do not use prompt config files as a substitute for workflow state
 
 ## Read Next
