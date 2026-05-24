@@ -7,6 +7,13 @@ Use this skill when the core problem is how prompt state should be structured be
 - prefer `input(...)`, `instruct(...)`, `info(...)`, and `output(...)` over concatenated prompt strings
 - move reusable prompt structure into prompt config or YAML instead of ad hoc literals
 - keep runtime variables as `${...}` placeholders in prompt files and inject them through mappings at load time
+- use render-time slot references when one prompt slot should point the model to
+  another slot without duplicating its value: `${INPUT.foo}` -> `[INPUT > foo]`,
+  `${INFO.customer}` -> `[INFO > customer]`, `${INSTRUCT.step}` ->
+  `[INSTRUCT > step]`, and `${OUTPUT}` -> `[OUTPUT REQUIREMENT]`. Slot names are
+  case-insensitive; examples should use uppercase. Do not validate the path
+  after the slot name because it is a model-facing reference label, not a value
+  extraction
 - keep task-specific request contracts in prompt config, and keep only widely reused persona setup in small code-side factories
 - when the output contract is stable and shared across a request family, keep it in prompt config such as `.request.output` instead of rebuilding it ad hoc in Python
 - keep prompt composition separate from transport and orchestration
@@ -16,6 +23,9 @@ Use this skill when the core problem is how prompt state should be structured be
 
 - do not flatten business context into one opaque string unless the task is trivial
 - do not rebuild prompt templates through ad hoc `.format(...)` or string concatenation when prompt mappings already fit
+- do not duplicate a large slot into another slot just to refer to it; use
+  `${INPUT...}` / `${INFO...}` / `${INSTRUCT...}` references so the rendered
+  prompt points at the existing section
 - do not scatter stable prompt or output contracts across multiple Python helpers when one prompt config can own them
 - do not use prompt config files as a substitute for workflow state
 
