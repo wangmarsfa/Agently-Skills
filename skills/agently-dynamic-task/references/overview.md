@@ -55,6 +55,13 @@ Whole-string placeholders preserve the original value type; embedded
 placeholders stringify into the surrounding text. Use placeholders for direct
 references, and keep larger transformations in handlers or model tasks.
 
+When a submitted DAG runs behind `agent.use_dynamic_task(...).create_execution()`,
+`${INPUT...}` reads graph input from `use_dynamic_task(graph_input=...)` when it
+is provided. If omitted, it reads the execution prompt snapshot `input` slot
+captured by `create_execution()`, then falls back to `{"target": task_target}`.
+Use the explicit `graph_input` argument only when the DAG input should differ
+from the Agent prompt input or when the precedence should be visible in code.
+
 When Dynamic Task runs behind `agent.create_execution()`, the Agent execution
 stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
 the Agent stream must terminate and surface the original error to the consumer;

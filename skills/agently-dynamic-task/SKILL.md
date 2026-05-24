@@ -27,6 +27,10 @@ ordinary app-facing entrypoints.
   uppercase. Whole-string placeholders preserve the original value type;
   embedded placeholders stringify into the surrounding text. Missing runtime
   paths fail closed during execution
+- when a submitted DAG runs through `agent.create_execution()`, let
+  `${INPUT...}` read `use_dynamic_task(graph_input=...)` when explicit, otherwise
+  the frozen execution prompt `input` slot, then `{"target": task_target}`; do
+  not add a second `inputs.input` or task-local prompt mapping surface
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
 - use `model=<agent-or-provider-settings>` for model task execution resources
 - use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
