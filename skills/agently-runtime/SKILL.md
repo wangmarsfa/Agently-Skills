@@ -35,16 +35,24 @@ here for Actions, Execution Environment, service, or DevTools details.
   replacement, and high-level packages outside `agently/core` when they compose
   several core systems
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
-  facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.4 did not
+  facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
 - use `install_skills(...)` for one Agent Skills package,
   `install_skills_pack(...)` for a repository/group of Skills, and
   `agent.run_skills_task(...)` for explicit Skills execution
+- treat Agent quick prompt methods as configuration for every Agent execution
+  surface: `agent.input(...).output(...).run_skills_task(...)` maps the rendered
+  prompt snapshot to the Skill task and maps `output` / `output_format` to
+  `semantic_outputs` / `output_format`; `agent.start()` / `create_execution()`
+  use the same snapshot when the route planner selects Skills or Dynamic Task
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react
   strategies should compose TriggerFlow and ActionFlow/ActionRuntime rather
   than adding a Skills-local executor
+- for Skills `react` tool use, delegate model-owned action planning and
+  execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
+  approvals, concurrency, and managed resources stay on the Action layer
 - for Agently 4.1.2.x auto-orchestration work, treat
   `agent.use_skills(...).input(...).start()` as route-candidate registration
   owned by the Agent route planner, not prompt-only Skills guidance injection by
@@ -72,6 +80,8 @@ here for Actions, Execution Environment, service, or DevTools details.
 ## Anti-Patterns
 
 - do not build a parallel action/tool dispatcher before checking Action Runtime
+- do not hand-roll tool schema prompts or kwargs planners in Skills when the
+  Agent ActionRuntime can plan against the registered action list
 - do not expose core Execution Environment manager APIs as the default app-development mental model
 - do not route package installation or filesystem mutation through the Python sandbox
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits

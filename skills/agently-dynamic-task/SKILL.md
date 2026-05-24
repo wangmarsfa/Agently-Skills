@@ -21,14 +21,15 @@ ordinary app-facing entrypoints.
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
 - use submitted DAG `inputs` placeholders for small runtime wiring:
-  `${INPUT}` / `${INPUT.foo}` for graph input, `${DEPS.task_id.path}` for
-  dependency results, and `${STATE...}` as a compatibility alias for
-  `${DEPS...}`. Slot names are case-insensitive, but examples should use
-  uppercase. Whole-string placeholders preserve the original value type;
-  embedded placeholders stringify into the surrounding text. Missing runtime
-  paths fail closed during execution
+  `${INIT}` / `${INIT.foo}` for initial graph input,
+  `${DEPS.task_id.path}` for dependency results, `${STATE...}` for
+  execution-local state, and `${TRIGGER...}` for the raw TriggerFlow trigger
+  payload. Slot names are case-insensitive, but examples should use uppercase.
+  Whole-string placeholders preserve the original value type; embedded
+  placeholders stringify into the surrounding text. Missing runtime paths fail
+  closed during execution
 - when a submitted DAG runs through `agent.create_execution()`, let
-  `${INPUT...}` read `use_dynamic_task(graph_input=...)` when explicit, otherwise
+  `${INIT...}` read `use_dynamic_task(graph_input=...)` when explicit, otherwise
   the frozen execution prompt `input` slot, then `{"target": task_target}`; do
   not add a second `inputs.input` or task-local prompt mapping surface
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
@@ -49,7 +50,7 @@ ordinary app-facing entrypoints.
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
 - keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
-- use `${INPUT...}` / `${DEPS...}` placeholders for small declarative input
+- use `${INIT...}` / `${DEPS...}` placeholders for small declarative input
   wiring; for larger transformations, keep the logic in a handler or model task
 - do not teach planners to use internal resolver entries such as `validate` or `emit` as ordinary task kinds
 - do not mark ordinary read-only model tasks as network side effects just because they call an LLM provider
@@ -81,7 +82,7 @@ task = Agently.create_dynamic_task(
                 "binding": "risk_check_handler",
                 "depends_on": ["extract"],
                 "inputs": {
-                    "source": "${INPUT}",
+                    "source": "${INIT}",
                     "extract_result": "${DEPS.extract}",
                 },
             },

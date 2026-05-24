@@ -8,7 +8,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.4 foundation line and the compact 6-skill structure.
+with the Agently 4.1.2.5 foundation line and the compact 6-skill structure.
 Unpublished development guidance also tracks the Agently 4.1.3 target for
 Agent auto-orchestration and unified execution/result consumption.
 
@@ -53,7 +53,7 @@ inside the Agently runtime:
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
-In the Agently 4.1.2.4 foundation, the runtime facade is
+In the Agently 4.1.2.5 foundation, the runtime facade is
 `Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
 plugin implementation. No `Agently.skills` compatibility alias was shipped, so
 guidance should keep `Agently.skills_executor` as the global facade.

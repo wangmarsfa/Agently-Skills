@@ -7,7 +7,7 @@
 
 ## 兼容性
 
-默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.2.4
+默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.2.5
 基础能力线和新的 6-skill 结构对齐。未发布开发指引同时跟随 Agently 4.1.3
 目标：Agent 自动编排与统一 execution/result 消费。
 
@@ -48,7 +48,7 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - `Agently-Skills` —— 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
 - Agently `Skills Executor` —— Agently app / agent 暴露 declarative skill cards、生成 `SkillExecutionPlan`，并通过 Agent API、Actions 和受管理执行环境运行所选 skill behavior loop 的框架 runtime 能力
 
-Agently 4.1.2.4 基础能力线中的运行时 facade 是 `Agently.skills_executor`，
+Agently 4.1.2.5 基础能力线中的运行时 facade 是 `Agently.skills_executor`，
 底层是 core facade 加 builtin `SkillsExecutor` plugin 实现。框架没有发布
 `Agently.skills` 兼容别名，因此 guidance 应继续把 `Agently.skills_executor`
 作为全局 facade。

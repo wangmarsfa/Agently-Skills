@@ -12,6 +12,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
+- use `agent.action.get_action_info()` / `get_tool_info()` for visible schemas;
+  agent-scoped Actions, MCP tools, and `enable_*` helpers are included by
+  default, while explicit tags narrow the list
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - treat `model_digest` plus `artifact_refs` as the normal loop memory for instruction-heavy Actions; full raw payloads should be recalled explicitly with `agent.action.read_action_artifact(...)`
@@ -36,6 +39,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 ## Anti-Patterns
 
 - do not build a parallel action or tool dispatcher before checking native Action Runtime and MCP support
+- do not duplicate ActionRuntime planning prompts in higher layers; delegate
+  model-owned action/tool selection to ActionRuntime when registered schemas are
+  available
 - do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_environment` can own the dependency
 - do not recommend core manager/provider APIs to ordinary app developers when a built-in Action or Agent Component is the right surface
 - do not create a custom waiter or auto-function shim first

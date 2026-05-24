@@ -46,6 +46,7 @@ Recommended environment split:
 - `AGENTLY_DEVTOOLS_INGEST_URL` for observation event upload
 
 Keep this wiring in the app or observability layer, not inside prompt helpers or chunk handlers.
+`ObservationBridge` uploads through a background queue and coalesces high-frequency events such as `model.streaming`; call `await bridge.flush()` before a short-lived script exits when full delivery matters.
 
 ## Local Embedded Listener
 

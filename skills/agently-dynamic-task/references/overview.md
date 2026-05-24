@@ -29,6 +29,13 @@ Layer ownership:
   runtime owners.
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
+- In Agent mode, quick prompt methods are configuration. `agent.create_dynamic_task()`
+  consumes the current prompt snapshot: rendered prompt text becomes the
+  DynamicTask target, the `output` slot becomes `output_schema`, `output_format`
+  becomes the default model-task format, and the `input` slot remains structured
+  graph input for `${INIT...}` placeholders. `set_agent_prompt(...)` values
+  are inherited and preserved; request prompt values are frozen and then
+  cleared. Explicit facade arguments override prompt-derived defaults.
 
 Use Dynamic Task when the graph is submitted as data and must be planned,
 validated, pruned, and executed. Use TriggerFlow directly when the developer
@@ -47,16 +54,24 @@ booleans, numbers, judges, dense nested arrays/objects, and strict extraction;
 `hybrid` for long prose with structured evidence or metadata when retry latency
 is acceptable; and `auto` only when structural schema-driven selection and
 retry latency are acceptable.
+If the host facade supplies `create_dynamic_task(..., output_schema=...,
+ensure_keys=...)`, that semantic-output contract owns the frontstage shape. A
+planner-chosen `inputs.output_format="flat_markdown"` must not break a
+multi-field structured host contract; the framework coerces it back to `auto`.
 
 Submitted DAG `inputs` support runtime placeholders for simple wiring:
-`${INPUT}` / `${INPUT.foo}` read graph input, `${DEPS.task_id.path}` reads
-dependency results, and `${STATE...}` is a compatibility alias for `${DEPS...}`.
+`${INIT}` / `${INIT.foo}` read initial graph input,
+`${DEPS.task_id.path}` reads dependency results, `${STATE...}` reads
+execution-local state, and `${TRIGGER...}` reads the raw TriggerFlow trigger
+payload.
 Whole-string placeholders preserve the original value type; embedded
 placeholders stringify into the surrounding text. Use placeholders for direct
 references, and keep larger transformations in handlers or model tasks.
+Use the same slot naming style as Prompt references: uppercase slot names in
+examples (`INIT`, `DEPS`, `STATE`, `TRIGGER`), with path access after the dot.
 
 When a submitted DAG runs behind `agent.use_dynamic_task(...).create_execution()`,
-`${INPUT...}` reads graph input from `use_dynamic_task(graph_input=...)` when it
+`${INIT...}` reads graph input from `use_dynamic_task(graph_input=...)` when it
 is provided. If omitted, it reads the execution prompt snapshot `input` slot
 captured by `create_execution()`, then falls back to `{"target": task_target}`.
 Use the explicit `graph_input` argument only when the DAG input should differ
