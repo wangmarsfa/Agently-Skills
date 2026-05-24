@@ -55,6 +55,11 @@ Whole-string placeholders preserve the original value type; embedded
 placeholders stringify into the surrounding text. Use placeholders for direct
 references, and keep larger transformations in handlers or model tasks.
 
+When Dynamic Task runs behind `agent.create_execution()`, the Agent execution
+stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
+the Agent stream must terminate and surface the original error to the consumer;
+do not add external timeout workarounds or swallow failing chunks in examples.
+
 Recommended API boundaries:
 
 - app code: `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)`
