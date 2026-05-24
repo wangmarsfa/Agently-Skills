@@ -138,12 +138,14 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
   `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
-  `format="auto"`，可能为模型可读 schema 选择 flat/hybrid markdown。扁平结构且
-  含大段代码/HTML/Markdown 文本时优先 `flat_markdown`；prose/code 字段与结构化
-  list/object 混合时优先 `hybrid`；下游契约需要旧的 JSON-only 输出时显式
-  `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`instant`
-  streaming 适合 `json`/`flat_markdown`/`hybrid`/resolved `auto` 的临时结构化
-  UI/进度更新；纯文本 streaming 用 `delta`。
+  `format="auto"`；当前 auto 是保守策略，扁平且全字符串字段解析为
+  `flat_markdown`，布尔、数字、嵌套数据和混合 schema 解析为 `json`。大段
+  code/HTML/Markdown 字符串字段显式用 `flat_markdown`；prose/code 字段与结构化
+  list/object 混合且能接受重试耗时时显式用 `hybrid`；judge、布尔、数字、密集嵌套数据或下游契约需要 JSON-only 时显式 `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
+  缺失，但复杂嵌套数组、占位符回显、布尔/数字字段里填散文、大量 wildcard
+  ensure 路径仍可能在重试后失败。`instant` streaming 适合
+  `json`/`flat_markdown`/`hybrid`/resolved `auto` 的临时结构化 UI/进度更新；纯文本
+  streaming 用 `delta`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把

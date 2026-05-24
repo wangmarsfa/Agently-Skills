@@ -165,15 +165,20 @@ converge on these defaults:
   narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
-  paths. `.output(...)` defaults to `format="auto"` and may choose flat/hybrid
-  markdown for model-readable schemas. Prefer `flat_markdown` for flat
-  structured outputs with large code/HTML/Markdown text blocks, `hybrid` for
-  prose/code fields mixed with structured lists or objects, explicit
-  `format="json"` when the downstream contract requires legacy JSON-only
-  output, and no `.output(...)` for one freeform plain-text artifact. Use
-  `instant` streaming for provisional structured UI/progress updates on
-  `json`/`flat_markdown`/`hybrid`/resolved `auto`; use `delta` streaming for
-  plain text.
+  paths. `.output(...)` defaults to `format="auto"`; current auto is
+  conservative and resolves flat string-only schemas to `flat_markdown`, while
+  booleans, numbers, nested data, and mixed schemas resolve to `json`. Prefer
+  explicit `flat_markdown` for flat string outputs with large
+  code/HTML/Markdown text blocks, explicit `hybrid` for prose/code fields mixed
+  with structured lists or objects when retry latency is acceptable, explicit
+  `format="json"` for judges, booleans, numbers, dense nested data, or legacy
+  JSON-only contracts, and no `.output(...)` for one freeform plain-text
+  artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
+  three additional model attempts, but complex nested arrays, placeholder echo,
+  prose in boolean/numeric fields, and many wildcard ensure paths can still
+  fail after retries. Use `instant` streaming for provisional structured
+  UI/progress updates on `json`/`flat_markdown`/`hybrid`/resolved `auto`; use
+  `delta` streaming for plain text.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and

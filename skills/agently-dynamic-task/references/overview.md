@@ -41,10 +41,12 @@ and future Skills Executor integration.
 
 For model tasks, keep result control on the model task contract. Use
 `inputs.output_schema` for the task result shape and `inputs.output_format` for
-the response-control strategy: `json` for compact machine-control data and
-strict extraction, `flat_markdown` for flat scalar long text/code/HTML/Markdown
-fields, `hybrid` for long prose with structured evidence or metadata, and
-`auto` only when schema-driven selection and retry latency are acceptable.
+the response-control strategy: `json` for compact machine-control data,
+booleans, numbers, judges, dense nested arrays/objects, and strict extraction;
+`flat_markdown` for flat string long text/code/HTML/Markdown fields; explicit
+`hybrid` for long prose with structured evidence or metadata when retry latency
+is acceptable; and `auto` only when conservative schema-driven selection and
+retry latency are acceptable.
 
 Recommended API boundaries:
 
