@@ -13,6 +13,16 @@ Use this skill for provider wiring and transport setup before request logic is d
 - if the app must fail fast, validate required env names in the integration layer before calling Agently
 - after loading, verify the effective provider activation, base URL, model, and auth presence instead of assuming the file shape was correct
 - keep provider setup outside business workflow logic and prompt files
+- when an Agent must switch among multiple configured models, use
+  `agent.activate_model("ollama-qwen2.5")` for subsequent Agent-owned requests
+  and `agent.create_request(model_key="deepseek-v4")` for one-off overrides.
+  Prefer concrete model aliases such as `ollama-qwen2.5` and `deepseek-v4`,
+  then map them through `model_pool`, `key_pool_strategy`, and `key_pool`.
+- explain API key pool behavior precisely: keys are selected at request time by
+  `key_pool_strategy` (`fixed`, `random`, `round_robin`, `least_used`).
+  Agently 4.1.3 does not automatically retry another key after provider auth,
+  quota, or billing failures; applications decide whether credential switching
+  after a failed operation is safe.
 
 ## Anti-Patterns
 
@@ -21,6 +31,9 @@ Use this skill for provider wiring and transport setup before request logic is d
 - do not leave provider config at a root-level namespace that the active plugin will not read
 - do not let sync-only samples dictate the architecture of async-capable services
 - do not mix model setup with output parsing or workflow design
+- do not use stage names such as `reason` as the main example for user-facing
+  model switching; reserve those for internal stage routing docs. Use concrete
+  switchable aliases such as `ollama-qwen2.5` and `deepseek-v4`.
 
 ## Read Next
 

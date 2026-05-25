@@ -96,6 +96,15 @@ plugin protocol boundary: core owns the public Agent entrypoint, while the
 active orchestrator plugin owns route planning, execution, and process stream
 bridging.
 
+For multi-model applications, recommend `agent.activate_model("ollama-qwen2.5")`
+to switch the default model key for subsequent Agent-owned requests, and
+`agent.create_request(model_key="deepseek-v4")` for one-off overrides. Model
+aliases should be concrete and switchable, then resolved through
+`model_pool -> key_pool_strategy -> key_pool`. API keys are selected at request
+time by the configured strategy (`fixed`, `random`, `round_robin`,
+`least_used`); Agently 4.1.3 does not automatically retry another key after
+provider auth, quota, or billing failures.
+
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
 
