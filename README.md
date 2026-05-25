@@ -8,9 +8,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.5 foundation line and the compact 6-skill structure.
-Unpublished development guidance also tracks the Agently 4.1.3 target for
-Agent auto-orchestration and unified execution/result consumption.
+with the Agently 4.1.3 runtime line and the compact 6-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -53,12 +51,12 @@ inside the Agently runtime:
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
-In the Agently 4.1.2.5 foundation, the runtime facade is
+In the Agently 4.1.3 runtime line, the runtime facade is
 `Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
 plugin implementation. No `Agently.skills` compatibility alias was shipped, so
 guidance should keep `Agently.skills_executor` as the global facade.
-For the 4.1.3 development line, app code should declare installed ids or remote
-source selectors on `agent.use_skills(...)` and let the Skills Executor lazily
+App code should declare installed ids or remote source selectors on
+`agent.use_skills(...)` and let the Skills Executor lazily
 discover, install, and mount selected capabilities. Use
 `install_skills_pack(...)` for prewarming, offline mirrors, deterministic CI
 fixtures, and explicit registry maintenance. Use `install_skills(...)` for one

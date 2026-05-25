@@ -7,9 +7,8 @@
 
 ## 兼容性
 
-默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.2.5
-基础能力线和新的 6-skill 结构对齐。未发布开发指引同时跟随 Agently 4.1.3
-目标：Agent 自动编排与统一 execution/result 消费。
+默认公开 catalog 是当前 Agently-Skills generation `v2`，已按 Agently 4.1.3
+runtime 能力线和新的 6-skill 结构对齐。
 
 机器可读兼容声明位于 `compatibility/support.json`。未发布跨仓协作应匹配
 当前 Agently development compatibility target。
@@ -48,12 +47,12 @@ Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 - `Agently-Skills` —— 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
 - Agently `Skills Executor` —— Agently app / agent 暴露 declarative skill cards、生成 `SkillExecutionPlan`，并通过 Agent API、Actions 和受管理执行环境运行所选 skill behavior loop 的框架 runtime 能力
 
-Agently 4.1.2.5 基础能力线中的运行时 facade 是 `Agently.skills_executor`，
+Agently 4.1.3 runtime 能力线中的运行时 facade 是 `Agently.skills_executor`，
 底层是 core facade 加 builtin `SkillsExecutor` plugin 实现。框架没有发布
 `Agently.skills` 兼容别名，因此 guidance 应继续把 `Agently.skills_executor`
 作为全局 facade。
-在 4.1.3 development line，应用代码应在 `agent.use_skills(...)` 上声明已安装
-id 或远程 source selector，由 Skills Executor 按需轻量发现、安装并挂接选中的
+应用代码应在 `agent.use_skills(...)` 上声明已安装 id 或远程 source selector，
+由 Skills Executor 按需轻量发现、安装并挂接选中的
 能力。`install_skills_pack(...)` 保留给预热、离线镜像、确定性 CI fixture 和显式
 registry 维护。`install_skills(...)` 用于单个本地 Skill 目录的作者开发和 smoke
 test；当应用必须显式执行 Skill behavior loop 时，使用
