@@ -37,14 +37,41 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
-- use `install_skills(...)` for one Agent Skills package,
-  `install_skills_pack(...)` for a repository/group of Skills, and
-  `agent.run_skills_task(...)` for explicit Skills execution
+- for Agently 4.1.3 Skills runtime work, prefer Action-like management:
+  declare installed ids or remote source selectors on `agent.use_skills(...)`
+  and let Skills Executor lazily discover, install, and mount selected
+  capabilities; keep `install_skills_pack(...)` for prewarming, offline mirrors,
+  deterministic CI fixtures, and explicit registry maintenance
+- use `install_skills(...)` for one local Skill directory during
+  authoring/smoke tests; use `agent.run_skills_task(...)` for explicit Skills
+  execution; remote selectors may use git URLs, GitHub shorthand such as
+  `anthropics/skills`, and `subpath=` when selecting one Skill from a pack
+- for explicit Skills execution, `effort="fast"` maps to the low-overhead
+  single-shot path, `effort="normal"` runs the full preflight -> research ->
+  plan -> execute -> verify -> reflect -> finalize runtime chain, and
+  `effort="max"` increases retry budget for that chain
+- for application-specific Skills action strategies, use
+  `Agently.skills_executor.register_effort_strategy(name, handler)` and invoke
+  it with `effort=name`; the handler should compose model requests,
+  ActionRuntime/MCP, ExecutionEnvironment, TriggerFlow, or Dynamic Task through
+  the Agent runtime context instead of building a parallel tool dispatcher
+- Skills effort strategy handlers follow the `SkillsEffortStrategyHandler`
+  protocol with keyword arguments `context`, `task`, `plan`, `output_format`,
+  `effort`, and `effort_config`; builtin strategies `single_shot`,
+  `runtime_chain`, `staged`, and `react` are exposed through the same strategy
+  table and can be inspected with `list_effort_strategies()`; their reference
+  implementations live under the Agently builtin Skills Executor
+  `modules/effort_strategies/` package
+- for MCP, prefer Streamable HTTP URLs for service integrations
+  (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
+  MCP config dictionaries for stdio/multi-server local integrations; treat SSE
+  as a legacy compatibility transport
 - treat Agent quick prompt methods as configuration for every Agent execution
   surface: `agent.input(...).output(...).run_skills_task(...)` maps the rendered
-  prompt snapshot to the Skill task and maps `output` / `output_format` to
-  `semantic_outputs` / `output_format`; `agent.start()` / `create_execution()`
-  use the same snapshot when the route planner selects Skills or Dynamic Task
+  prompt snapshot to the Skill task and maps `output` / `output_format` to the
+  Skills execution `output` / `output_format` contract; `semantic_outputs=` is
+  only a deprecated compatibility alias for direct Skills execution, while
+  Dynamic Task still uses `semantic_outputs` inside TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react
@@ -53,6 +80,17 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for Skills `react` tool use, delegate model-owned action planning and
   execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
   approvals, concurrency, and managed resources stay on the Action layer
+- for selected Skills that declare MCP or Bash/script capabilities, expect the
+  Skills Executor to mount runtime actions automatically before execution:
+  MCP declarations route through `agent.use_mcp(...)`, Bash/script declarations
+  route through managed `enable_shell(...)` actions scoped to the installed
+  Skill directory, and local command/script mounts require `auto_allow=True` or
+  an approval handler
+- for missing declared Skills capabilities, allow executor synthesis only for
+  safely classified pure Python sandbox work such as calculation, parsing,
+  validation, transformation, or format conversion; never synthesize business,
+  network, filesystem, messaging, payment, database, browser, shell, or MCP
+  capabilities, and require a real Action/MCP/connector instead
 - for Agently 4.1.2.x auto-orchestration work, treat
   `agent.use_skills(...).input(...).start()` as route-candidate registration
   owned by the Agent route planner, not prompt-only Skills guidance injection by

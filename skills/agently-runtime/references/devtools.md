@@ -33,11 +33,12 @@ from agently import Agently
 from agently_devtools import ObservationBridge
 
 bridge = ObservationBridge(
-    os.environ["AGENTLY_DEVTOOLS_INGEST_URL"],
+    Agently,
+    endpoint=os.environ["AGENTLY_DEVTOOLS_INGEST_URL"],
     app_id="your_app_id",
     group_id="your_group_id",
 )
-bridge.register(Agently.event_center)
+bridge.watch(Agently)
 ```
 
 Recommended environment split:
@@ -47,6 +48,29 @@ Recommended environment split:
 
 Keep this wiring in the app or observability layer, not inside prompt helpers or chunk handlers.
 `ObservationBridge` uploads through a background queue and coalesces high-frequency events such as `model.streaming`; call `await bridge.flush()` before a short-lived script exits when full delivery matters.
+
+Agently also provides a LazyImport facade when the app wants to keep the
+`agently-devtools` import behind Agently:
+
+```python
+from agently import Agently
+
+bridge = Agently.create_observation_bridge(
+    endpoint=os.environ["AGENTLY_DEVTOOLS_INGEST_URL"],
+    app_id="your_app_id",
+)
+bridge.watch(Agently)
+```
+
+For selective observation, pass or watch the target object:
+
+```python
+bridge = ObservationBridge(Agently, app_id="your_app_id")
+bridge.watch(agent, flow, lookup_reference)
+```
+
+The older `bridge = ObservationBridge(...); bridge.register(Agently)` form is a
+compatibility path and should be treated as deprecated.
 
 ## Local Embedded Listener
 

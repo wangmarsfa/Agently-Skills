@@ -8,9 +8,7 @@ Official documentation: <https://agently.tech/docs/en/> | <https://agently.cn/do
 ## Compatibility
 
 The default public catalog is the current Agently-Skills generation `v2`, aligned
-with the Agently 4.1.2.5 foundation line and the compact 6-skill structure.
-Unpublished development guidance also tracks the Agently 4.1.3 target for
-Agent auto-orchestration and unified execution/result consumption.
+with the Agently 4.1.3 runtime line and the compact 6-skill structure.
 
 Machine-readable compatibility support lives in `compatibility/support.json`.
 For unpublished cross-repo work, match the active Agently development
@@ -53,17 +51,35 @@ inside the Agently runtime:
 - `Agently-Skills` — guidance bundles for coding agents such as Codex and Claude Code
 - Agently `Skills Executor` — framework runtime capability for apps and agents to expose declarative skill cards, produce `SkillExecutionPlan` objects, and execute selected skill behavior loops through Agent APIs, Actions, and managed execution environments
 
-In the Agently 4.1.2.5 foundation, the runtime facade is
+In the Agently 4.1.3 runtime line, the runtime facade is
 `Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
 plugin implementation. No `Agently.skills` compatibility alias was shipped, so
 guidance should keep `Agently.skills_executor` as the global facade.
-Use `install_skills(...)` for one Agent Skills package,
-`install_skills_pack(...)` for repositories that contain multiple Skills, and
+App code should declare installed ids or remote source selectors on
+`agent.use_skills(...)` and let the Skills Executor lazily
+discover, install, and mount selected capabilities. Use
+`install_skills_pack(...)` for prewarming, offline mirrors, deterministic CI
+fixtures, and explicit registry maintenance. Use `install_skills(...)` for one
+local Skill directory during authoring and smoke tests, and
 `agent.run_skills_task(...)` when the app must explicitly execute a Skill
-behavior loop. The default runtime strategy remains `single_shot`, while
-`execution: staged`, `allowed-tools`, and effort presets can route selected
-Skills through TriggerFlow-backed staged/react execution that delegates action
-work to ActionFlow/ActionRuntime.
+behavior loop. Remote install metadata records source URL, ref, resolved commit,
+subpath, trust level, and checksums; bundled scripts are resources and are not
+executed by installation. The default runtime strategy remains `single_shot`;
+`effort="normal"` runs the full preflight -> research -> plan -> execute ->
+verify -> reflect -> finalize runtime chain, and `effort="max"` increases retry
+budget for that chain. `execution: staged`, `allowed-tools`, and effort presets
+can route selected Skills through TriggerFlow-backed staged/react execution that
+delegates action work to ActionFlow/ActionRuntime. When the built-in profiles
+are not enough, use `Agently.skills_executor.register_effort_strategy(name,
+handler)` so an `effort=` value can route to an application-provided strategy
+that still composes model requests, ActionRuntime/MCP, ExecutionEnvironment,
+TriggerFlow, or Dynamic Task through the Agent context. Strategy handlers follow
+the `SkillsEffortStrategyHandler` protocol (`context`, `task`, `plan`,
+`output_format`, `effort`, `effort_config` keyword arguments); builtins
+`single_shot`, `runtime_chain`, `staged`, and `react` are exposed through the
+same strategy table and may be inspected with `list_effort_strategies()`. Their
+reference implementations live under the Agently builtin Skills Executor
+`modules/effort_strategies/` package.
 
 The 4.1.2.x fulfillment line changes the recommended chain-style mental model:
 `agent.use_skills(...).input(...).start()` is route-candidate registration for
@@ -79,6 +95,15 @@ Framework-side auto-orchestration should be described as an `AgentOrchestrator`
 plugin protocol boundary: core owns the public Agent entrypoint, while the
 active orchestrator plugin owns route planning, execution, and process stream
 bridging.
+
+For multi-model applications, recommend `agent.activate_model("ollama-qwen2.5")`
+to switch the default model key for subsequent Agent-owned requests, and
+`agent.create_request(model_key="deepseek-v4")` for one-off overrides. Model
+aliases should be concrete and switchable, then resolved through
+`model_pool -> key_pool_strategy -> key_pool`. API keys are selected at request
+time by the configured strategy (`fixed`, `random`, `round_robin`,
+`least_used`); Agently 4.1.3 does not automatically retry another key after
+provider auth, quota, or billing failures.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
@@ -348,3 +373,14 @@ Use this package when an Agently app needs local runtime observation,
 evaluations, logs, or playground support during development and debugging. The
 skills package treats this as optional observability tooling, not as a required
 source-repo dependency.
+
+Recommended observation wiring binds at bridge creation time and selects scope
+with `watch(...)`:
+
+```python
+from agently import Agently
+from agently_devtools import ObservationBridge
+
+bridge = ObservationBridge(Agently, app_id="your_app_id")
+bridge.watch(agent)
+```
