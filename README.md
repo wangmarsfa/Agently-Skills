@@ -57,13 +57,31 @@ In the Agently 4.1.2.5 foundation, the runtime facade is
 `Agently.skills_executor` with a core facade plus builtin `SkillsExecutor`
 plugin implementation. No `Agently.skills` compatibility alias was shipped, so
 guidance should keep `Agently.skills_executor` as the global facade.
-Use `install_skills(...)` for one Agent Skills package,
-`install_skills_pack(...)` for repositories that contain multiple Skills, and
+For the 4.1.3 development line, app code should declare installed ids or remote
+source selectors on `agent.use_skills(...)` and let the Skills Executor lazily
+discover, install, and mount selected capabilities. Use
+`install_skills_pack(...)` for prewarming, offline mirrors, deterministic CI
+fixtures, and explicit registry maintenance. Use `install_skills(...)` for one
+local Skill directory during authoring and smoke tests, and
 `agent.run_skills_task(...)` when the app must explicitly execute a Skill
-behavior loop. The default runtime strategy remains `single_shot`, while
-`execution: staged`, `allowed-tools`, and effort presets can route selected
-Skills through TriggerFlow-backed staged/react execution that delegates action
-work to ActionFlow/ActionRuntime.
+behavior loop. Remote install metadata records source URL, ref, resolved commit,
+subpath, trust level, and checksums; bundled scripts are resources and are not
+executed by installation. The default runtime strategy remains `single_shot`;
+`effort="normal"` runs the full preflight -> research -> plan -> execute ->
+verify -> reflect -> finalize runtime chain, and `effort="max"` increases retry
+budget for that chain. `execution: staged`, `allowed-tools`, and effort presets
+can route selected Skills through TriggerFlow-backed staged/react execution that
+delegates action work to ActionFlow/ActionRuntime. When the built-in profiles
+are not enough, use `Agently.skills_executor.register_effort_strategy(name,
+handler)` so an `effort=` value can route to an application-provided strategy
+that still composes model requests, ActionRuntime/MCP, ExecutionEnvironment,
+TriggerFlow, or Dynamic Task through the Agent context. Strategy handlers follow
+the `SkillsEffortStrategyHandler` protocol (`context`, `task`, `plan`,
+`output_format`, `effort`, `effort_config` keyword arguments); builtins
+`single_shot`, `runtime_chain`, `staged`, and `react` are exposed through the
+same strategy table and may be inspected with `list_effort_strategies()`. Their
+reference implementations live under the Agently builtin Skills Executor
+`modules/effort_strategies/` package.
 
 The 4.1.2.x fulfillment line changes the recommended chain-style mental model:
 `agent.use_skills(...).input(...).start()` is route-candidate registration for

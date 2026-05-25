@@ -52,12 +52,26 @@ Agently 4.1.2.5 基础能力线中的运行时 facade 是 `Agently.skills_execut
 底层是 core facade 加 builtin `SkillsExecutor` plugin 实现。框架没有发布
 `Agently.skills` 兼容别名，因此 guidance 应继续把 `Agently.skills_executor`
 作为全局 facade。
-单个 Agent Skills package 使用 `install_skills(...)`，包含多个 Skills 的仓库
-使用 `install_skills_pack(...)`；当应用必须显式执行 Skill behavior loop 时，
-使用 `agent.run_skills_task(...)`。默认 runtime strategy 仍是
-`single_shot`；`execution: staged`、`allowed-tools` 和 effort presets 可以把
-选中的 Skills 路由到 TriggerFlow 支撑的 staged/react 执行，并把 action 工作委托给
-ActionFlow/ActionRuntime。
+在 4.1.3 development line，应用代码应在 `agent.use_skills(...)` 上声明已安装
+id 或远程 source selector，由 Skills Executor 按需轻量发现、安装并挂接选中的
+能力。`install_skills_pack(...)` 保留给预热、离线镜像、确定性 CI fixture 和显式
+registry 维护。`install_skills(...)` 用于单个本地 Skill 目录的作者开发和 smoke
+test；当应用必须显式执行 Skill behavior loop 时，使用
+`agent.run_skills_task(...)`。远程安装元数据会记录 source URL、ref、解析后的
+commit、subpath、trust level 和 checksums；包内 scripts 是资源，安装时不会执行。默认
+runtime strategy 仍是 `single_shot`；`effort="normal"` 固定走 preflight ->
+research -> plan -> execute -> verify -> reflect -> finalize runtime chain，
+`effort="max"` 提高该链路的 retry 预算。`execution: staged`、`allowed-tools`
+和 effort presets 可以把选中的 Skills 路由到 TriggerFlow 支撑的 staged/react
+执行，并把 action 工作委托给 ActionFlow/ActionRuntime。当内置 profile 不够用时，
+使用 `Agently.skills_executor.register_effort_strategy(name, handler)`，让某个
+`effort=` 值路由到应用自定义策略；该策略仍应通过 Agent context 组合 model
+request、ActionRuntime/MCP、ExecutionEnvironment、TriggerFlow 或 Dynamic Task。
+strategy handler 遵循 `SkillsEffortStrategyHandler` protocol（`context`、`task`、
+`plan`、`output_format`、`effort`、`effort_config` keyword arguments）；内置
+`single_shot`、`runtime_chain`、`staged` 和 `react` 也暴露在同一张 strategy 表里，
+可通过 `list_effort_strategies()` 检查。它们的参考实现位于 Agently builtin
+Skills Executor 的 `modules/effort_strategies/` 包。
 
 4.1.2.x fulfillment 线会调整链式使用的默认心智：
 `agent.use_skills(...).input(...).start()` 是默认 Agent 自动编排的 route
