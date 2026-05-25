@@ -289,3 +289,13 @@ agently-devtools init my_project
 当 Agently 应用在开发、调试阶段需要本地 runtime observation、评测、日志或
 playground 时，应把它当作可选扩展能力接入。Skills 包把它视为可选
 observability tooling，而不是源码仓库依赖。
+
+推荐 observation 接入在创建 bridge 时绑定 Agently，再用 `watch(...)` 选择监听范围：
+
+```python
+from agently import Agently
+from agently_devtools import ObservationBridge
+
+bridge = ObservationBridge(Agently, app_id="your_app_id")
+bridge.watch(agent)
+```

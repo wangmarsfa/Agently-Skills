@@ -348,3 +348,14 @@ Use this package when an Agently app needs local runtime observation,
 evaluations, logs, or playground support during development and debugging. The
 skills package treats this as optional observability tooling, not as a required
 source-repo dependency.
+
+Recommended observation wiring binds at bridge creation time and selects scope
+with `watch(...)`:
+
+```python
+from agently import Agently
+from agently_devtools import ObservationBridge
+
+bridge = ObservationBridge(Agently, app_id="your_app_id")
+bridge.watch(agent)
+```
