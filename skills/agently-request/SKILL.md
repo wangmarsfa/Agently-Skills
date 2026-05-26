@@ -49,6 +49,11 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - when testing model-owned content, use an Agently model judge with output
   control and assert structured boolean rule judgments; avoid keyword,
   substring, regex, or snapshot checks as the primary semantic correctness test
+- for scenario routing, intent detection, and business classification, use a
+  model request with an Agently output schema instead of tokenization, word
+  segmentation, keyword hits, or substring rules. Choose smaller or local models
+  for simple decisions, and larger models for many labels, dense rules,
+  ambiguity, or complex returned structures.
 - use `get_response()` when the same model result must be read multiple ways
 - keep Session memory separate from TriggerFlow execution state
 - keep retrieval explicit when its results feed a later request or workflow step

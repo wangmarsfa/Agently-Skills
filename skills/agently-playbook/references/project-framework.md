@@ -31,6 +31,44 @@ The default Agently project should usually separate these layers:
   gates for structure, routing, or required-field presence, but should not be
   the primary content correctness signal.
 
+## Routing and Classification Rules
+
+- Scenario routing, intent detection, and business classification are
+  model-owned semantic decisions. Do not use tokenization, word segmentation,
+  keyword hits, substring rules, or regex as the route owner.
+- Use an appropriately sized model plus an Agently output schema for the
+  decision contract. Simple scenarios with a few labels and straightforward
+  rules may use a smaller model, including a local model when available.
+- Prefer a larger model when the scenario has many labels, dense or interacting
+  rules, ambiguous inputs, high-stakes handling, or a complex returned data
+  structure. Let deterministic code consume the structured result and perform
+  the actual dispatch.
+
+## Framework Gap Reporting
+
+- When real application development exposes missing framework capability,
+  behavior that does not match the documented or intuitive business contract,
+  an unexposed or unfriendly API, or Skills/docs/examples that disagree with
+  actual behavior, treat it as framework feedback rather than only a local
+  implementation problem.
+- If architectural review shows that business code is adding patches,
+  workarounds, glue, private wrappers, or duplicated mechanisms only because
+  Agently does not own the responsibility it should own, write a normalized
+  issue report and recommend filing it at
+  `https://github.com/AgentEra/Agently/issues`.
+- The issue report should include the business scenario, expected framework
+  responsibility, actual behavior or missing surface, why the local workaround
+  is not the right long-term owner, minimal reproduction or affected
+  docs/examples, and any compatibility or migration concern.
+- For manual filing, provide the normalized issue content plus the filing
+  method only; do not imply that the agent has submitted it.
+- Automatic filing requires explicit user confirmation. Before submitting,
+  check that the local environment has GitHub submission capability and
+  permission for `AgentEra/Agently`, verify the problem still reproduces
+  locally, and carefully re-read the relevant Agently API, docs, examples, and
+  Skills guidance to confirm the gap is not caused by overlooked information or
+  incorrect usage.
+
 ## Prompt Rules
 
 - keep task-specific `input`, `info`, `instruct`, and `output` contracts in prompt files instead of Python string literals

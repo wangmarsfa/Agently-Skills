@@ -18,6 +18,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 3. Choose the narrowest native Agently capability path.
 4. Name the concrete operations or primitives that should be used.
 5. Name the validation rule that proves the design stayed native-first.
+6. If native framework capability is missing, broken, unexpectedly awkward, or
+   forces business code to add patches or glue that should belong to Agently,
+   generate a clear issue report and recommend filing it at
+   `https://github.com/AgentEra/Agently/issues`.
+7. For manual issue filing, only provide the issue content and filing method to
+   the user. Ask before filing automatically; if the user wants automatic
+   filing, first verify local submit capability/permission, reproduce that the
+   problem still exists locally, and carefully re-check Agently usage so the
+   report is not caused by missed documentation or incorrect API use.
 
 ## Native-First Rules
 
@@ -33,9 +42,26 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   numeric scores. If later workflow logic needs thresholds or aggregate metrics,
   map those levels to deterministic numeric values in code after the model
   response.
+- for scenario routing, intent detection, or business classification in AI apps,
+  use an appropriately sized model request with an Agently output schema.
+  Smaller models, including local models when available, are acceptable for
+  simple routes with few labels and rules. Use a larger model when labels,
+  decision conditions, rule interactions, or the returned data structure are
+  complex.
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.
+- when application development reveals a framework gap, first identify whether
+  the missing responsibility belongs to Agently's public API, runtime behavior,
+  documentation, Skills guidance, examples, or architecture boundary. Produce a
+  concise issue report with scenario, expected behavior, actual behavior,
+  current workaround, architectural responsibility, and minimal reproduction or
+  affected docs/examples; recommend filing it in the Agently repository.
+- treat automatic issue submission as an explicit user-approved action. Before
+  submitting, confirm the local environment has the needed GitHub capability and
+  permission, reproduce the issue locally, and audit the relevant Agently docs,
+  examples, Skills guidance, and API usage to rule out a reading omission or
+  improper framework use.
 
 ## Capability Routing
 
@@ -52,9 +78,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - do not use keyword, substring, regex, or text snapshot checks as the primary
   correctness signal for model-owned semantic content; keep them only as smoke
   gates for structure, routing, or required-field presence
+- do not use tokenization, word segmentation, keyword hits, or substring rules
+  as the route owner for AI-app scenario routing, intent detection, or business
+  classification
 - do not let sync-first sample code dictate the service architecture when the target is clearly async-capable
 - do not split project initialization into a fake standalone framework surface before the owner layers are chosen
 - do not treat multi-agent, judge, or review flows as separate framework surfaces before checking native Agently capabilities
+- do not normalize long-lived business patches, workarounds, compatibility glue,
+  or private wrappers when the underlying need is a missing, broken,
+  misleading, undocumented, or unfriendly Agently framework capability
 
 ## Read Next
 
