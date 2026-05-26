@@ -26,7 +26,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
    the user. Ask before filing automatically; if the user wants automatic
    filing, first verify local submit capability/permission, reproduce that the
    problem still exists locally, and carefully re-check Agently usage so the
-   report is not caused by missed documentation or incorrect API use.
+   report is not caused by missed documentation or incorrect API use. Before
+   either manual or automatic filing, redact local absolute paths, usernames,
+   account names, tokens, private repo/workspace names, internal project names,
+   raw logs containing private prompts, and any customer or project-private data.
+   Use placeholders for local context and run a privacy scan on the final issue
+   body.
 
 ## Native-First Rules
 
@@ -56,12 +61,21 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   documentation, Skills guidance, examples, or architecture boundary. Produce a
   concise issue report with scenario, expected behavior, actual behavior,
   current workaround, architectural responsibility, and minimal reproduction or
-  affected docs/examples; recommend filing it in the Agently repository.
+  affected docs/examples; recommend filing it in the Agently repository. The
+  scenario must be clear enough to explain what kind of model-application
+  development problem was being solved. If business details are confidential,
+  omit or anonymize them, but still describe the application category, workflow
+  shape, decision point, and framework responsibility needed for maintainers to
+  understand the issue.
 - treat automatic issue submission as an explicit user-approved action. Before
   submitting, confirm the local environment has the needed GitHub capability and
   permission, reproduce the issue locally, and audit the relevant Agently docs,
   examples, Skills guidance, and API usage to rule out a reading omission or
-  improper framework use.
+  improper framework use. Submit only a sanitized issue body: no local absolute
+  paths, usernames, account names, tokens, private repository or workspace names,
+  internal project names, raw private logs, or customer/project-private prompts.
+  Prefer placeholders such as `<workspace>`, `<repo>`, `<task-file>`, and
+  `outputs/debug/<turn-id>.jsonl`.
 
 ## Capability Routing
 

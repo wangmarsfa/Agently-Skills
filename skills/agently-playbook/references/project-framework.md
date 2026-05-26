@@ -56,18 +56,31 @@ The default Agently project should usually separate these layers:
   Agently does not own the responsibility it should own, write a normalized
   issue report and recommend filing it at
   `https://github.com/AgentEra/Agently/issues`.
-- The issue report should include the business scenario, expected framework
-  responsibility, actual behavior or missing surface, why the local workaround
-  is not the right long-term owner, minimal reproduction or affected
-  docs/examples, and any compatibility or migration concern.
+- The issue report should make the encountered scenario concrete: explain what
+  kind of model-application development problem was being solved, where in the
+  workflow the framework gap appeared, and why that responsibility should belong
+  to Agently. If the business context is confidential, omit or anonymize
+  sensitive details, but still describe the application category, workflow
+  shape, decision point, expected framework responsibility, actual behavior or
+  missing surface, why the local workaround is not the right long-term owner,
+  minimal reproduction or affected docs/examples, and any compatibility or
+  migration concern.
 - For manual filing, provide the normalized issue content plus the filing
   method only; do not imply that the agent has submitted it.
+- Before manual or automatic filing, sanitize the issue body. Remove local
+  absolute paths, usernames, account names, access tokens, private repository or
+  workspace names, internal project names, raw logs containing private prompts,
+  and any customer or project-private data. Use placeholders such as
+  `<workspace>`, `<repo>`, `<task-file>`, and `outputs/debug/<turn-id>.jsonl`
+  while keeping enough technical context for maintainers to reproduce the
+  framework behavior.
 - Automatic filing requires explicit user confirmation. Before submitting,
   check that the local environment has GitHub submission capability and
   permission for `AgentEra/Agently`, verify the problem still reproduces
   locally, and carefully re-read the relevant Agently API, docs, examples, and
   Skills guidance to confirm the gap is not caused by overlooked information or
-  incorrect usage.
+  incorrect usage. Run a privacy scan on the final issue body before creating
+  the remote issue.
 
 ## Prompt Rules
 

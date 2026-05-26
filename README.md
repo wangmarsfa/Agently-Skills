@@ -220,9 +220,18 @@ converge on these defaults:
   Agently should own but business code must patch with workarounds or glue,
   produce a concise issue report and recommend filing it at
   `https://github.com/AgentEra/Agently/issues`. For manual filing, give the
-  user the issue content and filing method. Ask before automatic filing; then
-  verify GitHub permission/capability, reproduce the issue locally, and re-check
-  Agently docs, examples, Skills guidance, and API usage before submitting.
+  user the issue content and filing method. The issue must explain the concrete
+  scenario; if business details are confidential, anonymize them but still state
+  what kind of model-app development problem, workflow, and framework
+  responsibility are involved. Before any manual or automatic filing, redact
+  local machine paths, usernames, account names, tokens, private repository or
+  workspace names, internal project names, raw logs that contain private prompt
+  text, and any other customer or project-private data. Use placeholders such as
+  `<workspace>`, `<repo>`, `<task-file>`, and `outputs/debug/<turn-id>.jsonl`.
+  Ask before automatic filing; then verify GitHub permission/capability,
+  reproduce the issue locally, re-check Agently docs, examples, Skills guidance,
+  and API usage, and run a privacy scan on the final issue body before
+  submitting.
 - actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool
   aliases remain compatibility surfaces
 - TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close

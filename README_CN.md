@@ -171,9 +171,15 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Agently 承担但业务代码只能用 workaround、补丁、胶水或私有 wrapper 弥补，
   应生成简洁规范的 issue 说明，并建议到
   `https://github.com/AgentEra/Agently/issues` 提报。人工提交时，只把 issue
-  内容和提交方式提供给使用者；自动提交前必须先询问用户，并检查本地是否具备
-  GitHub 提交权限和能力、本地验证问题仍存在、复核 Agently 文档/examples/Skills
-  指导和 API 用法，确认不是遗漏信息或不当使用造成的问题。
+  内容和提交方式提供给使用者；issue 必须讲清楚遭遇问题时的具体场景。涉密时
+  可以脱敏或不展开业务细节，但仍要说明尝试解决的是哪一类模型应用开发问题、
+  workflow 形态和期望由框架承担的责任。人工或自动提报前必须先脱敏本机绝对
+  路径、用户名、账号名、token、私有仓库或工作区名、内部项目名、包含私有
+  prompt 的原始日志，以及任何客户或项目隐私信息；使用 `<workspace>`、`<repo>`、
+  `<task-file>`、`outputs/debug/<turn-id>.jsonl` 这类占位符。自动提交前必须先询问
+  用户，并检查本地是否具备 GitHub 提交权限和能力、本地验证问题仍存在、复核
+  Agently 文档/examples/Skills 指导和 API 用法，确认不是遗漏信息或不当使用造成
+  的问题；最终提交正文还必须做一次隐私扫描。
 - Actions：优先 `@agent.action_func` 加 `agent.use_actions(...)`；tool 别名
   保留为兼容入口
 - TriggerFlow lifecycle：优先 `close()` / `async_close()` 和 close snapshot；
