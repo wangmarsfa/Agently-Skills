@@ -208,6 +208,30 @@ converge on these defaults:
   concise reason before final boolean fields; assert those booleans. Avoid
   keyword, substring, regex, and text snapshot checks as the primary correctness
   signal for model-owned semantic content.
+- scenario routing: do not use tokenization, word segmentation, keyword hits,
+  substring rules, or regex as the owner for AI-app scenario routing, intent
+  detection, or business classification. Use an appropriately sized model with
+  an Agently output schema: smaller or local models are fine for simple
+  decisions, while many labels, interacting rules, ambiguity, high risk, or
+  complex returned structures call for a larger model.
+- framework gaps: when application work shows missing framework capability,
+  behavior that conflicts with docs, examples, Skills guidance, or business
+  intuition, an API that is unavailable or unfriendly, or a responsibility that
+  Agently should own but business code must patch with workarounds or glue,
+  produce a concise issue report and recommend filing it at
+  `https://github.com/AgentEra/Agently/issues`. For manual filing, give the
+  user the issue content and filing method. The issue must explain the concrete
+  scenario; if business details are confidential, anonymize them but still state
+  what kind of model-app development problem, workflow, and framework
+  responsibility are involved. Before any manual or automatic filing, redact
+  local machine paths, usernames, account names, tokens, private repository or
+  workspace names, internal project names, raw logs that contain private prompt
+  text, and any other customer or project-private data. Use placeholders such as
+  `<workspace>`, `<repo>`, `<task-file>`, and `outputs/debug/<turn-id>.jsonl`.
+  Ask before automatic filing; then verify GitHub permission/capability,
+  reproduce the issue locally, re-check Agently docs, examples, Skills guidance,
+  and API usage, and run a privacy scan on the final issue body before
+  submitting.
 - actions: prefer `@agent.action_func` plus `agent.use_actions(...)`; tool
   aliases remain compatibility surfaces
 - TriggerFlow lifecycle: prefer `close()` / `async_close()` and the close

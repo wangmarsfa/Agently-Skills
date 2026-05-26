@@ -162,6 +162,24 @@ Action Runtime 之外自建平行的审批/恢复系统。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
   关键字、substring、regex 或文本 snapshot 作为模型语义内容正确性的主要信号。
+- 场景路由：不要让分词、关键词命中、子串规则或 regex 成为 AI 应用场景路由、
+  意图判定或业务分类的 owner。使用合适参数规模的模型配合 Agently output
+  schema：简单判定可以用较小模型，条件允许时也可以用本地模型；标签多、规则
+  交织、歧义高、风险高或返回结构复杂时，应使用更大参数的模型。
+- 框架缺口：应用开发中如果发现框架能力缺失、行为与文档/examples/Skills 指导或
+  业务直觉不符、API 未暴露或使用不友好，或架构反思后认为某项责任应由
+  Agently 承担但业务代码只能用 workaround、补丁、胶水或私有 wrapper 弥补，
+  应生成简洁规范的 issue 说明，并建议到
+  `https://github.com/AgentEra/Agently/issues` 提报。人工提交时，只把 issue
+  内容和提交方式提供给使用者；issue 必须讲清楚遭遇问题时的具体场景。涉密时
+  可以脱敏或不展开业务细节，但仍要说明尝试解决的是哪一类模型应用开发问题、
+  workflow 形态和期望由框架承担的责任。人工或自动提报前必须先脱敏本机绝对
+  路径、用户名、账号名、token、私有仓库或工作区名、内部项目名、包含私有
+  prompt 的原始日志，以及任何客户或项目隐私信息；使用 `<workspace>`、`<repo>`、
+  `<task-file>`、`outputs/debug/<turn-id>.jsonl` 这类占位符。自动提交前必须先询问
+  用户，并检查本地是否具备 GitHub 提交权限和能力、本地验证问题仍存在、复核
+  Agently 文档/examples/Skills 指导和 API 用法，确认不是遗漏信息或不当使用造成
+  的问题；最终提交正文还必须做一次隐私扫描。
 - Actions：优先 `@agent.action_func` 加 `agent.use_actions(...)`；tool 别名
   保留为兼容入口
 - TriggerFlow lifecycle：优先 `close()` / `async_close()` 和 close snapshot；

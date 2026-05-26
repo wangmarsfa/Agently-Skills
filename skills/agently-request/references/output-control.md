@@ -75,6 +75,16 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   progress
 - prefer `.validate(...)` or `validate_handler=` when the field exists but the value still needs business validation
 - keep output schema explicit when downstream systems, workflow branches, or later model steps consume the result
+- use output schemas for scenario routing, intent detection, and business
+  classification. The model should return structured fields such as category,
+  confidence label, evidence, rule checks, and dispatch hints; deterministic
+  code should consume those fields for the actual route. Do not make
+  tokenization, word segmentation, keyword hits, substring rules, or regex the
+  route owner.
+- choose model size by decision complexity: smaller models, including local
+  models when available, are reasonable for short label sets and straightforward
+  rules; use a larger model when labels are numerous, conditions interact,
+  ambiguity is common, risk is high, or the schema has nested/complex fields.
 - order dependent fields before the final decision or user-facing answer field:
   put evidence, assumptions, clarifications, source notes, calculation plans,
   brief rationale, rule checks, and intermediate structured facts first, then
