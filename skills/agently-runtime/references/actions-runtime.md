@@ -8,7 +8,16 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - keep extension choice explicit: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
 - treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
-- use `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` for common Python, shell, workspace, Node.js, and SQLite access
+- use `agent.use_workspace(...)` for durable multi-turn task records,
+  artifacts, search, links, and checkpoints
+- use `agent.enable_python(...)`, `agent.enable_shell(...)`,
+  `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and
+  `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,
+  Node.js, and SQLite access
+- when both are configured, filesystem-like helpers such as
+  `agent.enable_workspace(...)`, `agent.enable_shell(...)`, and
+  `agent.enable_nodejs(...)` inherit `agent.workspace.content_root` unless an
+  explicit `root=` or `cwd=` is passed
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
@@ -17,7 +26,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   default, while explicit tags narrow the list
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
-- treat `model_digest` plus `artifact_refs` as the normal loop memory for instruction-heavy Actions; full raw payloads should be recalled explicitly with `agent.action.read_action_artifact(...)`
+- treat `model_digest`, `artifact_refs`, and Workspace record refs as the normal
+  loop memory for instruction-heavy Actions; full raw payloads should be read
+  explicitly from the Action artifact store or Workspace when needed
 - keep the permission profile explicit: search-only, local-files-only, network-read, install-capable shell, or trusted broad executor
 - use Python sandbox for pure computation or small data shaping; do not use it for imports, filesystem mutation, network access, or dependency installation
 - use Bash sandbox or a custom executor when the task needs shell access, package install, or broader command control

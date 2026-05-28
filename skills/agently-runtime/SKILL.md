@@ -24,6 +24,10 @@ here for Actions, Execution Environment, service, or DevTools details.
 - prefer `@agent.action_func` and `agent.use_actions(...)`; `tool_func`, `use_tool`, `use_tools`, and `agently.builtins.tools` are compatibility surfaces
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
 - do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
+- for durable multi-turn task records, prefer `agent.use_workspace(...)`; for
+  model-callable local file actions, use `agent.enable_workspace(...)`, which
+  inherits `agent.workspace.content_root` when a Foundation Workspace is
+  configured
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
