@@ -32,6 +32,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   model-assisted planners, vector retrieval, rerankers, and compressors should
   plug into RecallPlanner/Retriever/ContextBuilder instead of becoming WorkLoop
   or Action shortcuts
+- for explicit TriggerFlow loops, store structured observations and decisions
+  in Workspace, link decisions to evidence with `workspace.link(...)`, recover
+  state with `workspace.latest_checkpoint(...)`, and inspect backend wiring with
+  `workspace.capabilities()`
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release

@@ -13,6 +13,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - use `workspace.build_context(...)` to package those records for later model
   calls; ordinary application code should not hand-write recall filters when a
   ContextPack through RecallPlanner/Retriever/ContextBuilder fits
+- in explicit TriggerFlow loops, prefer Workspace refs plus
+  `workspace.get_data(...)`, `workspace.links(...)`,
+  `workspace.latest_checkpoint(...)`, and `workspace.checkpoint_history(...)`
+  over storing large or structured loop state directly in TriggerFlow state
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
   `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,

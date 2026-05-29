@@ -59,6 +59,9 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - use `workspace.build_context(...)` when ordinary multi-turn task work needs a
   ContextPack from prior Workspace records; use low-level `workspace.search(...)`
   for debugging or explicit filters
+- use `workspace.get_data(...)`, `workspace.links(...)`,
+  `workspace.latest_checkpoint(...)`, and `workspace.checkpoint_history(...)`
+  when building explicit loops that store structured state and record lineage
 - keep retrieval explicit when its results feed a later request or workflow step
 - default to async-first response consumption in services, streaming paths, and workflows
 

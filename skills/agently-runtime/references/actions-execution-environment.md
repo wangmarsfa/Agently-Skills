@@ -47,6 +47,10 @@ Audience split:
 - When a Foundation Workspace is configured, filesystem-like helpers inherit
   `agent.workspace.content_root` by default. Pass explicit `root=` / `cwd=`
   when an action must use an independent directory.
+- For explicit long-running or looping workflows, keep TriggerFlow state compact
+  and persist structured observations, decisions, links, and checkpoints in
+  Workspace. Recover them through `workspace.get_data(...)`,
+  `workspace.links(...)`, and checkpoint lookup APIs.
 - Action developers can use `register_action(..., execution_environments=[...])` when one action requires a managed dependency.
 - Plugin developers implement `ExecutionEnvironmentProvider` for environment kinds such as Bash, Python, Node.js, Docker, SQLite, vector store, browser, or remote runner.
 - Framework maintainers decide whether a feature belongs to core, provider, built-in capability, or Agent Component.

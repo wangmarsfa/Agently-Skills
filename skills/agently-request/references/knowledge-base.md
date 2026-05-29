@@ -11,6 +11,9 @@ capability surface.
   RecallPlanner, Retriever, and ContextBuilder plugins own the retrieval path
 - use `workspace.search(...)` for low-level debugging or explicit filters, not
   as the normal app-facing recall API
+- use `workspace.get_data(...)` for structured records/checkpoints and
+  `workspace.links(...)` for decision/evidence lineage when retrieval feeds a
+  later loop step
 - separate indexing, retrieval, and answer generation concerns
 - keep retrieval results explicit when they feed a later request
 
