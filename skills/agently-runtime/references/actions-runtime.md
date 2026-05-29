@@ -10,6 +10,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
 - use `agent.use_workspace(...)` for durable multi-turn task records,
   artifacts, search, links, and checkpoints
+- use `workspace.build_context(...)` to package those records for later model
+  calls; ordinary application code should not hand-write recall filters when a
+  ContextPack through RecallPlanner/Retriever/ContextBuilder fits
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
   `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,

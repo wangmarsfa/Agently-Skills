@@ -28,6 +28,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   model-callable local file actions, use `agent.enable_workspace(...)`, which
   inherits `agent.workspace.content_root` when a Foundation Workspace is
   configured
+- use `workspace.build_context(...)` for Workspace-backed Recall; advanced
+  model-assisted planners, vector retrieval, rerankers, and compressors should
+  plug into RecallPlanner/Retriever/ContextBuilder instead of becoming WorkLoop
+  or Action shortcuts
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
