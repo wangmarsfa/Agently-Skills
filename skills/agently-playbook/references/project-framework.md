@@ -17,6 +17,27 @@ The default Agently project should usually separate these layers:
 - `tests/` for settings smoke checks, prompt or response checks, and API or flow validation
 - `outputs/` and `logs/` for runtime artifacts
 
+## Framework Internal Module Rules
+
+When the project-shape refactor is inside Agently itself, `agently/core/` and
+`agently/builtins/` both support feature ownership through subdirectory
+packages. Choose the layout by architectural roles before writing code:
+
+- facade or manager surface;
+- default implementation or provider/backend;
+- registry, discovery, adapter, resolver, policy, or validation logic;
+- data contracts or plugin protocols.
+
+Use a subdirectory package when multiple roles are present or the feature is
+expected to grow. Keep public imports stable through package `__init__.py`
+files and top-level re-exports. Use a single file only for genuinely small,
+single-responsibility capabilities where splitting would be over-design.
+
+Landed examples include `core/Action`, `core/TriggerFlow`,
+`core/TaskDAGExecutor`, `core/Workspace`,
+`builtins/plugins/ExecutionEnvironmentProvider`, and
+`builtins/plugins/SkillsExecutor`.
+
 ## Model Output Test Rules
 
 - For model-owned semantic content, use an Agently model judge with output

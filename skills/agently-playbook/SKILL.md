@@ -38,6 +38,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - default to async-first guidance for service code, streaming, TriggerFlow, and any path that may overlap work or benefit from cancellation
 - treat sync APIs as wrappers for scripts, REPL use, or compatibility bridges unless the host truly requires sync-only integration
 - when the request is a project-shape refactor, separate settings, prompts, services, domain contracts, workflow, and tests before discussing low-level implementation details
+- when adding or refactoring Agently framework internals under `core/` or
+  `builtins/`, prefer a subdirectory package when the feature has multiple
+  roles such as facade, manager, backend/provider, registry, adapter, policy, or
+  validation. Use a single file only when the capability is genuinely small and
+  splitting would be over-design.
 - when a project must test model-generated semantic content, design the test as
   an Agently model-judge request with output control: explicit rules and context
   go in, per-rule evidence/reason and final boolean fields come out, and tests
