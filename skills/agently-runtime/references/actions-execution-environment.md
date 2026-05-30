@@ -41,12 +41,13 @@ Audience split:
   needs durable multi-turn task records, artifacts, search, links, and compact
   checkpoints. Use built-in Actions and Agent Components such as
   `agent.enable_python(...)`, `agent.enable_shell(...)`,
-  `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`,
+  `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`,
   `agent.enable_sqlite(...)`, and future `agent.enable_coding_workspace(...)`
   for model-callable execution capabilities.
 - When a Foundation Workspace is configured, filesystem-like helpers inherit
-  `agent.workspace.content_root` by default. Pass explicit `root=` / `cwd=`
-  when an action must use an independent directory.
+  `agent.workspace.files_root`, the editable file working tree, by default.
+  Pass explicit `root=` / `cwd=` when an action must use an independent
+  directory.
 - For explicit long-running or looping workflows, keep TriggerFlow state compact
   and persist structured observations, decisions, links, and checkpoints in
   Workspace. Recover them through `workspace.get_data(...)`,

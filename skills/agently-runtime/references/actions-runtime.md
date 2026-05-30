@@ -18,12 +18,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `workspace.latest_checkpoint(...)`, and `workspace.checkpoint_history(...)`
   over storing large or structured loop state directly in TriggerFlow state
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
-  `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and
+  `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,
   Node.js, and SQLite access
 - when both are configured, filesystem-like helpers such as
-  `agent.enable_workspace(...)`, `agent.enable_shell(...)`, and
-  `agent.enable_nodejs(...)` inherit `agent.workspace.content_root` unless an
+  `agent.enable_workspace_file_actions(...)`, `agent.enable_shell(...)`, and
+  `agent.enable_nodejs(...)` inherit `agent.workspace.files_root` unless an
   explicit `root=` or `cwd=` is passed
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`

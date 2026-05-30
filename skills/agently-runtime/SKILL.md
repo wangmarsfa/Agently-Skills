@@ -25,9 +25,9 @@ here for Actions, Execution Environment, service, or DevTools details.
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
 - do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
 - for durable multi-turn task records, prefer `agent.use_workspace(...)`; for
-  model-callable local file actions, use `agent.enable_workspace(...)`, which
-  inherits `agent.workspace.content_root` when a Foundation Workspace is
-  configured
+  model-callable local file actions, use `agent.enable_workspace_file_actions(...)`, which
+  exposes the current Workspace file working tree and inherits
+  `agent.workspace.files_root` when a Foundation Workspace is configured
 - use `workspace.build_context(...)` for Workspace-backed Recall; advanced
   model-assisted planners, vector retrieval, rerankers, and compressors should
   plug into RecallPlanner/Retriever/ContextBuilder instead of becoming WorkLoop
@@ -36,7 +36,7 @@ here for Actions, Execution Environment, service, or DevTools details.
   in Workspace, link decisions to evidence with `workspace.link(...)`, recover
   state with `workspace.latest_checkpoint(...)`, and inspect backend wiring with
   `workspace.capabilities()`
-- for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
+- for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
 - Action executors should declare or consume managed resources instead of secretly owning long-lived MCP clients, sandboxes, browsers, SQLite connections, or process runners
