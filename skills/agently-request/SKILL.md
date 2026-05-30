@@ -20,7 +20,7 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - stable fields, required keys, machine-readable output, `.output(...)`, `ensure_keys`, or validation -> `references/output-control.md`
 - one response consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
 - conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
-- embeddings, Chroma collections, retrieval, or KB-to-answer -> `references/knowledge-base.md`
+- embeddings, Chroma collections, Workspace recall, retrieval, or KB-to-answer -> `references/knowledge-base.md`
 
 ## Native-First Rules
 
@@ -56,6 +56,12 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   ambiguity, or complex returned structures.
 - use `get_response()` when the same model result must be read multiple ways
 - keep Session memory separate from TriggerFlow execution state
+- use `workspace.build_context(...)` when ordinary multi-turn task work needs a
+  ContextPack from prior Workspace records; use low-level `workspace.search(...)`
+  for debugging or explicit filters
+- use `workspace.get_data(...)`, `workspace.links(...)`,
+  `workspace.latest_checkpoint(...)`, and `workspace.checkpoint_history(...)`
+  when building explicit loops that store structured state and record lineage
 - keep retrieval explicit when its results feed a later request or workflow step
 - default to async-first response consumption in services, streaming paths, and workflows
 
