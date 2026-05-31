@@ -203,6 +203,17 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
   submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
   选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
+- AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
+  loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
+  task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把
+  observations 写入 Workspace，再构建 ContextPack。通过 `meta["route"]` 和
+  `meta["logs"]` 检查 selected route、model response ids、ActionRuntime
+  action logs 和 artifact refs；持久化业务证据时，优先使用这些框架记录，而不是让模型
+  复述 action stdout。
+- Agently runtime 调试：开发阶段可以挂 EventCenter observation hook，或临时调用
+  `.set_settings("debug", True)` / `.set_settings("debug", "detail")` 检查 route
+  selection、model request、ActionRuntime 和 Workspace 写入。定位问题后，要从示例和
+  生产代码中移除临时 debug hook/settings。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。

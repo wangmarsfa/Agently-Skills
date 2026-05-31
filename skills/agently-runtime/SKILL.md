@@ -126,6 +126,27 @@ here for Actions, Execution Environment, service, or DevTools details.
   streaming, and expose model field deltas only through stable structured paths
   such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
   token events
+- for bounded developer-owned loops, use
+  `agent.create_execution(mode="task_step", lineage=..., limits=...)`; the
+  default `mode="one_turn"` preserves ordinary one-turn Agent behavior, while
+  task-step mode adds lineage, diagnostics, stream correlation metadata, and
+  shared model-request budget counting across direct model routes, Dynamic Task
+  model tasks, and Skills model stages
+- keep AgentExecution memory explicit: write observations/checkpoints/artifacts
+  through the execution's bound Workspace helper, such as
+  `await execution.async_record_workspace(collection="observations", checkpoint=True)`,
+  then call `workspace.build_context(...)` for the next step; do not make
+  Workspace depend on AgentExecution-specific semantics
+- inspect AgentExecution runtime facts through `await execution.async_get_meta()`:
+  `meta["route"]` records the selected route/options, and `meta["logs"]`
+  exposes model response ids, ActionRuntime action logs, and artifact refs when
+  available; use those framework-owned records for Workspace persistence instead
+  of asking the model to copy raw action stdout into final text
+- for temporary development debugging, attach an EventCenter observation hook or
+  call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
+  inspect route selection, model requests, ActionRuntime, and Workspace writes;
+  remove debug hooks/settings from examples and production snippets after the
+  issue is diagnosed
 
 ## Anti-Patterns
 

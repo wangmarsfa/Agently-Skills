@@ -81,6 +81,10 @@ When Dynamic Task runs behind `agent.create_execution()`, the Agent execution
 stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
 the Agent stream must terminate and surface the original error to the consumer;
 do not add external timeout workarounds or swallow failing chunks in examples.
+For developer-owned loops, wrap the Agent execution as
+`create_execution(mode="task_step", lineage=..., limits=...)` so Dynamic Task
+model planning/tasks share the AgentExecution model-request budget and stream
+items carry execution lineage metadata.
 
 Recommended API boundaries:
 
