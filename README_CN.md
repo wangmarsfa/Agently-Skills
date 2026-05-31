@@ -210,6 +210,13 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `meta["logs"]` 检查 selected route、model response ids、ActionRuntime
   action logs 和 artifact refs；持久化业务证据时，优先使用这些框架记录，而不是让模型
   复述 action stdout。
+- runtime stall control：有界 AgentExecution step 优先使用
+  `limits={"max_seconds": ..., "max_no_progress_seconds": ...}`，并捕获
+  `RuntimeStageStallError`；检查 `meta["diagnostics"]["last_progress"]`、
+  `["timeouts"]` 和 `["stalls"]`。Provider 或最终响应卡住时，使用
+  `OpenAICompatible.stream_idle_timeout`、
+  `OpenAIResponsesCompatible.stream_idle_timeout` 和
+  `response.materialization_idle_timeout`，不要在应用外层加长期保留的轮询 wrapper。
 - Agently runtime 调试：开发阶段可以挂 EventCenter observation hook，或临时调用
   `.set_settings("debug", True)` / `.set_settings("debug", "detail")` 检查 route
   selection、model request、ActionRuntime 和 Workspace 写入。定位问题后，要从示例和

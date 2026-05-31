@@ -142,6 +142,16 @@ here for Actions, Execution Environment, service, or DevTools details.
   exposes model response ids, ActionRuntime action logs, and artifact refs when
   available; use those framework-owned records for Workspace persistence instead
   of asking the model to copy raw action stdout into final text
+- bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
+  "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
+  catch `RuntimeStageStallError` from `agently.core.AgentExecution` and inspect
+  `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`
+  instead of adding ad hoc polling around the whole app
+- for provider stream hangs, prefer framework settings such as
+  `OpenAICompatible.stream_idle_timeout`,
+  `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `response.materialization_idle_timeout`; use `None` for unlimited budgets and
+  avoid permanent debug-only timeout wrappers in examples
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
   inspect route selection, model requests, ActionRuntime, and Workspace writes;

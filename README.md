@@ -267,6 +267,13 @@ converge on these defaults:
   route, model response ids, ActionRuntime action logs, and artifact refs; use
   those framework-owned records instead of model-restated action stdout when
   persisting business evidence.
+- runtime stall control: for bounded AgentExecution steps, prefer
+  `limits={"max_seconds": ..., "max_no_progress_seconds": ...}` and catch
+  `RuntimeStageStallError`; inspect `meta["diagnostics"]["last_progress"]`,
+  `["timeouts"]`, and `["stalls"]`. For provider or final-response hangs, use
+  `OpenAICompatible.stream_idle_timeout`,
+  `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `response.materialization_idle_timeout` rather than app-level polling.
 - debugging Agently runtime behavior: during development, attach an EventCenter
   observation hook or temporarily call `.set_settings("debug", True)` /
   `.set_settings("debug", "detail")` to inspect route selection, model requests,
