@@ -259,6 +259,19 @@ converge on these defaults:
   Skills remain deterministic; ambiguous optional candidates use model-owned
   route choice. Prefer `agent.create_execution()` for route diagnostics,
   multiple result views, and process streaming.
+- AgentExecution step contract: use default `mode="one_turn"` for compatibility
+  and `mode="task_step"` with explicit `lineage=` / `limits=` for bounded
+  developer-owned loop steps. Task-step executions are one step, not the loop
+  owner; persist observations explicitly through Workspace before building the
+  next ContextPack. Inspect `meta["route"]` and `meta["logs"]` for selected
+  route, model response ids, ActionRuntime action logs, and artifact refs; use
+  those framework-owned records instead of model-restated action stdout when
+  persisting business evidence.
+- debugging Agently runtime behavior: during development, attach an EventCenter
+  observation hook or temporarily call `.set_settings("debug", True)` /
+  `.set_settings("debug", "detail")` to inspect route selection, model requests,
+  ActionRuntime, and Workspace writes. Remove temporary debug hooks/settings
+  from examples and production snippets after diagnosis.
 - AgentOrchestrator: keep auto-orchestration behind a plugin protocol boundary;
   do not place route-owned Skills or Dynamic Task execution logic directly in
   core or describe facade/mixin coupling as the extension contract.

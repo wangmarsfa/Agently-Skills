@@ -58,6 +58,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   simple routes with few labels and rules. Use a larger model when labels,
   decision conditions, rule interactions, or the returned data structure are
   complex.
+- when the host owns a developer loop and needs one bounded Agent step, choose
+  `agent.create_execution(mode="task_step", lineage=..., limits=...)` plus
+  explicit `execution.async_record_workspace(...)` observation/checkpoint writes
+  before building the next ContextPack; do not describe task-step mode as the
+  multi-turn loop owner or make Workspace depend on AgentExecution semantics
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.
