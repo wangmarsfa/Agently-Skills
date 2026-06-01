@@ -142,6 +142,27 @@ here for Actions, Execution Environment, service, or DevTools details.
   exposes model response ids, ActionRuntime action logs, and artifact refs when
   available; use those framework-owned records for Workspace persistence instead
   of asking the model to copy raw action stdout into final text
+- bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
+  "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
+  catch `RuntimeStageStallError` from `agently.core.AgentExecution` and inspect
+  `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`
+  instead of adding ad hoc polling around the whole app
+- for provider stream hangs, prefer framework settings such as
+  `OpenAICompatible.stream_idle_timeout`,
+  `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `response.materialization_idle_timeout`; use `None` for unlimited budgets and
+  avoid permanent debug-only timeout wrappers in examples; provider first-event
+  and stream-idle waits should surface as `RuntimeStageStallError` with
+  `stage="response_first_event"` or `stage="response_stream"`
+- when high-frequency RuntimeEvent deltas would overload downstream consumers,
+  keep producers raw and ask the expensive EventCenter outlet to summarize with
+  hook/hooker `delivery_policy={"mode": "summary", "dispatch": "await",
+  "emit_interval": ..., "max_items": ...}`; use `dispatch="background"` only
+  for best-effort outlets that call `EventCenter.async_flush(...)` or expose an
+  owning bridge flush/close point; EventCenter also has an idle flush safety net
+  for long-lived loops, but CLI/script shutdown still needs explicit flush for
+  background outlets; rely on AgentExecution liveness diagnostics rather than
+  public delta frequency for stall detection
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
   inspect route selection, model requests, ActionRuntime, and Workspace writes;
