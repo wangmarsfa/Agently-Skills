@@ -116,7 +116,14 @@ Landed examples include `core/Action`, `core/TriggerFlow`,
 - prefer `${ENV.xxx}` placeholders in settings files instead of committing secrets or environment-specific endpoints into Python
 - when settings live in a file, prefer `Agently.load_settings("yaml_file", path, auto_load_env=True)` so the same config stays deployable outside Python
 - when settings are created inline as a Python mapping, use `Agently.set_settings(...)`
+- when inline settings need self-explaining fields, use typed helpers from
+  `agently.types.settings`, but keep YAML/TOML/JSON config as dict data and
+  ensure every typed helper remains accepted anywhere the matching dict is
+  accepted
 - put provider-specific keys where the owning plugin actually reads them. For `OpenAICompatible`, prefer `plugins.ModelRequester.OpenAICompatible.*` instead of a root-level namespace
+- for scenario-level model switching, prefer
+  `model_pool -> model_profiles -> api_key_pools` over embedding provider
+  names and keys in business workflow code
 - if the application must fail fast on missing env values, load `.env` in the integration layer first, validate required names, and then still hand the raw placeholder-based settings to Agently
 - after loading settings, validate the effective keys that matter in production: provider activation, base URL, model, and auth presence
 
