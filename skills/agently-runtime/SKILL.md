@@ -154,12 +154,15 @@ here for Actions, Execution Environment, service, or DevTools details.
   avoid permanent debug-only timeout wrappers in examples; provider first-event
   and stream-idle waits should surface as `RuntimeStageStallError` with
   `stage="response_first_event"` or `stage="response_stream"`
-- when high-frequency public deltas would overload downstream consumers, pass
-  `output_policy={"delta_emit_interval": ..., "delta_max_chars": ...,
-  "delta_max_items": ...}` to `agent.create_execution(...)` or set
-  `runtime.output`; keep `delta_emit_interval=0` for raw-delta compatibility,
-  and rely on AgentExecution liveness diagnostics rather than public delta
-  frequency for stall detection
+- when high-frequency RuntimeEvent deltas would overload downstream consumers,
+  keep producers raw and ask the expensive EventCenter outlet to summarize with
+  hook/hooker `delivery_policy={"mode": "summary", "dispatch": "await",
+  "emit_interval": ..., "max_items": ...}`; use `dispatch="background"` only
+  for best-effort outlets that call `EventCenter.async_flush(...)` or expose an
+  owning bridge flush/close point; EventCenter also has an idle flush safety net
+  for long-lived loops, but CLI/script shutdown still needs explicit flush for
+  background outlets; rely on AgentExecution liveness diagnostics rather than
+  public delta frequency for stall detection
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
   inspect route selection, model requests, ActionRuntime, and Workspace writes;

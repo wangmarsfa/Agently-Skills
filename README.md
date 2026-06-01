@@ -275,11 +275,13 @@ converge on these defaults:
   `OpenAIResponsesCompatible.stream_idle_timeout`, and
   `response.materialization_idle_timeout` rather than app-level polling.
   Provider first-event and stream-idle stalls are typed runtime stalls, not
-  message-parsed `TimeoutError`s. For high-frequency public deltas, pass
-  `output_policy={"delta_emit_interval": ..., "delta_max_chars": ...,
-  "delta_max_items": ...}` to `agent.create_execution(...)` or set
-  `runtime.output`; keep `delta_emit_interval=0` when raw delta compatibility is
-  required.
+  message-parsed `TimeoutError`s. For high-frequency RuntimeEvent deltas, keep
+  producers raw and configure expensive EventCenter hooks/hookers with
+  `delivery_policy={"mode": "summary", "dispatch": "await", "emit_interval": ...,
+  "max_items": ...}`. Use `dispatch="background"` only for best-effort outlets
+  that have an explicit EventCenter or bridge flush/close point; EventCenter's
+  idle flush safety net helps long-lived loops but does not replace explicit
+  flush before CLI/script shutdown.
 - debugging Agently runtime behavior: during development, attach an EventCenter
   observation hook or temporarily call `.set_settings("debug", True)` /
   `.set_settings("debug", "detail")` to inspect route selection, model requests,
