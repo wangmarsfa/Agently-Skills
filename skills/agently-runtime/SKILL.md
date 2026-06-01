@@ -151,7 +151,15 @@ here for Actions, Execution Environment, service, or DevTools details.
   `OpenAICompatible.stream_idle_timeout`,
   `OpenAIResponsesCompatible.stream_idle_timeout`, and
   `response.materialization_idle_timeout`; use `None` for unlimited budgets and
-  avoid permanent debug-only timeout wrappers in examples
+  avoid permanent debug-only timeout wrappers in examples; provider first-event
+  and stream-idle waits should surface as `RuntimeStageStallError` with
+  `stage="response_first_event"` or `stage="response_stream"`
+- when high-frequency public deltas would overload downstream consumers, pass
+  `output_policy={"delta_emit_interval": ..., "delta_max_chars": ...,
+  "delta_max_items": ...}` to `agent.create_execution(...)` or set
+  `runtime.output`; keep `delta_emit_interval=0` for raw-delta compatibility,
+  and rely on AgentExecution liveness diagnostics rather than public delta
+  frequency for stall detection
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
   inspect route selection, model requests, ActionRuntime, and Workspace writes;
