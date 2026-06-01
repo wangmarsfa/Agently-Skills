@@ -300,6 +300,14 @@ Feature acceptance requires spec reconciliation: update each relevant spec to th
 final implemented design, move fully landed planned specs into `spec/implemented/`,
 and update `spec/README.md` in the same work item.
 
+Release or feature acceptance arguments must be coverage-first. Start by
+listing the target contract from the roadmap, spec, issue criteria,
+compatibility manifest, docs, and example rules; then map each requirement to
+evidence from real examples, deterministic tests, protocol tests, docs/spec,
+compatibility metadata, companion validation, or explicit deferral. Do not claim
+completion by pointing directly at existing examples or tests before checking
+their coverage against the target.
+
 When reporting API, recommended usage, examples, or compatibility changes,
 include concise sample code that shows the updated usage shape. Prefer current
 usage snippets or before/after snippets over abstract prose when that makes the

@@ -63,6 +63,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   explicit `execution.async_record_workspace(...)` observation/checkpoint writes
   before building the next ContextPack; do not describe task-step mode as the
   multi-turn loop owner or make Workspace depend on AgentExecution semantics
+- for feature or release acceptance, use coverage-first reasoning: start from
+  the target contract in roadmap/spec/issues/docs/compatibility/example rules,
+  map each requirement to evidence from examples, deterministic tests, protocol
+  tests, docs/spec, compatibility metadata, companion validation, or explicit
+  deferral, and only then conclude whether the feature is complete
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.

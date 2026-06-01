@@ -228,6 +228,11 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `.set_settings("debug", True)` / `.set_settings("debug", "detail")` 检查 route
   selection、model request、ActionRuntime 和 Workspace 写入。定位问题后，要从示例和
   生产代码中移除临时 debug hook/settings。
+- release 或功能验收论证必须 coverage-first：先从 roadmap、spec、issue criteria、
+  compatibility manifest、docs 和 example 规则列出目标合同，再把每一项要求映射到真实
+  example、确定性测试、protocol 测试、docs/spec、compatibility metadata、
+  companion validation 或明确延期。不能在没有检查证据覆盖目标合同的情况下，直接用已有
+  examples 或 tests 宣称完成。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。
