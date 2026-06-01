@@ -37,14 +37,17 @@ Use this skill for provider wiring and transport setup before request logic is d
   `{"key_id": "b"}` / `{"key_entry": context.keys[1]}`. Do not present
   `405` or `422` as universal credential failures; add them only when the
   specific provider uses those codes for key or quota problems.
-- for custom `ModelRequester` plugins, keep `generate_request_data`,
-  `request_model`, and `broadcast_response` compatible, and prefer adding
-  optional `build_request_handlers()` that returns Agently core
-  `AttemptHandlers` for request execution. Official runtime events such as
-  `model.requester.error` must be produced by core-owned coordinators such as
-  ModelResponse and AttemptRunner, not by plugin-level imports of core emitter
-  helpers. Plugin-owned EventCenter messages are private diagnostics only and
-  should not reuse official Agently event types.
+- for custom `ModelRequester` plugins, keep public `generate_request_data`,
+  `request_model`, and `broadcast_response` compatible. For non-trivial
+  providers, follow the built-in package shape: a thin `plugin.py` coordinator
+  plus private `modules/request_builder.py`, `credential.py`, `transport.py`,
+  `handlers.py`, and `response_adapter.py`. Prefer adding optional
+  `build_request_handlers()` that returns Agently core `AttemptHandlers` for
+  request execution. Official runtime events such as `model.requester.error`
+  must be produced by core-owned coordinators such as ModelResponse and
+  AttemptRunner, not by plugin-level imports of core emitter helpers.
+  Plugin-owned EventCenter messages are private diagnostics only and should not
+  reuse official Agently event types.
 
 ## Anti-Patterns
 
