@@ -50,6 +50,11 @@ Use this file as installation-time guidance after the skills are added into anot
   `compatibility/releases/<future-version>.json` only to mark the next planned
   version. Use `compatibility/in-development.json` for the next target until an
   actual release-prep change begins.
+- If new version-development work starts after the previous public version has
+  already been released, and either the current work version or intended task
+  branch is not explicitly specified, stop and ask the maintainer to specify
+  both before editing implementation, specs, docs, examples, compatibility
+  metadata, or companion guidance.
 - The main repository release commit must update `pyproject.toml`, `agently/compatibility.py`, `compatibility/index.json`, and the matching `compatibility/releases/<version>.json`; keep `compatibility/in-development.json` aligned until the release line moves on.
 - If the release recommends a new `agently-devtools` build, update the DevTools package version in `../Agently-Devtools/packages/python/pyproject.toml` during the same release-prep pass; changing only docs, tests, or compatibility text does not trigger the DevTools publish workflow.
 - Keep the Agently DevTools `recommended_version_specifier` in the current release manifest aligned with the version that will be published to PyPI.
