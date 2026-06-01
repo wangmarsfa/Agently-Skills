@@ -62,6 +62,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   single-shot path, `effort="normal"` runs the full preflight -> research ->
   plan -> execute -> verify -> reflect -> finalize runtime chain, and
   `effort="max"` increases retry budget for that chain
+- when Skills are reached through Agent auto-orchestration, pass route-owned
+  effort with `agent.create_execution(options=ExecutionOptions(routes={
+  "skills": SkillsRouteOptions(effort="normal")}))` or the equivalent dict;
+  this is an execution option, not a prompt slot
 - for application-specific Skills action strategies, use
   `Agently.skills_executor.register_effort_strategy(name, handler)` and invoke
   it with `effort=name`; the handler should compose model requests,
@@ -127,7 +131,7 @@ here for Actions, Execution Environment, service, or DevTools details.
   such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
   token events
 - for bounded developer-owned loops, use
-  `agent.create_execution(mode="task_step", lineage=..., limits=...)`; the
+  `agent.create_execution(mode="task_step", lineage=..., limits=..., options=...)`; the
   default `mode="one_turn"` preserves ordinary one-turn Agent behavior, while
   task-step mode adds lineage, diagnostics, stream correlation metadata, and
   shared model-request budget counting across direct model routes, Dynamic Task

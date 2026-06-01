@@ -7,6 +7,10 @@ Use this skill for provider wiring and transport setup before request logic is d
 - default to async-first guidance when the configured model will be used from services, streaming paths, or concurrent workflows
 - when settings live in files, prefer `Agently.load_settings("yaml_file", path, auto_load_env=True)`
 - use `Agently.set_settings(...)` or `agent.set_settings(...)` for inline mappings or host-owned overrides
+- when inline settings benefit from editor hints, use typed helper classes from
+  `agently.types.settings` (for example `OpenAICompatibleSettings`) and pass
+  the instance directly to `Agently.set_settings(...)`; treat the helper as a
+  constructor/validator over the same durable dict settings contract
 - prefer settings files with `${ENV.xxx}` placeholders for base URL, model, and auth
 - put provider settings under the namespace read by the owning plugin. For `OpenAICompatible`, prefer `plugins.ModelRequester.OpenAICompatible.*`; for `AnthropicCompatible`, prefer `plugins.ModelRequester.AnthropicCompatible.*`
 - call the matching settings loader with `auto_load_env=True` when the payload may rely on `.env`
@@ -17,10 +21,14 @@ Use this skill for provider wiring and transport setup before request logic is d
   `agent.activate_model("ollama-qwen2.5")` for subsequent Agent-owned requests
   and `agent.create_request(model_key="deepseek-v4")` for one-off overrides.
   Prefer concrete model aliases such as `ollama-qwen2.5` and `deepseek-v4`,
-  then map them through `model_pool`, `key_pool_strategy`, and `key_pool`.
+  then map them through the current layered shape: `model_pool` maps the alias
+  to a profile id, `model_profiles` stores provider/model/request settings, and
+  `api_key_pools` stores credential pools and rotation strategy. Keep legacy
+  `key_pool_strategy` and `key_pool` examples only when explaining existing
+  compatibility-line code.
 - explain API key pool behavior precisely: keys are selected at request time by
-  `key_pool_strategy` (`fixed`, `random`, `round_robin`, `least_used`).
-  Agently 4.1.3 does not automatically retry another key after provider auth,
+  `api_key_pools.<pool>.strategy` (`fixed`, `random`, `round_robin`,
+  `least_used`). Agently does not automatically retry another key after provider auth,
   quota, or billing failures; applications decide whether credential switching
   after a failed operation is safe.
 
