@@ -46,6 +46,14 @@ here for Actions, Execution Environment, service, or DevTools details.
   runtime behavior, typed data contracts, protocol/handler seams for
   replacement, and high-level packages outside `agently/core` when they compose
   several core systems
+- official Agently RuntimeEvent records are core-owned: built-in plugins should
+  return typed observations, errors, decisions, or route stream facts to core
+  rather than importing core RuntimeEvent emitters; plugin-owned custom Event
+  Center messages must use plugin-owned namespaces and are not guaranteed as
+  framework consumption contracts
+- keep runtime naming aligned with DevTools: `agent_turn` is a run lineage kind
+  for one Agent-facing turn, while `attempt_index` is model-request retry
+  metadata and must not be treated as an Agent turn counter
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
