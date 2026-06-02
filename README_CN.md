@@ -210,10 +210,29 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `meta["logs"]` 检查 selected route、model response ids、ActionRuntime
   action logs 和 artifact refs；持久化业务证据时，优先使用这些框架记录，而不是让模型
   复述 action stdout。
+- runtime stall control：有界 AgentExecution step 优先使用
+  `limits={"max_seconds": ..., "max_no_progress_seconds": ...}`，并捕获
+  `RuntimeStageStallError`；检查 `meta["diagnostics"]["last_progress"]`、
+  `["timeouts"]` 和 `["stalls"]`。Provider 或最终响应卡住时，使用
+  `OpenAICompatible.stream_idle_timeout`、
+  `OpenAIResponsesCompatible.stream_idle_timeout` 和
+  `response.materialization_idle_timeout`，不要在应用外层加长期保留的轮询 wrapper。
+  provider 首事件和 stream idle 卡住都应该是 typed runtime stall，而不是靠解析
+  `TimeoutError` 文本判断。高频 RuntimeEvent delta 保持生产端 raw，成本较高的
+  EventCenter hook/hooker 通过 `delivery_policy={"mode": "summary",
+  "dispatch": "await", "emit_interval": ..., "max_items": ...}` 请求摘要投递。
+  只有具备明确 EventCenter 或 bridge flush/close 回收点的 best-effort 出口才使用
+  `dispatch="background"`；EventCenter 的 idle flush 兜底适用于长生命周期 loop，
+  但不能替代 CLI/script 退出前的显式 flush。
 - Agently runtime 调试：开发阶段可以挂 EventCenter observation hook，或临时调用
   `.set_settings("debug", True)` / `.set_settings("debug", "detail")` 检查 route
   selection、model request、ActionRuntime 和 Workspace 写入。定位问题后，要从示例和
   生产代码中移除临时 debug hook/settings。
+- release 或功能验收论证必须 coverage-first：先从 roadmap、spec、issue criteria、
+  compatibility manifest、docs 和 example 规则列出目标合同，再把每一项要求映射到真实
+  example、确定性测试、protocol 测试、docs/spec、compatibility metadata、
+  companion validation 或明确延期。不能在没有检查证据覆盖目标合同的情况下，直接用已有
+  examples 或 tests 宣称完成。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。

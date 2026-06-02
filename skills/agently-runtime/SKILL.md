@@ -46,6 +46,14 @@ here for Actions, Execution Environment, service, or DevTools details.
   runtime behavior, typed data contracts, protocol/handler seams for
   replacement, and high-level packages outside `agently/core` when they compose
   several core systems
+- official Agently RuntimeEvent records are core-owned: built-in plugins should
+  return typed observations, errors, decisions, or route stream facts to core
+  rather than importing core RuntimeEvent emitters; plugin-owned custom Event
+  Center messages must use plugin-owned namespaces and are not guaranteed as
+  framework consumption contracts
+- keep runtime naming aligned with DevTools: `agent_turn` is a run lineage kind
+  for one Agent-facing turn, while `attempt_index` is model-request retry
+  metadata and must not be treated as an Agent turn counter
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
@@ -62,6 +70,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   single-shot path, `effort="normal"` runs the full preflight -> research ->
   plan -> execute -> verify -> reflect -> finalize runtime chain, and
   `effort="max"` increases retry budget for that chain
+- when Skills are reached through Agent auto-orchestration, pass route-owned
+  effort with `agent.create_execution(options=ExecutionOptions(routes={
+  "skills": SkillsRouteOptions(effort="normal")}))` or the equivalent dict;
+  this is an execution option, not a prompt slot
 - for application-specific Skills action strategies, use
   `Agently.skills_executor.register_effort_strategy(name, handler)` and invoke
   it with `effort=name`; the handler should compose model requests,
@@ -127,7 +139,7 @@ here for Actions, Execution Environment, service, or DevTools details.
   such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
   token events
 - for bounded developer-owned loops, use
-  `agent.create_execution(mode="task_step", lineage=..., limits=...)`; the
+  `agent.create_execution(mode="task_step", lineage=..., limits=..., options=...)`; the
   default `mode="one_turn"` preserves ordinary one-turn Agent behavior, while
   task-step mode adds lineage, diagnostics, stream correlation metadata, and
   shared model-request budget counting across direct model routes, Dynamic Task
@@ -142,6 +154,28 @@ here for Actions, Execution Environment, service, or DevTools details.
   exposes model response ids, ActionRuntime action logs, and artifact refs when
   available; use those framework-owned records for Workspace persistence instead
   of asking the model to copy raw action stdout into final text
+- bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
+  "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
+  catch `RuntimeStageStallError` from the root `agently.core` export or
+  `agently.core.application.AgentExecution` and inspect
+  `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`
+  instead of adding ad hoc polling around the whole app
+- for provider stream hangs, prefer framework settings such as
+  `OpenAICompatible.stream_idle_timeout`,
+  `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `response.materialization_idle_timeout`; use `None` for unlimited budgets and
+  avoid permanent debug-only timeout wrappers in examples; provider first-event
+  and stream-idle waits should surface as `RuntimeStageStallError` with
+  `stage="response_first_event"` or `stage="response_stream"`
+- when high-frequency RuntimeEvent deltas would overload downstream consumers,
+  keep producers raw and ask the expensive EventCenter outlet to summarize with
+  hook/hooker `delivery_policy={"mode": "summary", "dispatch": "await",
+  "emit_interval": ..., "max_items": ...}`; use `dispatch="background"` only
+  for best-effort outlets that call `EventCenter.async_flush(...)` or expose an
+  owning bridge flush/close point; EventCenter also has an idle flush safety net
+  for long-lived loops, but CLI/script shutdown still needs explicit flush for
+  background outlets; rely on AgentExecution liveness diagnostics rather than
+  public delta frequency for stall detection
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
   inspect route selection, model requests, ActionRuntime, and Workspace writes;

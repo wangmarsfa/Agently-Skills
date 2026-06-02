@@ -100,10 +100,11 @@ For multi-model applications, recommend `agent.activate_model("ollama-qwen2.5")`
 to switch the default model key for subsequent Agent-owned requests, and
 `agent.create_request(model_key="deepseek-v4")` for one-off overrides. Model
 aliases should be concrete and switchable, then resolved through
-`model_pool -> key_pool_strategy -> key_pool`. API keys are selected at request
-time by the configured strategy (`fixed`, `random`, `round_robin`,
-`least_used`); Agently 4.1.3 does not automatically retry another key after
-provider auth, quota, or billing failures.
+`model_pool -> model_profiles -> api_key_pools`. API keys are selected at
+request time by the pool `selection` strategy (`fixed`, `random`,
+`round_robin`, `least_used`; legacy `key_pool_strategy` remains accepted).
+Provider-error failover is opt-in through `api_key_pools.<pool>.failover`;
+without it, provider errors are surfaced without trying another key.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
@@ -267,6 +268,21 @@ converge on these defaults:
   route, model response ids, ActionRuntime action logs, and artifact refs; use
   those framework-owned records instead of model-restated action stdout when
   persisting business evidence.
+- runtime stall control: for bounded AgentExecution steps, prefer
+  `limits={"max_seconds": ..., "max_no_progress_seconds": ...}` and catch
+  `RuntimeStageStallError`; inspect `meta["diagnostics"]["last_progress"]`,
+  `["timeouts"]`, and `["stalls"]`. For provider or final-response hangs, use
+  `OpenAICompatible.stream_idle_timeout`,
+  `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `response.materialization_idle_timeout` rather than app-level polling.
+  Provider first-event and stream-idle stalls are typed runtime stalls, not
+  message-parsed `TimeoutError`s. For high-frequency RuntimeEvent deltas, keep
+  producers raw and configure expensive EventCenter hooks/hookers with
+  `delivery_policy={"mode": "summary", "dispatch": "await", "emit_interval": ...,
+  "max_items": ...}`. Use `dispatch="background"` only for best-effort outlets
+  that have an explicit EventCenter or bridge flush/close point; EventCenter's
+  idle flush safety net helps long-lived loops but does not replace explicit
+  flush before CLI/script shutdown.
 - debugging Agently runtime behavior: during development, attach an EventCenter
   observation hook or temporarily call `.set_settings("debug", True)` /
   `.set_settings("debug", "detail")` to inspect route selection, model requests,
@@ -284,6 +300,14 @@ converge on these defaults:
 Feature acceptance requires spec reconciliation: update each relevant spec to the
 final implemented design, move fully landed planned specs into `spec/implemented/`,
 and update `spec/README.md` in the same work item.
+
+Release or feature acceptance arguments must be coverage-first. Start by
+listing the target contract from the roadmap, spec, issue criteria,
+compatibility manifest, docs, and example rules; then map each requirement to
+evidence from real examples, deterministic tests, protocol tests, docs/spec,
+compatibility metadata, companion validation, or explicit deferral. Do not claim
+completion by pointing directly at existing examples or tests before checking
+their coverage against the target.
 
 When reporting API, recommended usage, examples, or compatibility changes,
 include concise sample code that shows the updated usage shape. Prefer current
