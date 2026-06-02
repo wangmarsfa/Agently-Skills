@@ -17,6 +17,7 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 
 - model endpoint, env vars, `${ENV.xxx}`, settings namespaces, or connectivity checks -> `references/model-setup.md`
 - prompt slots, prompt config, YAML/JSON prompt files, mappings, or reusable request contracts -> `references/prompt-management.md`
+- VLM image questions, local image files, image URLs, or multi-image input -> use `.image(question=..., file=...|url=...|files=[...]|urls=[...])`; keep `.attachment([...])` for low-level rich-content passthrough or exact mixed-content ordering
 - stable fields, required keys, machine-readable output, `.output(...)`, `ensure_keys`, or validation -> `references/output-control.md`
 - one response consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
 - conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
@@ -26,6 +27,7 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 
 - keep provider settings outside prompt and workflow code; prefer settings files with `${ENV.xxx}` placeholders when deployment values differ by environment
 - keep stable prompt and output contracts in prompt config when shared across a request family
+- for VLM image requests, prefer `.image(question=..., file=...|url=...|files=[...]|urls=[...])`; use `.attachment([...])` only when the caller already owns provider-style rich content blocks
 - use `.output(...)` tuple ensure flags for fixed required leaves; use runtime `ensure_keys` only for runtime-dependent paths
 - order output fields from supporting information to final decision. Agently
   output schemas are ordered: evidence, assumptions, clarifications, source
