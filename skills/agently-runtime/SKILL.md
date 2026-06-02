@@ -156,7 +156,8 @@ here for Actions, Execution Environment, service, or DevTools details.
   of asking the model to copy raw action stdout into final text
 - bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
   "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
-  catch `RuntimeStageStallError` from `agently.core.AgentExecution` and inspect
+  catch `RuntimeStageStallError` from the root `agently.core` export or
+  `agently.core.application.AgentExecution` and inspect
   `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`
   instead of adding ad hoc polling around the whole app
 - for provider stream hangs, prefer framework settings such as
