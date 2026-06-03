@@ -17,6 +17,10 @@ ordinary app-facing entrypoints.
 ## Native-First Rules
 
 - use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code
+- when Dynamic Task is only one bounded phase inside a broader business task,
+  keep `agent.create_task(...)` as the outer owner and expose Dynamic Task as an
+  explicitly enabled Agent candidate; do not turn Dynamic Task into the
+  long-running AgentTask lifecycle owner
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact

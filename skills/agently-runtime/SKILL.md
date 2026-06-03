@@ -36,6 +36,26 @@ here for Actions, Execution Environment, service, or DevTools details.
   in Workspace, link decisions to evidence with `workspace.link(...)`, recover
   state with `workspace.latest_checkpoint(...)`, and inspect backend wiring with
   `workspace.capabilities()`
+- for AgentTaskLoop applications, enable only the bounded capabilities the task
+  may use, such as `agent.enable_shell(...)`,
+  `agent.enable_workspace_file_actions(...)`, `agent.use_actions(...)`,
+  `agent.use_skills(...)`, or `agent.use_dynamic_task(...)`, then create the
+  retained task with `agent.create_task(...)`; do not expose broad shell,
+  filesystem, MCP, or browser access just because the task loop exists
+- for AgentTaskLoop business examples, print or persist `task.stream()` items:
+  use `meta.stream_kind=="snapshot"` for intermediate state captures such as
+  context readiness, plan, execution evidence summary, and verification gaps;
+  enable `options={"agent_task": {"stream_progress": True}}` only when
+  natural-language progress is needed; omit `progress_model_key` for template
+  progress with no model requests, or set `progress_model_key` to run a
+  separate background model that summarizes only existing snapshots/task
+  metadata without adding main-loop fields or latency; progress model failures
+  are side-channel diagnostics/warnings, not main task `model.request_failed`
+  errors
+- for AgentTaskLoop terminal results, treat `completed` as accepted output
+  (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
+  leave useful Workspace files, but those are partial artifacts
+  (`accepted=False`, `artifact_status="partial"`)
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
@@ -104,17 +124,59 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for Skills `react` tool use, delegate model-owned action planning and
   execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
   approvals, concurrency, and managed resources stay on the Action layer
-- for selected Skills that declare MCP or Bash/script capabilities, expect the
-  Skills Executor to mount runtime actions automatically before execution:
-  MCP declarations route through `agent.use_mcp(...)`, Bash/script declarations
-  route through managed `enable_shell(...)` actions scoped to the installed
-  Skill directory, and local command/script mounts require `auto_allow=True` or
-  an approval handler
-- for missing declared Skills capabilities, allow executor synthesis only for
-  safely classified pure Python sandbox work such as calculation, parsing,
-  validation, transformation, or format conversion; never synthesize business,
-  network, filesystem, messaging, payment, database, browser, shell, or MCP
-  capabilities, and require a real Action/MCP/connector instead
+- when Skills `react`, AgentTaskLoop, or another higher-level runtime delegates
+  action planning to ActionRuntime, set `action.planning_model_key` to the
+  intended `model_pool` business key so action planning uses the same model
+  routing as the surrounding task
+- Skills are public-standard `SKILL.md` guidance/resources, not Agently-private
+  capability manifests; do not author or recommend `allowed-actions`,
+  `allow-scripts`, `mcp`, `mcpServers`, `execution`, or `stages` frontmatter as
+  Agently capability declarations
+- SkillsExecutor discovers selected Skill capability needs from `SKILL.md`,
+  resource indexes, public `compatibility`, public `metadata`, and optional
+  model-assisted inference, then records structured `capability_needs`; selected
+  Skills may guide the model to use capabilities when available, but they do not
+  grant them
+- host applications control Skills capability loading with
+  `agent.configure_skill_capabilities(auto_load={...})`; `allow` can auto-load
+  built-in Search/Browse/HTTP/Workspace/Python/shell-script/MCP capabilities,
+  while `approval` and `off` fail closed with diagnostics instead of silently
+  mounting tools
+- for search-oriented Skills, prefer the framework Search package backed by the
+  `ddgs` Python package; keep `ddgs` upgraded with
+  `python -m pip install --upgrade ddgs` before real search runs, and leave the
+  ddgs backend strategy configurable (`auto` by default) instead of hard-coding
+  a single backend; Search treats backend-level "no results" as an empty
+  successful action result and falls back through configured/default ddgs
+  backends when a selected backend returns no usable parsed result; if fallback
+  recovers after backend failures, Search reports `status="partial_success"`
+  with `success=True` and diagnostics rather than an `action.failed` terminal
+  condition
+- when observing ActionFlow records, treat `action.approval_required` and
+  `action.blocked` as policy/sandbox gate outcomes, not ordinary
+  `action.failed` execution failures
+- Workspace owns file-action roots and path boundaries; expose file access
+  through Workspace-scoped file actions, and treat ActionRuntime as the callable
+  surface rather than the owner of Workspace semantics
+- Skills capability `approval` is resolved through Agently's global
+  PolicyApproval handler, not a SkillsExecutor-local handler:
+  `input_timeout_fail` by default, `auto_approve` for tests/trusted local
+  profiles, `fail_closed` when a host wants pending diagnostics or TriggerFlow
+  policy interrupts, `input` for local CLI interruption, or a host-provided
+  durable/network handler
+- production services should choose a PolicyApproval handler that matches the
+  service wrapping the TriggerFlow execution: database pending record, HTTP
+  callback, webhook resume, SSE/WebSocket pending stream, save-and-return
+  interrupt id, or another host-owned approval channel; tests may use
+  `auto_approve`
+- script resources under `scripts/` can be wrapped as scoped shell actions only
+  when host policy allows `script_run`; the action root must be the installed
+  Skill directory and execution still goes through ActionRuntime /
+  ExecutionEnvironment boundaries
+- public Agent Skills `allowed-tools` is experimental and, if supported, can
+  only restrict or pre-approve already-mounted host tools; it must not create
+  tools, synthesize backends, mount MCP, or choose Skills execution strategy by
+  itself
 - for Agently 4.1.2.x auto-orchestration work, treat
   `agent.use_skills(...).input(...).start()` as route-candidate registration
   owned by the Agent route planner, not prompt-only Skills guidance injection by
@@ -126,9 +188,10 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for framework-side Skills, treat standard `SKILL.md` as the only capability
   definition; Agently install metadata and decision cards are descriptive
   runtime aids, not authoring formats or availability gates
-- for Skills actions, use Action/ExecutionEnvironment approval and resource
-  boundaries; use TriggerFlow `pause_for(...)` / `continue_with(...)` for
-  durable waits instead of storing pending approvals on a Skills snapshot
+- for Skills actions, use the global PolicyApproval contract plus
+  Action/ExecutionEnvironment resource boundaries; when the request is
+  orchestrated, pending approvals must become TriggerFlow `policy_approval`
+  interrupts instead of Skills snapshots
 - keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
   core owns the public `agent.create_execution()` entrypoint, while the active
   plugin owns route planning, execution, and stream bridging

@@ -90,7 +90,7 @@ import asyncio
 
 from agently.builtins.actions import Search
 
-search = Search(timeout=15, backend="duckduckgo")
+search = Search(timeout=15, backend="auto")
 
 async def main():
     results = await search.search("agently action runtime sandbox")
@@ -102,6 +102,10 @@ results = asyncio.run(main())
 Keep the agent on `agent.use_actions(search)` when the model may choose any
 Search action, or call `search.search(...)` directly when no agent loop is
 needed. Do not add `Browse` or any sandbox executor if the job is just retrieval.
+When a configured search backend fails but a fallback backend returns usable
+results, the Action result is `status="partial_success"` with `success=True`
+and backend diagnostics; treat that as usable evidence plus degraded-provider
+observability.
 
 ### Local Files Only
 

@@ -63,6 +63,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   explicit `execution.async_record_workspace(...)` observation/checkpoint writes
   before building the next ContextPack; do not describe task-step mode as the
   multi-turn loop owner or make Workspace depend on AgentExecution semantics
+- when the model should own a single business task's plan, bounded execution,
+  evidence recording, verification, and replan loop, choose
+  `agent.create_task(...)` before hand-writing a TriggerFlow loop; keep the
+  first-slice boundary to one Agent owner, one task, 2-5 iterations, and
+  bounded steps that use only explicitly enabled Actions, Skills, or Dynamic
+  Task candidates
 - for feature or release acceptance, use coverage-first reasoning: start from
   the target contract in roadmap/spec/issues/docs/compatibility/example rules,
   map each requirement to evidence from examples, deterministic tests, protocol

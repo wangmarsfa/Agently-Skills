@@ -60,6 +60,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - do not duplicate ActionRuntime planning prompts in higher layers; delegate
   model-owned action/tool selection to ActionRuntime when registered schemas are
   available
+- when the surrounding runtime uses `model_pool`, set
+  `action.planning_model_key` to the intended business key so ActionRuntime
+  planning uses the same model routing
 - do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_environment` can own the dependency
 - do not recommend core manager/provider APIs to ordinary app developers when a built-in Action or Agent Component is the right surface
 - do not create a custom waiter or auto-function shim first
