@@ -276,7 +276,10 @@ converge on these defaults:
   `OpenAIResponsesCompatible.stream_idle_timeout`, and
   `response.materialization_idle_timeout` rather than app-level polling.
   Provider first-event and stream-idle stalls are typed runtime stalls, not
-  message-parsed `TimeoutError`s. For high-frequency RuntimeEvent deltas, keep
+  message-parsed `TimeoutError`s. Explicit response stream errors should
+  propagate from response getters with the original provider or ActionFlow
+  reason before materialization timeout is used as a fallback. For
+  high-frequency RuntimeEvent deltas, keep
   producers raw and configure expensive EventCenter hooks/hookers with
   `delivery_policy={"mode": "summary", "dispatch": "await", "emit_interval": ...,
   "max_items": ...}`. Use `dispatch="background"` only for best-effort outlets

@@ -218,7 +218,9 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `OpenAIResponsesCompatible.stream_idle_timeout` 和
   `response.materialization_idle_timeout`，不要在应用外层加长期保留的轮询 wrapper。
   provider 首事件和 stream idle 卡住都应该是 typed runtime stall，而不是靠解析
-  `TimeoutError` 文本判断。高频 RuntimeEvent delta 保持生产端 raw，成本较高的
+  `TimeoutError` 文本判断。显式 response stream error 应该从 response getter
+  传播原始 provider 或 ActionFlow 原因，materialization timeout 只作为兜底。
+  高频 RuntimeEvent delta 保持生产端 raw，成本较高的
   EventCenter hook/hooker 通过 `delivery_policy={"mode": "summary",
   "dispatch": "await", "emit_interval": ..., "max_items": ...}` 请求摘要投递。
   只有具备明确 EventCenter 或 bridge flush/close 回收点的 best-effort 出口才使用

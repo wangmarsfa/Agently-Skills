@@ -229,7 +229,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   `response.materialization_idle_timeout`; use `None` for unlimited budgets and
   avoid permanent debug-only timeout wrappers in examples; provider first-event
   and stream-idle waits should surface as `RuntimeStageStallError` with
-  `stage="response_first_event"` or `stage="response_stream"`
+  `stage="response_first_event"` or `stage="response_stream"`; explicit
+  response stream errors should propagate from response getters with the
+  original provider or ActionFlow reason before materialization timeout is used
+  as a fallback
 - when high-frequency RuntimeEvent deltas would overload downstream consumers,
   keep producers raw and ask the expensive EventCenter outlet to summarize with
   hook/hooker `delivery_policy={"mode": "summary", "dispatch": "await",
