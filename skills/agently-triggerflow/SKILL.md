@@ -26,7 +26,11 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   example or host needs natural-language operator updates; omit
   `progress_model_key` for template progress with no model requests, or set
   `progress_model_key` to run a separate background model that summarizes only
-  existing snapshots/task metadata without adding main-loop fields or latency
+  existing snapshots/task metadata without adding main-loop fields or latency;
+  prove replan behavior from stream verification/replan events and snapshots
+  rather than hiding the proof in a local Python loop; mocked business systems
+  may supply defective facts or conflicting source data, but must not return
+  pass/fail verdicts or deterministic quality judgments
 - default to async-first workflow handlers, execution entrypoints, and runtime stream consumers
 - treat sync TriggerFlow APIs as wrappers for scripts or compatibility bridges, not as the default service interface
 - prefer explicit execution lifecycle control with `close()` / `async_close()` for completion and cleanup

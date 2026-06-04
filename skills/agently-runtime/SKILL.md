@@ -51,11 +51,19 @@ here for Actions, Execution Environment, service, or DevTools details.
   separate background model that summarizes only existing snapshots/task
   metadata without adding main-loop fields or latency; progress model failures
   are side-channel diagnostics/warnings, not main task `model.request_failed`
-  errors
+  errors; progress model inputs should be operator-safe and omit low-level
+  Workspace/SQLite fallback diagnostics that remain available in task meta
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
   leave useful Workspace files, but those are partial artifacts
-  (`accepted=False`, `artifact_status="partial"`)
+  (`accepted=False`, `artifact_status="partial"`); when semantic content quality
+  matters, combine deterministic smoke checks with an Agently model-judge
+  request and do not use counts or keyword hits as the primary acceptance signal
+- for AgentTaskLoop business-system examples, mocks may provide facts, source
+  records, policies, missing data, or conflicting inputs, but must not provide
+  hidden expected answers, pass/fail fields, or deterministic business-quality
+  verdicts; judgment belongs to the AgentTask verifier or an independent
+  Agently model-judge request
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
