@@ -16,6 +16,13 @@ Use this skill when the core problem is how prompt state should be structured be
   extraction
 - keep task-specific request contracts in prompt config, and keep only widely reused persona setup in small code-side factories
 - when the output contract is stable and shared across a request family, keep it in prompt config such as `.request.output` instead of rebuilding it ad hoc in Python
+- Agent quick prompt chains create AgentTurn-local request drafts. Expression-local
+  chaining can configure and run one turn directly, for example
+  `agent.input(...).output(...).async_start()`. If setup is split across
+  statements, conditions, helper calls, or later configuration steps, capture
+  `turn = agent.create_turn()` and mutate that turn; do not rely on shared
+  Agent request-scoped prompt accumulation. Agent-level persistent setup remains
+  on `always=True`, `set_agent_prompt(...)`, settings, and stable prompt config.
 - set structured output format in prompt config with `$format` inside the
   `output` block when the contract needs a fixed mode, for example
   `.request.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
