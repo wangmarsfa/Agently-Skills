@@ -194,21 +194,27 @@ converge on these defaults:
   narrow alias or documentation clarification instead of another overlapping API.
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
-  paths. `.output(...)` defaults to `format="auto"`; current auto is structural:
-  flat string-only dict schemas resolve to `xml_field`; dict schemas that mix
-  string fields with typed non-string fields resolve to `hybrid`; and
-  all-control, all-complex schemas, and non-dict outputs resolve to `json`.
-  `yaml_literal` is explicit opt-in, and `flat_markdown` is explicit-only
-  compatibility mode. Prefer explicit `format="json"` for dense all-typed data or legacy
-  JSON-only contracts; explicit `format="xml_field"`
-  for flat string-only dict schemas when XML-like boundaries fit; explicit
-  `format="hybrid"` for mixed long text plus typed fields; and no
+  paths. Omitted `.output(..., format=...)` reads
+  `prompt.default_output_format`, whose framework default is `json`; agents or
+  requests may set that default independently. Explicit `format="auto"` or
+  `prompt.default_output_format="auto"` uses structural selection: flat
+  string-only dict schemas resolve to `xml_field`; dict schemas that mix string
+  fields with typed non-string fields resolve to `hybrid`; and all-control,
+  all-complex schemas, and non-dict outputs resolve to `json`. `yaml_literal`
+  is explicit opt-in, and `flat_markdown` is explicit-only compatibility mode.
+  Prefer explicit `format="json"` for dense all-typed data or legacy JSON-only
+  contracts; explicit `format="xml_field"` for flat string-only dict schemas
+  when XML-like boundaries fit; explicit `format="hybrid"` for mixed long text
+  plus typed fields after provider/model stability checks; and no
   `.output(...)` for one freeform plain-text artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
   three additional model attempts, but complex nested arrays, placeholder echo,
   prose in boolean/numeric fields, and many wildcard ensure paths can still
   fail after retries. Use `instant` streaming for provisional structured
   UI/progress updates on `json`/`flat_markdown`/`hybrid`/`xml_field`/
   `yaml_literal`/resolved `auto`; use `delta` streaming for plain text.
+  Recent qwen2.5:7b checks found `hybrid` can omit section headers or echo old
+  scaffold comments into text fields, so do not make `auto`/`hybrid` the
+  default for untested local models.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and

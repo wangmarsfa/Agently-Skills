@@ -44,7 +44,8 @@ ordinary app-facing entrypoints.
 - keep backend business-system calls mockable in examples, but keep model-owned planning, classification, drafting, evaluation, revising, and final response generation model-driven
 - require each model task that matters to have a clear output schema, either through facade-level `output_schema` or node-level `inputs.output_schema`
 - set model-task `inputs.output_format` by result type when the plan is
-  generated or submitted: `json` for compact machine-control data, action
+  generated or submitted: omit it to let the request read
+  `prompt.default_output_format` (global default `json`); use `json` for compact machine-control data, action
   arguments, routing flags, standalone booleans/numbers, strict extraction,
   model judges, and dense all-typed arrays/objects; `xml_field` for flat string long
   text/code/HTML/SVG/Markdown/SQL/templates; explicit `hybrid` for long
@@ -52,7 +53,10 @@ ordinary app-facing entrypoints.
   retry latency is acceptable; explicit `flat_markdown` only for legacy
   section-header compatibility; explicit `yaml_literal` only
   when a YAML target document is intentionally desired; `auto` only when
-  structural schema-driven selection and retry latency are acceptable
+  structural schema-driven selection and retry latency are acceptable after the
+  target model has passed representative stability checks. qwen2.5:7b checks
+  found hybrid can omit section headers or echo old scaffold comments into text
+  fields
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
 - keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
