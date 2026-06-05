@@ -266,6 +266,12 @@ converge on these defaults:
   Skills remain deterministic; ambiguous optional candidates use model-owned
   route choice. Prefer `agent.create_execution()` for route diagnostics,
   multiple result views, and process streaming.
+- Agent quick prompt chains are AgentTurn-local request drafts. A service may
+  keep one configured Agent singleton for settings, model activation, Actions,
+  Skills, Workspace, and `always=True` prompt, while each
+  `agent.input(...).output(...).async_start()` chain owns its own prompt state.
+  For multi-statement request setup, use `turn = agent.create_turn()` and mutate
+  the turn; do not accumulate request-scoped prompt state on the shared Agent.
 - AgentExecution step contract: use default `mode="one_turn"` for compatibility
   and `mode="task_step"` with explicit `lineage=` / `limits=` for bounded
   developer-owned loop steps. Task-step executions are one step, not the loop

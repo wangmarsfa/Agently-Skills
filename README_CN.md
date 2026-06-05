@@ -203,6 +203,12 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
   submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
   选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
+- Agent quick prompt 链是 AgentTurn-local request draft。服务可以保留一个配置好的
+  Agent 单例，用它承载 settings、模型激活、Actions、Skills、Workspace 和
+  `always=True` prompt；每条 `agent.input(...).output(...).async_start()` 链拥有
+  自己的 prompt 状态。多语句 request setup 应使用
+  `turn = agent.create_turn()` 并修改这个 turn，不要把本轮 request prompt 累计到共享
+  Agent 上。
 - AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
   loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
   task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把
