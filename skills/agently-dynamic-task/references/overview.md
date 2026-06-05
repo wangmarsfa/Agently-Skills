@@ -49,11 +49,13 @@ and future Skills Executor integration.
 For model tasks, keep result control on the model task contract. Use
 `inputs.output_schema` for the task result shape and `inputs.output_format` for
 the response-control strategy: `json` for compact machine-control data,
-booleans, numbers, judges, dense nested arrays/objects, and strict extraction;
-`flat_markdown` for flat string long text/code/HTML/Markdown fields; explicit
-`hybrid` for long prose with structured evidence or metadata when retry latency
-is acceptable; and `auto` only when structural schema-driven selection and
-retry latency are acceptable.
+standalone booleans/numbers, judges, dense all-typed arrays/objects, and strict extraction;
+`xml_field` for flat string long text/code/HTML/Markdown fields; explicit
+`hybrid` for long prose/code fields mixed with typed list/object/boolean/number
+fields when retry latency is acceptable; explicit `flat_markdown` only for
+legacy section-header compatibility; explicit `yaml_literal` only when
+a YAML target document is intentionally desired; and `auto` only when structural
+schema-driven selection and retry latency are acceptable.
 If the host facade supplies `create_dynamic_task(..., output_schema=...,
 ensure_keys=...)`, that semantic-output contract owns the frontstage shape. A
 planner-chosen `inputs.output_format="flat_markdown"` must not break a

@@ -10,11 +10,17 @@ The user does not need to say `get_response()`. Requests to reuse one result as 
 - default to async-first response APIs in services, streaming paths, TriggerFlow steps, and any integration that may overlap work
 - treat sync getters and generators as convenience wrappers for scripts, REPL use, or compatibility bridges
 - use `delta`, `instant`, `specific`, or `all` instead of custom stream splitting logic
+- subscribe to `reasoning_delta` / `reasoning_done` through `type="specific"`
+  when reasoning output is needed. Provider-native reasoning and a leading
+  outer `<think>...</think>` before the answer payload belong in reasoning
+  events; `original_delta` / `original_done` keep the raw provider content.
+  Payload-internal `<think>` remains ordinary answer text
 
 ## Anti-Patterns
 
 - do not re-issue the same request to obtain text, data, and metadata separately
 - do not build ad hoc field-level stream parsers when `instant` or `streaming_parse` already fits
+- do not strip reasoning tags inside format-specific parsers
 
 ## Read Next
 

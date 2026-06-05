@@ -18,9 +18,10 @@ Use this skill when the core problem is how prompt state should be structured be
 - when the output contract is stable and shared across a request family, keep it in prompt config such as `.request.output` instead of rebuilding it ad hoc in Python
 - set structured output format in prompt config with `$format` inside the
   `output` block when the contract needs a fixed mode, for example
-  `.request.output.$format: json`, `flat_markdown`, `hybrid`, or `auto`. This
-  maps to the same Prompt slot as `.output(..., format=...)`; `.format`,
-  `$output_format`, and `.output_format` are accepted aliases
+  `.request.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
+  `yaml_literal`, or `auto`. This maps to the same Prompt slot as
+  `.output(..., format=...)`; `.format`, `$output_format`, and
+  `.output_format` are accepted aliases
 - keep prompt composition separate from transport and orchestration
 - use config files as an editable bridge when UI or product teams need to adjust prompt-driven behavior without rewriting workflow code
 

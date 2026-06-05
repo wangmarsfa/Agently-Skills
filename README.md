@@ -105,6 +105,9 @@ request time by the pool `selection` strategy (`fixed`, `random`,
 `round_robin`, `least_used`; legacy `key_pool_strategy` remains accepted).
 Provider-error failover is opt-in through `api_key_pools.<pool>.failover`;
 without it, provider errors are surfaced without trying another key.
+`OpenAICompatible` still retries transient transport disconnects before output
+starts with the same model, prompt, and output format according to
+`OpenAICompatible.request_retry`.
 
 The companion repo stays a coding-agent package. It does not become a runtime
 dependency of Agently applications.
@@ -192,17 +195,20 @@ converge on these defaults:
 - structured output: fixed required leaves belong in tuple `ensure` form inside
   `.output(...)`; runtime `ensure_keys` is for conditional or runtime-dependent
   paths. `.output(...)` defaults to `format="auto"`; current auto is structural:
-  flat string-only schemas resolve to `flat_markdown`, dict schemas with string
-  fields plus complex list/object fields resolve to `hybrid`, and booleans,
-  numbers, all-complex schemas, and non-dict outputs resolve to `json`. Prefer
-  explicit `format="json"` for judges, booleans, numbers, dense nested data, or legacy
-  JSON-only contracts, and no `.output(...)` for one freeform plain-text
-  artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
+  flat string-only dict schemas resolve to `xml_field`; dict schemas that mix
+  string fields with typed non-string fields resolve to `hybrid`; and
+  all-control, all-complex schemas, and non-dict outputs resolve to `json`.
+  `yaml_literal` is explicit opt-in, and `flat_markdown` is explicit-only
+  compatibility mode. Prefer explicit `format="json"` for dense all-typed data or legacy
+  JSON-only contracts; explicit `format="xml_field"`
+  for flat string-only dict schemas when XML-like boundaries fit; explicit
+  `format="hybrid"` for mixed long text plus typed fields; and no
+  `.output(...)` for one freeform plain-text artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
   three additional model attempts, but complex nested arrays, placeholder echo,
   prose in boolean/numeric fields, and many wildcard ensure paths can still
   fail after retries. Use `instant` streaming for provisional structured
-  UI/progress updates on `json`/`flat_markdown`/`hybrid`/resolved `auto`; use
-  `delta` streaming for plain text.
+  UI/progress updates on `json`/`flat_markdown`/`hybrid`/`xml_field`/
+  `yaml_literal`/resolved `auto`; use `delta` streaming for plain text.
 - model-output tests: use an Agently model judge with output control for
   content-level semantic validation. Pass the candidate output, explicit rules,
   expected contracts, and context into the judge; ask for per-rule evidence and
@@ -276,7 +282,9 @@ converge on these defaults:
   `OpenAIResponsesCompatible.stream_idle_timeout`, and
   `response.materialization_idle_timeout` rather than app-level polling.
   Provider first-event and stream-idle stalls are typed runtime stalls, not
-  message-parsed `TimeoutError`s. Explicit response stream errors should
+  message-parsed `TimeoutError`s. OpenAI-compatible transient disconnects
+  before output starts use same-request `OpenAICompatible.request_retry`, not an
+  output-format change. Explicit response stream errors should
   propagate from response getters with the original provider or ActionFlow
   reason before materialization timeout is used as a fallback. For
   high-frequency RuntimeEvent deltas, keep

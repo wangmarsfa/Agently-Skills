@@ -31,7 +31,9 @@ Use this skill for provider wiring and transport setup before request logic is d
   `api_key_pools.<pool>.selection` (`fixed`, `random`, `round_robin`,
   `least_used`; legacy top-level `strategy` remains accepted). Provider-error
   failover is opt-in through `api_key_pools.<pool>.failover`; without it,
-  Agently surfaces provider errors without trying another key. Failover handlers
+  Agently does not try another key. `OpenAICompatible` still retries transient
+  transport disconnects before output starts with the same model, prompt, and
+  output format according to `OpenAICompatible.request_retry`. Failover handlers
   can inspect the provider error object and return `"try_next"`,
   `"retry_same"`, `"raise"`, a key id, a key entry dict, or a wrapper such as
   `{"key_id": "b"}` / `{"key_entry": context.keys[1]}`. Do not present
