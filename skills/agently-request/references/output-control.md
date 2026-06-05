@@ -10,20 +10,21 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - prefer prompt-config-owned output contracts such as `.request.output` when the schema is stable and shared across a request family
 - prefer `.output(...)` for machine-readable results when the schema is dynamic, exploratory, or easier to keep close to code
 - choose output format deliberately:
-  - `.output(...)` defaults to `format="auto"`; use it for ordinary structured
-    results consumed through Agently's parsed data API. Current auto selection
-    is structural and does not inspect field names or business meaning:
-    flat string-only dict schemas resolve to `xml_field`; dict schemas that mix
-    string fields with typed non-string fields resolve to `hybrid`;
-    all-control, all-complex, and non-dict schemas resolve to `json`.
-    `yaml_literal` is explicit opt-in, and `flat_markdown` is explicit-only
-    compatibility mode
+  - omitted `.output(..., format=...)` reads `prompt.default_output_format`;
+    the framework default is `json`, and individual agents or requests may
+    override it through settings. Explicit `format="auto"` or
+    `prompt.default_output_format="auto"` uses structural selection and does
+    not inspect field names or business meaning: flat string-only dict schemas
+    resolve to `xml_field`; dict schemas that mix string fields with typed
+    non-string fields resolve to `hybrid`; all-control, all-complex, and
+    non-dict schemas resolve to `json`. `yaml_literal` is explicit opt-in, and
+    `flat_markdown` is explicit-only compatibility mode
   - use `format="flat_markdown"` only when preserving legacy section-header
     output is required
   - use `format="hybrid"` for string prose/code fields mixed with typed fields,
     such as `summary` plus `citations`, `analysis` plus `components`, or
-    `notes` plus `ready` and `next_steps`, when the auto default should be made
-    explicit.
+    `notes` plus `ready` and `next_steps`, after the target provider/model has
+    passed representative stability checks.
     Non-string hybrid sections must use fenced JSON, including booleans and
     numbers; Agently's built-in prompt generator renders JSON value examples
     for current `hybrid` output
@@ -53,10 +54,14 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     `async_get_data()` for durable writes, validation, and business decisions
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
-    do not depend on retry latency for hot paths
+    do not depend on retry latency for hot paths. Recent qwen2.5:7b checks
+    found that hybrid-style responses can omit required section headers or echo
+    old scaffold comments into text fields, so keep the framework default at
+    `json` unless the target model has passed representative tests
   - `flat_markdown` is explicit-only compatibility mode; do not recommend it as
     an auto/default path
-  - `hybrid` is the auto path for mixed prose/code plus typed fields. It can
+  - `hybrid` is an explicit path, and an auto path when auto is enabled, for
+    mixed prose/code plus typed fields. It can
     handle complex nested arrays when the prompt includes the
     nested sub-schema. Do not blanket-ban complex structures; instead test the
     target provider/model with representative schemas such as EDA netlists,
@@ -68,7 +73,11 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   - use explicit `format="json"` when retry latency is unacceptable, raw JSON is
     required, a target model is known to ignore markdown section headers, or the
     schema contains no prose/code string fields and many nested arrays
-- for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed required leaves
+- for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed
+  required leaves. Required string leaves must contain non-blank text; missing
+  keys, `None`, blank strings, empty wildcard matches, or wildcard matches
+  containing blank required values fail and share the normal retry budget.
+  `False` and `0` remain valid typed values
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - `max_retries=3` means Agently may make up to three additional model attempts
   after the initial call when parsing, required-key extraction, strict output
