@@ -47,6 +47,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   an Agently model-judge request with output control: explicit rules and context
   go in, per-rule evidence/reason and final boolean fields come out, and tests
   assert those booleans
+- for business examples with mocked systems, keep mocks limited to facts,
+  records, policies, incomplete data, or conflicting source material; do not
+  return hidden expected answers, pass/fail labels, or local quality verdicts.
+  Let AgentTask verification or a separate Agently model judge decide whether
+  the model handled defective data correctly.
 - for model-app evaluation, grading, confidence, relevance, or quality
   judgments, prefer explicit conceptual levels and definitions over direct
   numeric scores. If later workflow logic needs thresholds or aggregate metrics,
@@ -63,6 +68,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   explicit `execution.async_record_workspace(...)` observation/checkpoint writes
   before building the next ContextPack; do not describe task-step mode as the
   multi-turn loop owner or make Workspace depend on AgentExecution semantics
+- when the model should own a single business task's plan, bounded execution,
+  evidence recording, verification, and replan loop, choose
+  `agent.create_task(...)` before hand-writing a TriggerFlow loop; keep the
+  first-slice boundary to one Agent owner, one task, 2-5 iterations, and
+  bounded steps that use only explicitly enabled Actions, Skills, or Dynamic
+  Task candidates; treat completion as model verification plus conservative
+  host evidence guards, and use a second model judge for model-owned semantic
+  content instead of accepting structural counters alone
 - for feature or release acceptance, use coverage-first reasoning: start from
   the target contract in roadmap/spec/issues/docs/compatibility/example rules,
   map each requirement to evidence from examples, deterministic tests, protocol

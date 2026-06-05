@@ -12,12 +12,34 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 ## Native-First Rules
 
 - prefer TriggerFlow for explicit multi-stage quality loops, branching, concurrency, waiting/resume, restart-safe execution, output-fan-out performance refactors, process-clarity refactors, or mixed sync/async orchestration
+- treat TriggerFlow as Agently's first-class orchestration substrate: framework
+  features with multi-step loops, approval waits, retry, replan, verification,
+  or resume semantics should be TriggerFlow-backed rather than hidden inside a
+  local executor state machine
+- prefer `agent.create_task(...)` when the app needs one Agent-owned business
+  task loop where the model owns planning, verification, and replan; use
+  TriggerFlow directly when the application owns explicit stages, branching,
+  pause/resume, or restart topology
+- for AgentTaskLoop examples, consume `task.stream()` and surface
+  `meta.stream_kind=="snapshot"` items as compact intermediate state captures;
+  enable `options={"agent_task": {"stream_progress": True}}` only when the
+  example or host needs natural-language operator updates; omit
+  `progress_model_key` for template progress with no model requests, or set
+  `progress_model_key` to run a separate background model that summarizes only
+  existing snapshots/task metadata without adding main-loop fields or latency;
+  prove replan behavior from stream verification/replan events and snapshots
+  rather than hiding the proof in a local Python loop; mocked business systems
+  may supply defective facts or conflicting source data, but must not return
+  pass/fail verdicts or deterministic quality judgments
 - default to async-first workflow handlers, execution entrypoints, and runtime stream consumers
 - treat sync TriggerFlow APIs as wrappers for scripts or compatibility bridges, not as the default service interface
 - prefer explicit execution lifecycle control with `close()` / `async_close()` for completion and cleanup
 - use `execution.result` when services, UIs, stream consumers, or intervention-aware workflows need multiple views of one execution outcome, such as state, compatibility final result, interventions, and metadata; use `execution.close()` / `execution.async_close()` for close snapshots
 - use runtime intervention for optional supplemental context added while an execution is already running: define explicit `.intervention_point(...)` boundaries so execution creation can infer planned mode, or create the execution with `intervention_mode="auto"` for boundary policy insertion; chunks read inserted context with `data.get_interventions(...)` and explicitly audit usage with `data.async_mark_intervention_consumed(...)`, relying on the chunk-name consumer default unless another consumer identity is clearer
 - for human approvals, webhooks, or externally resumed waits, use `pause_for(..., resume_to="next" | "self" | {"event": ...})`; treat it as a durable graph interrupt, not Python coroutine stack persistence; teach model-decided autonomous interrupts with model-owned `pause_for(..., resume_to="self")`, and teach prearranged approval gates with an explicit pause chunk plus `when(...)`
+- for framework policy approvals, use the global PolicyApproval contract and
+  represent pending approvals as `pause_for(type="policy_approval", ...)`
+  interrupts that resume through `continue_with(...)`
 - do not put `pause_for(...)` behind hidden execution sugar such as `flow.start()` or flow-level runtime stream helpers; create an explicit execution handle and consume `get_pending_interrupts()` / `continue_with(...)`
 - close waiting executions explicitly: `close()` / `async_close()` rejects pending interrupts by default, and `pending_interrupts="cancel"` must be chosen deliberately when abandoning waits
 - when a sub-flow can pause, keep the external API rooted at the parent execution id plus projected root interrupt id; do not require callers to manage child execution ids

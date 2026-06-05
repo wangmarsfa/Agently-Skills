@@ -151,13 +151,13 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
   `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
-  `format="auto"`；当前 auto 是结构规则，扁平且全字符串字段解析为
-  `flat_markdown`，字符串字段 + 复杂 list/object 字段解析为 `hybrid`，布尔、数字、
-  全复杂结构和非 dict 输出解析为 `json`。judge、布尔、数字、密集嵌套数据或下游契约需要 JSON-only 时显式 `format="json"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
+  `format="auto"`；当前 auto 是结构规则，扁平纯字符串 dict 解析为
+  `xml_field`，字符串字段与 typed 非字符串字段混合的 dict 解析为 `hybrid`，全控制字段、全复杂结构和非 dict 输出解析为 `json`。`yaml_literal` 是显式 opt-in，
+  `flat_markdown` 仅为显式兼容模式。密集全 typed 数据或下游契约需要 JSON-only 时显式 `format="json"`；扁平纯字符串 dict 适合 XML-like boundary 时可显式 `format="xml_field"`；长文本混合 typed 字段时可显式 `format="hybrid"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
   缺失，但复杂嵌套数组、占位符回显、布尔/数字字段里填散文、大量 wildcard
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
-  `json`/`flat_markdown`/`hybrid`/resolved `auto` 的临时结构化 UI/进度更新；纯文本
-  streaming 用 `delta`。
+  `json`/`flat_markdown`/`hybrid`/`xml_field`/`yaml_literal`/resolved `auto` 的临时结构化
+  UI/进度更新；纯文本 streaming 用 `delta`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
@@ -218,7 +218,9 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `OpenAIResponsesCompatible.stream_idle_timeout` 和
   `response.materialization_idle_timeout`，不要在应用外层加长期保留的轮询 wrapper。
   provider 首事件和 stream idle 卡住都应该是 typed runtime stall，而不是靠解析
-  `TimeoutError` 文本判断。高频 RuntimeEvent delta 保持生产端 raw，成本较高的
+  `TimeoutError` 文本判断。显式 response stream error 应该从 response getter
+  传播原始 provider 或 ActionFlow 原因，materialization timeout 只作为兜底。
+  高频 RuntimeEvent delta 保持生产端 raw，成本较高的
   EventCenter hook/hooker 通过 `delivery_policy={"mode": "summary",
   "dispatch": "await", "emit_interval": ..., "max_items": ...}` 请求摘要投递。
   只有具备明确 EventCenter 或 bridge flush/close 回收点的 best-effort 出口才使用

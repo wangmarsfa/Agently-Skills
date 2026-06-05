@@ -17,6 +17,10 @@ ordinary app-facing entrypoints.
 ## Native-First Rules
 
 - use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code
+- when Dynamic Task is only one bounded phase inside a broader business task,
+  keep `agent.create_task(...)` as the outer owner and expose Dynamic Task as an
+  explicitly enabled Agent candidate; do not turn Dynamic Task into the
+  long-running AgentTask lifecycle owner
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
@@ -41,12 +45,14 @@ ordinary app-facing entrypoints.
 - require each model task that matters to have a clear output schema, either through facade-level `output_schema` or node-level `inputs.output_schema`
 - set model-task `inputs.output_format` by result type when the plan is
   generated or submitted: `json` for compact machine-control data, action
-  arguments, routing flags, booleans, numbers, strict extraction, model judges,
-  and dense nested arrays/objects; `flat_markdown` for flat string long
-  text/code/HTML/SVG/Markdown/SQL/templates; explicit `hybrid` for long prose
-  plus structured lists, tables, citations, metadata, or nested evidence when
-  retry latency is acceptable; `auto` only when structural schema-driven
-  selection and retry latency are acceptable
+  arguments, routing flags, standalone booleans/numbers, strict extraction,
+  model judges, and dense all-typed arrays/objects; `xml_field` for flat string long
+  text/code/HTML/SVG/Markdown/SQL/templates; explicit `hybrid` for long
+  prose/code fields mixed with typed list/object/boolean/number fields when
+  retry latency is acceptable; explicit `flat_markdown` only for legacy
+  section-header compatibility; explicit `yaml_literal` only
+  when a YAML target document is intentionally desired; `auto` only when
+  structural schema-driven selection and retry latency are acceptable
 - let `TaskDAGValidator` reject duplicate ids, missing dependencies, cycles, unsupported required task kinds, schema-version mismatches, unsafe side-effect policy, and unknown required handlers before execution
 - allow unknown optional handlers to be pruned only when they do not affect required semantic outputs, required downstream nodes, approvals, or side-effect policy
 - keep generated plan data in execution input or execution state; do not use shared TriggerFlow flow data for per-run DAG state
