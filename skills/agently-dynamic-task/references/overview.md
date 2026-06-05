@@ -29,13 +29,15 @@ Layer ownership:
   runtime owners.
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
-- In Agent mode, quick prompt methods are configuration. `agent.create_dynamic_task()`
-  consumes the current prompt snapshot: rendered prompt text becomes the
-  DynamicTask target, the `output` slot becomes `output_schema`, `output_format`
-  becomes the default model-task format, and the `input` slot remains structured
-  graph input for `${INIT...}` placeholders. `set_agent_prompt(...)` values
-  are inherited and preserved; request prompt values are frozen and then
-  cleared. Explicit facade arguments override prompt-derived defaults.
+- In Agent mode, chained quick prompt methods create an AgentTurn-local request
+  draft. `agent.create_dynamic_task()` consumes that turn prompt snapshot:
+  rendered prompt text becomes the DynamicTask target, the `output` slot becomes
+  `output_schema`, `output_format` becomes the default model-task format, and
+  the `input` slot remains structured graph input for `${INIT...}`
+  placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
+  preserved; multi-statement setup should capture `turn = agent.create_turn()`
+  instead of mutating the shared Agent request. Explicit facade arguments
+  override prompt-derived defaults.
 
 Use Dynamic Task when the graph is submitted as data and must be planned,
 validated, pruned, and executed. Use TriggerFlow directly when the developer
@@ -48,14 +50,16 @@ and future Skills Executor integration.
 
 For model tasks, keep result control on the model task contract. Use
 `inputs.output_schema` for the task result shape and `inputs.output_format` for
-the response-control strategy: `json` for compact machine-control data,
+the response-control strategy: omit `inputs.output_format` to let the request
+read `prompt.default_output_format` (global default `json`); use `json` for compact machine-control data,
 standalone booleans/numbers, judges, dense all-typed arrays/objects, and strict extraction;
 `xml_field` for flat string long text/code/HTML/Markdown fields; explicit
 `hybrid` for long prose/code fields mixed with typed list/object/boolean/number
 fields when retry latency is acceptable; explicit `flat_markdown` only for
 legacy section-header compatibility; explicit `yaml_literal` only when
 a YAML target document is intentionally desired; and `auto` only when structural
-schema-driven selection and retry latency are acceptable.
+schema-driven selection and retry latency are acceptable after the target model
+has passed representative stability checks.
 If the host facade supplies `create_dynamic_task(..., output_schema=...,
 ensure_keys=...)`, that semantic-output contract owns the frontstage shape. A
 planner-chosen `inputs.output_format="flat_markdown"` must not break a

@@ -150,14 +150,17 @@ Action Runtime 之外自建平行的审批/恢复系统。
 当 skills 描述 Agently `4.1+` 的推荐路径时，应收敛到这几条默认用法：
 
 - 结构化输出：固定必填叶子写在 `.output(...)` 的元组 `ensure` 里；运行时
-  `ensure_keys` 只用于条件路径或运行时决定的路径。`.output(...)` 默认使用
-  `format="auto"`；当前 auto 是结构规则，扁平纯字符串 dict 解析为
+  `ensure_keys` 只用于条件路径或运行时决定的路径。省略 `.output(..., format=...)`
+  时读取 `prompt.default_output_format`，框架默认是 `json`；不同 agent 或 request
+  可以独立覆盖。显式 `format="auto"` 或设置
+  `prompt.default_output_format="auto"` 时使用结构规则：扁平纯字符串 dict 解析为
   `xml_field`，字符串字段与 typed 非字符串字段混合的 dict 解析为 `hybrid`，全控制字段、全复杂结构和非 dict 输出解析为 `json`。`yaml_literal` 是显式 opt-in，
-  `flat_markdown` 仅为显式兼容模式。密集全 typed 数据或下游契约需要 JSON-only 时显式 `format="json"`；扁平纯字符串 dict 适合 XML-like boundary 时可显式 `format="xml_field"`；长文本混合 typed 字段时可显式 `format="hybrid"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
+  `flat_markdown` 仅为显式兼容模式。密集全 typed 数据或下游契约需要 JSON-only 时显式 `format="json"`；扁平纯字符串 dict 适合 XML-like boundary 时可显式 `format="xml_field"`；长文本混合 typed 字段并经过目标模型稳定性测试后可显式 `format="hybrid"`；只要一个自由文本成品时不要调用 `.output(...)`。元组 ensure 要求解析到可用值：空白字符串、空 wildcard 结果、wildcard 里包含空白必填值都会失败，`False` 和 `0` 仍然有效。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
   缺失，但复杂嵌套数组、占位符回显、布尔/数字字段里填散文、大量 wildcard
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
   `json`/`flat_markdown`/`hybrid`/`xml_field`/`yaml_literal`/resolved `auto` 的临时结构化
   UI/进度更新；纯文本 streaming 用 `delta`。
+  最近 qwen2.5:7b 检查发现 `hybrid` 可能漏输出 section header，或把旧脚手架注释回显进文本字段；未经测试的本地模型不应默认启用 `auto`/`hybrid`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
   evidence 和简短 reason，再输出最终布尔字段；测试断言这些布尔字段。避免把
@@ -203,6 +206,12 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
   submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
   选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
+- Agent quick prompt 链是 AgentTurn-local request draft。服务可以保留一个配置好的
+  Agent 单例，用它承载 settings、模型激活、Actions、Skills、Workspace 和
+  `always=True` prompt；每条 `agent.input(...).output(...).async_start()` 链拥有
+  自己的 prompt 状态。多语句 request setup 应使用
+  `turn = agent.create_turn()` 并修改这个 turn，不要把本轮 request prompt 累计到共享
+  Agent 上。
 - AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
   loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
   task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把
