@@ -11,8 +11,8 @@ The user does not need to say `get_result()`. Requests to reuse one result as te
 - treat sync getters and generators as convenience wrappers for scripts, REPL use, or compatibility bridges
 - use `delta`, `instant`, `specific`, or `all` instead of custom stream splitting logic
 - annotate common stream consumers from `agently`: `StreamingData` for
-  `instant` / `streaming_parse`, `AgentlySpecificResponseMessage` for
-  `specific`, and `AgentlyModelResponseMessage` for `all`; use
+  `instant` / `streaming_parse`, `AgentlySpecificResultMessage` for
+  `specific`, and `AgentlyModelResultMessage` for `all`; use
   `agently.types.data` when the full typed data namespace is needed
 - subscribe to `reasoning_delta` / `reasoning_done` through `type="specific"`
   when reasoning output is needed. Provider-native reasoning and a leading

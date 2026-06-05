@@ -54,8 +54,8 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     token streaming or `get_text()` after completion
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
-  - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
-    and `AgentlyModelResponseMessage` from `agently`; use `agently.types.data`
+  - for typed handlers, import `StreamingData`, `AgentlySpecificResultMessage`,
+    and `AgentlyModelResultMessage` from `agently`; use `agently.types.data`
     for the full typed data namespace
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
