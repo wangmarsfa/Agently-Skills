@@ -114,6 +114,11 @@ here for Actions, Execution Environment, service, or DevTools details.
   table and can be inspected with `list_effort_strategies()`; their reference
   implementations live under the Agently builtin Skills Executor
   `modules/effort_strategies/` package
+- direct `agent.run_skills_task(..., stream_handler=...)` handlers receive
+  Skills runtime item dictionaries and can be annotated with
+  `SkillRuntimeStreamHandler`; model stream handlers passed to
+  `context.async_request_model(..., stream_handler=...)` receive `StreamingData`
+  and can be annotated with `ModelStreamingHandler`
 - for MCP, prefer Streamable HTTP URLs for service integrations
   (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE

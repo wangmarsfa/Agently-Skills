@@ -46,7 +46,7 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - choose streaming mode separately from output format:
   - use `get_generator(type="instant")` or
     `get_async_generator(type="instant")` when UI/progress consumers need
-    structured field updates before completion
+    structured `StreamingData` field updates before completion
   - `instant` is supported for `json`, `flat_markdown`, `hybrid`,
     `xml_field`, `yaml_literal`, and `auto` after auto resolves to one of its
     structured formats
@@ -54,6 +54,8 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     token streaming or `get_text()` after completion
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
+  - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
+    and `AgentlyModelResponseMessage` from `agently.types.data`
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
     do not depend on retry latency for hot paths. Recent qwen2.5:7b checks

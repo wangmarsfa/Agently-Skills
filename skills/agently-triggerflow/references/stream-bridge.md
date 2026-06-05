@@ -65,6 +65,7 @@ async def judge(data):
     partial = {"judge_items": []}
     emitted_items = set()
 
+    # `instant` yields agently.types.data.StreamingData items.
     async for msg in response.get_async_generator(type="instant"):
         path = getattr(msg, "path", None) or getattr(msg, "wildcard_path", None)
         match = PATH_PATTERN.match(path or "")
