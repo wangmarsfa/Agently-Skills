@@ -19,7 +19,7 @@
       "id": "response-reuse-native",
       "reference_example": "skills/agently-request/examples/model-response-minimal.py",
       "required_primitives": [
-        "get_response()",
+        "get_result()",
         "result.get_data("
       ],
       "forbidden_antipatterns": [
@@ -50,7 +50,7 @@
       "required_primitives": [
         "TriggerFlow",
         ".output(",
-        "get_response()",
+        "get_result()",
         "async_close"
       ],
       "forbidden_antipatterns": [

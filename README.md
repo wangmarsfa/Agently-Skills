@@ -265,8 +265,8 @@ converge on these defaults:
   auto_load_env=True)` for file-backed provider config; keep
   `Agently.set_settings(...)` for inline overrides
 - execution style: default to async-first for services, streaming, and workflows
-- response reuse: when one model result must be consumed multiple ways, prefer
-  `get_response()` and reuse the same response object
+- result reuse: when one model result must be consumed multiple ways, prefer
+  `get_result()` and reuse the same result object
 - Dynamic Task: treat `Agently.create_dynamic_task(...)` as the public surface
   for submitted DAGs. TriggerFlow is its execution substrate, not its owner API.
 - 4.1.2.x Agent auto-orchestration: treat default `agent.start()` as the accepted

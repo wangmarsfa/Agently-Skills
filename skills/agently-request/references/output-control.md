@@ -42,7 +42,7 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   - use plain text instead of `.output(...)` for one freeform artifact: an
     article, email, explanation, report, Markdown page, HTML page, or other
     single multi-paragraph document; read it with `start()` / `async_start()` or
-    `response.result.get_text()`
+    `result.get_text()`
 - choose streaming mode separately from output format:
   - use `get_generator(type="instant")` or
     `get_async_generator(type="instant")` when UI/progress consumers need
@@ -55,7 +55,8 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
   - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
-    and `AgentlyModelResponseMessage` from `agently.types.data`
+    and `AgentlyModelResponseMessage` from `agently`; use `agently.types.data`
+    for the full typed data namespace
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
     do not depend on retry latency for hot paths. Recent qwen2.5:7b checks

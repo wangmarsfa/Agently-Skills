@@ -198,8 +198,8 @@ Action Runtime 之外自建平行的审批/恢复系统。
   `Agently.load_settings("yaml_file", path, auto_load_env=True)`；`Agently.set_settings(...)`
   留给内联覆盖
 - 执行风格：服务、流式、工作流默认 async-first
-- 响应复用：一次模型结果需要多种消费方式时，优先 `get_response()` 并复用
-  同一个 response 对象
+- result 复用：一次模型结果需要多种消费方式时，优先 `get_result()` 并复用
+  同一个 result 对象
 - Dynamic Task：把 `Agently.create_dynamic_task(...)` 视为提交式 DAG 的
   公共能力面。TriggerFlow 是它的执行基座，不是 owner API。
 - 4.1.2.x Agent 自动编排：默认 `agent.start()` 是普通模型请求、Actions、

@@ -75,7 +75,7 @@ def _build_judge_response(draft: str):
                 ]
             }
         )
-        .get_response()
+        .get_result()
     )
 
 
@@ -92,12 +92,12 @@ def _extract_item_path(path: str):
 
 @flow.chunk("judge")
 async def judge(data):
-    response = _build_judge_response(data.input)
+    result = _build_judge_response(data.input)
 
     partial = {"judge_items": []}
     emitted = set()
 
-    async for msg in response.get_async_generator(type="instant"):
+    async for msg in result.get_async_generator(type="instant"):
         path = getattr(msg, "path", None) or getattr(msg, "wildcard_path", None)
         parsed = _extract_item_path(path or "")
         if parsed is None:
@@ -119,9 +119,9 @@ async def judge(data):
                 }
             )
 
-    result = await response.result.async_get_data(max_retries=1)
-    await data.async_set_state("judge_result", result)
-    return result
+    final = await result.async_get_data(max_retries=1)
+    await data.async_set_state("judge_result", final)
+    return final
 
 
 flow.to(judge)

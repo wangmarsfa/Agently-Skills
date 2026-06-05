@@ -46,14 +46,14 @@ def check(name: str, condition: bool, details: str, failures: list[str], passes:
 
 async def run_model_smoke(failures: list[str], passes: list[str]) -> None:
     agent = Agently.create_agent("v2-live-validator")
-    response = (
+    result = (
         agent.input("Return answer=ok and one checklist item.")
         .output({"answer": (str, None, True), "checklist": [(str, None, True)]})
-        .get_response()
+        .get_result()
     )
     try:
         data = await asyncio.wait_for(
-            response.result.async_get_data(max_retries=1),
+            result.async_get_data(max_retries=1),
             timeout=60,
         )
         check(
@@ -66,10 +66,10 @@ async def run_model_smoke(failures: list[str], passes: list[str]) -> None:
     except TimeoutError:
         failures.append("deepseek_output_control: timed out while waiting for DeepSeek-backed output control request")
 
-    response_2 = agent.input("Explain recursion in one short sentence.").output({"answer": (str,)}).get_response()
+    result_2 = agent.input("Explain recursion in one short sentence.").output({"answer": (str,)}).get_result()
     try:
-        text = await asyncio.wait_for(response_2.result.async_get_text(), timeout=60)
-        parsed = await asyncio.wait_for(response_2.result.async_get_data(), timeout=60)
+        text = await asyncio.wait_for(result_2.async_get_text(), timeout=60)
+        parsed = await asyncio.wait_for(result_2.async_get_data(), timeout=60)
         check(
             "deepseek_model_response",
             isinstance(text, str) and isinstance(parsed.get("answer"), str),
@@ -150,7 +150,7 @@ async def judge_route_case(case: dict) -> dict:
     )
 
     agent = Agently.create_agent(f"v2-route-live-{case['id']}")
-    response = (
+    result = (
         agent
         .input(prompt)
         .output(
@@ -165,9 +165,9 @@ async def judge_route_case(case: dict) -> dict:
                 "evidence": [(str, "Short metadata evidence supporting the selected route.", True)],
             }
         )
-        .get_response()
+        .get_result()
     )
-    data = await response.result.async_get_data(max_retries=1)
+    data = await result.async_get_data(max_retries=1)
     data["decision"] = str(data["decision"]).strip().lower()
     data["route_path"] = [normalize_skill_name(item) for item in data["route_path"]]
     return data

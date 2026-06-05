@@ -2,13 +2,13 @@ from agently import Agently
 
 agent = Agently.create_agent()
 
-response = (
+result = (
     agent.input("Classify this production incident")
     .output({"status": (str, None, True), "severity": (str, None, True)})
-    .get_response()
+    .get_result()
 )
 
-result = response.result.get_data(
+data = result.get_data(
     validate_handler=lambda result, context: (
         result["status"] == "ready"
         and result["severity"] in {"P0", "P1", "P2", "P3"}
@@ -16,4 +16,4 @@ result = response.result.get_data(
     max_retries=2,
 )
 
-print(result)
+print(data)

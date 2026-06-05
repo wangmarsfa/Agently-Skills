@@ -138,7 +138,7 @@ async def judge_case(case: dict) -> dict:
     )
 
     agent = Agently.create_agent(f"v2-reference-retrieval-{case['id']}")
-    response = (
+    result = (
         agent.input(prompt)
         .output(
             {
@@ -153,9 +153,9 @@ async def judge_case(case: dict) -> dict:
                 "evidence": [(str, "Short file-based evidence for the chosen files.", True)],
             }
         )
-        .get_response()
+        .get_result()
     )
-    data = await response.result.async_get_data(max_retries=1)
+    data = await result.async_get_data(max_retries=1)
     data["decision"] = str(data["decision"]).strip().lower()
     data["selected_paths"] = normalize_string_list(data["selected_paths"])
     data["covered_concepts"] = normalize_string_list(data["covered_concepts"])
