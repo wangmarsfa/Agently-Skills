@@ -73,7 +73,11 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
   - use explicit `format="json"` when retry latency is unacceptable, raw JSON is
     required, a target model is known to ignore markdown section headers, or the
     schema contains no prose/code string fields and many nested arrays
-- for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed required leaves
+- for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed
+  required leaves. Required string leaves must contain non-blank text; missing
+  keys, `None`, blank strings, empty wildcard matches, or wildcard matches
+  containing blank required values fail and share the normal retry budget.
+  `False` and `0` remain valid typed values
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - `max_retries=3` means Agently may make up to three additional model attempts
   after the initial call when parsing, required-key extraction, strict output

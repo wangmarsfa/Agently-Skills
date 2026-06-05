@@ -206,7 +206,10 @@ converge on these defaults:
   contracts; explicit `format="xml_field"` for flat string-only dict schemas
   when XML-like boundaries fit; explicit `format="hybrid"` for mixed long text
   plus typed fields after provider/model stability checks; and no
-  `.output(...)` for one freeform plain-text artifact. `max_retries=3` can recover ordinary parse/key omissions with up to
+  `.output(...)` for one freeform plain-text artifact. Tuple ensure requires
+  meaningful values: blank strings, empty wildcard matches, and wildcard matches
+  containing blank required values fail, while `False` and `0` remain valid.
+  `max_retries=3` can recover ordinary parse/key omissions with up to
   three additional model attempts, but complex nested arrays, placeholder echo,
   prose in boolean/numeric fields, and many wildcard ensure paths can still
   fail after retries. Use `instant` streaming for provisional structured

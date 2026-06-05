@@ -155,7 +155,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
   可以独立覆盖。显式 `format="auto"` 或设置
   `prompt.default_output_format="auto"` 时使用结构规则：扁平纯字符串 dict 解析为
   `xml_field`，字符串字段与 typed 非字符串字段混合的 dict 解析为 `hybrid`，全控制字段、全复杂结构和非 dict 输出解析为 `json`。`yaml_literal` 是显式 opt-in，
-  `flat_markdown` 仅为显式兼容模式。密集全 typed 数据或下游契约需要 JSON-only 时显式 `format="json"`；扁平纯字符串 dict 适合 XML-like boundary 时可显式 `format="xml_field"`；长文本混合 typed 字段并经过目标模型稳定性测试后可显式 `format="hybrid"`；只要一个自由文本成品时不要调用 `.output(...)`。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
+  `flat_markdown` 仅为显式兼容模式。密集全 typed 数据或下游契约需要 JSON-only 时显式 `format="json"`；扁平纯字符串 dict 适合 XML-like boundary 时可显式 `format="xml_field"`；长文本混合 typed 字段并经过目标模型稳定性测试后可显式 `format="hybrid"`；只要一个自由文本成品时不要调用 `.output(...)`。元组 ensure 要求解析到可用值：空白字符串、空 wildcard 结果、wildcard 里包含空白必填值都会失败，`False` 和 `0` 仍然有效。`max_retries=3` 可用最多三次额外模型尝试恢复普通解析/key
   缺失，但复杂嵌套数组、占位符回显、布尔/数字字段里填散文、大量 wildcard
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
   `json`/`flat_markdown`/`hybrid`/`xml_field`/`yaml_literal`/resolved `auto` 的临时结构化
