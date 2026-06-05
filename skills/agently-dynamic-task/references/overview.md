@@ -29,13 +29,15 @@ Layer ownership:
   runtime owners.
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
-- In Agent mode, quick prompt methods are configuration. `agent.create_dynamic_task()`
-  consumes the current prompt snapshot: rendered prompt text becomes the
-  DynamicTask target, the `output` slot becomes `output_schema`, `output_format`
-  becomes the default model-task format, and the `input` slot remains structured
-  graph input for `${INIT...}` placeholders. `set_agent_prompt(...)` values
-  are inherited and preserved; request prompt values are frozen and then
-  cleared. Explicit facade arguments override prompt-derived defaults.
+- In Agent mode, chained quick prompt methods create an AgentTurn-local request
+  draft. `agent.create_dynamic_task()` consumes that turn prompt snapshot:
+  rendered prompt text becomes the DynamicTask target, the `output` slot becomes
+  `output_schema`, `output_format` becomes the default model-task format, and
+  the `input` slot remains structured graph input for `${INIT...}`
+  placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
+  preserved; multi-statement setup should capture `turn = agent.create_turn()`
+  instead of mutating the shared Agent request. Explicit facade arguments
+  override prompt-derived defaults.
 
 Use Dynamic Task when the graph is submitted as data and must be planned,
 validated, pruned, and executed. Use TriggerFlow directly when the developer

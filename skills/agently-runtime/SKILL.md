@@ -118,12 +118,16 @@ here for Actions, Execution Environment, service, or DevTools details.
   (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE
   as a legacy compatibility transport
-- treat Agent quick prompt methods as configuration for every Agent execution
-  surface: `agent.input(...).output(...).run_skills_task(...)` maps the rendered
-  prompt snapshot to the Skill task and maps `output` / `output_format` to the
-  Skills execution `output` / `output_format` contract; `semantic_outputs=` is
-  only a deprecated compatibility alias for direct Skills execution, while
-  Dynamic Task still uses `semantic_outputs` inside TaskDAG specs
+- treat chained Agent quick prompt methods as AgentTurn-local configuration for
+  one request/execution surface: `agent.input(...).output(...).run_skills_task(...)`
+  maps the turn prompt snapshot to the Skill task and maps `output` /
+  `output_format` to the Skills execution `output` / `output_format` contract;
+  Agent-level persistent prompt must be explicit through `always=True`,
+  `set_agent_prompt(...)`, or stable setup APIs. For multi-statement request
+  setup, use `turn = agent.create_turn()` and mutate the turn, not the shared
+  Agent request. `semantic_outputs=` is only a deprecated compatibility alias
+  for direct Skills execution, while Dynamic Task still uses `semantic_outputs`
+  inside TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react
