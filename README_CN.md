@@ -102,7 +102,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 默认 catalog 一共 6 个公开 skills：
 
-- `agently-playbook`
+- `agently`
   未定层级的模型应用、助手、内部工具、自动化、评估器、工作流、项目结构
   重构请求的统一入口。
 - `agently-request`
@@ -126,7 +126,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 选 skill 时，先按这个顺序想：
 
 - 如果用户请求从业务目标、产品行为、重构诉求，或者一个“还没定 owner
-  layer”的问题出发，先走 `agently-playbook`。
+  layer”的问题出发，先走 `agently`。
 - 如果请求保持在一个 request family 内，走 `agently-request`。
 - 如果请求需要模型可调用能力、托管执行依赖、服务暴露或 DevTools wiring，
   走 `agently-runtime`。
@@ -280,7 +280,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
   observation、evaluation、playground 与 logs
 
 更完整的公开规范可以看
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md)。
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md)。
 
 ## 安装
 
@@ -298,7 +298,7 @@ export AGENT=codex
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -319,7 +319,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 如果只想最小化安装入口 router：
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 查看默认公开 catalog：

@@ -11,7 +11,7 @@ LEGACY_V1_MANIFEST = ROOT / "legacy" / "v1" / "bundles" / "manifest.json"
 VALID_KINDS = {"entry", "core", "addon", "specialized"}
 EXPECTED_IDS = {"app", "migration"}
 APP_SKILLS = {
-    "agently-playbook",
+    "agently",
     "agently-request",
     "agently-runtime",
     "agently-dynamic-task",
@@ -73,8 +73,8 @@ def main() -> None:
         )
         check(
             f"{bundle_id}_install_order",
-            install and install[0] == "agently-playbook",
-            "bundle install order starts with agently-playbook",
+            install and install[0] == "agently",
+            "bundle install order starts with agently",
             failures,
             passes,
         )
@@ -87,8 +87,8 @@ def main() -> None:
         )
         check(
             f"{bundle_id}_entry",
-            entry == "agently-playbook",
-            "entry skill is agently-playbook",
+            entry == "agently",
+            "entry skill is agently",
             failures,
             passes,
         )

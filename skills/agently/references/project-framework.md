@@ -163,12 +163,12 @@ Landed examples include `core/Action`, `core/TriggerFlow`,
 
 ## Initialization Decision
 
-Project initialization should stay inside `agently-playbook`, not become a separate public skill.
+Project initialization should stay inside `agently`, not become a separate public skill.
 
 Reason:
 
 - initialization is not one mutually exclusive capability surface
-- the first job is choosing owner layers and boundaries, which is what `agently-playbook` already owns
+- the first job is choosing owner layers and boundaries, which is what `agently` already owns
 - only after that decision should work fan out into `agently-request`, `agently-runtime`, `agently-dynamic-task`, `agently-triggerflow`, or another owning skill
 
 ## Reference Pattern

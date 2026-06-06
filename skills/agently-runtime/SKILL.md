@@ -9,7 +9,7 @@ Use this skill when the app needs model-callable capabilities, managed execution
 dependencies, service exposure, or development/runtime tooling around an
 existing request or workflow design.
 
-If the owner layer is still undecided, start with `agently-playbook`. If the
+If the owner layer is still undecided, start with `agently`. If the
 problem is multi-step orchestration, use `agently-triggerflow` first and return
 here for Actions, Execution Environment, service, or DevTools details.
 

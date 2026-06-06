@@ -134,7 +134,7 @@ a parallel approval/resume system outside TriggerFlow and Action Runtime.
 
 The default catalog contains 6 public skills:
 
-- `agently-playbook`
+- `agently`
   Top-level router for unresolved model-powered product, assistant,
   internal-tool, automation, evaluator, workflow, or project-structure refactor
   requests.
@@ -160,7 +160,7 @@ The default catalog contains 6 public skills:
 Use this mental model when choosing a skill:
 
 - If the request starts from business goals, product behavior, refactor intent,
-  or an unclear owner layer, start with `agently-playbook`.
+  or an unclear owner layer, start with `agently`.
 - If the request stays inside one request family, route to `agently-request`.
 - If the request needs model-callable capabilities, managed execution
   dependencies, service exposure, or DevTools wiring, route to
@@ -374,7 +374,7 @@ The default shape should usually separate:
   observation, evaluation, playground, and logs
 
 A fuller public reference lives in
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md).
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md).
 
 ## Install
 
@@ -393,7 +393,7 @@ Default bundle for building new Agently applications:
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -415,7 +415,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 Install only the router when you want the smallest possible starting point:
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 Inspect the default public catalog:

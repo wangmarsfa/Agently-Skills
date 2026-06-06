@@ -6,16 +6,16 @@
       "id": "app",
       "kind": "core",
       "purpose": "Build new Agently applications or services with request-side model behavior, runtime capabilities, Dynamic Task DAG execution, and TriggerFlow orchestration through the current compact 6-skill catalog.",
-      "entry_skill": "agently-playbook",
+      "entry_skill": "agently",
       "active_skills": [
-        "agently-playbook",
+        "agently",
         "agently-request",
         "agently-runtime",
         "agently-dynamic-task",
         "agently-triggerflow"
       ],
       "recommended_install_order": [
-        "agently-playbook",
+        "agently",
         "agently-request",
         "agently-runtime",
         "agently-dynamic-task",
@@ -26,10 +26,10 @@
       "id": "migration",
       "kind": "specialized",
       "purpose": "Migrate existing LangChain, LangGraph, LlamaIndex, CrewAI, or similar systems into Agently, with the app bundle plus compact migration routing.",
-      "entry_skill": "agently-playbook",
+      "entry_skill": "agently",
       "base_bundle": "app",
       "active_skills": [
-        "agently-playbook",
+        "agently",
         "agently-request",
         "agently-runtime",
         "agently-dynamic-task",
@@ -37,7 +37,7 @@
         "agently-migration"
       ],
       "recommended_install_order": [
-        "agently-playbook",
+        "agently",
         "agently-request",
         "agently-runtime",
         "agently-dynamic-task",

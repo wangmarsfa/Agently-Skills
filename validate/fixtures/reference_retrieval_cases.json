@@ -5,11 +5,11 @@
       "id": "project-framework-daily-news-zh",
       "query": "如果我要按 Daily News Collector 那种方式初始化或重构项目，确认模型配置、Prompt 和 TriggerFlow 的分层，同时把 Configure Prompt 的动态变量注入和 `${ENV.xxx}` + `.env` 的模型设置约束都找出来，我应该先看哪些配套文档？",
       "matched_skills": [
-        "agently-playbook"
+        "agently"
       ],
       "expected_reference_sets": [
         [
-          "skills/agently-playbook/references/project-framework.md"
+          "skills/agently/references/project-framework.md"
         ]
       ],
       "concepts": [
@@ -27,7 +27,7 @@
         },
         {
           "id": "playbook_owns_initialization",
-          "description": "Project initialization stays inside agently-playbook rather than becoming a separate public skill."
+          "description": "Project initialization stays inside agently rather than becoming a separate public skill."
         }
       ],
       "required_concepts": [

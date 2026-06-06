@@ -9,7 +9,7 @@ Use this skill when the work stays on the request side: provider setup, prompt
 contracts, output contracts, response consumption, session continuity, or
 retrieval.
 
-If the owner layer is still unclear, start with `agently-playbook`. If the
+If the owner layer is still unclear, start with `agently`. If the
 request clearly needs branching, waiting, resume, or durable orchestration, use
 `agently-triggerflow` and read this skill only for model-step details.
 
