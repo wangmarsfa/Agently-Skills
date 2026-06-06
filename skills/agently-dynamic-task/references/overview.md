@@ -25,19 +25,21 @@ Layer ownership:
   `TaskDAG.from_json(...)`.
 - `AgentlyTaskDAGPlanner` is a plugin and owns planner output schema,
   `ensure_keys`, model instructions, and retry validation wiring.
-- `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` are core
+- `TaskDAGValidator`, `TaskDAGResolver`, and `TaskDAGExecutor` are core
   runtime owners.
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
-- In Agent mode, chained quick prompt methods create an AgentTurn-local request
-  draft. `agent.create_dynamic_task()` consumes that turn prompt snapshot:
+- In Agent mode, chained quick prompt methods create an AgentExecution-local
+  request draft. `agent.create_dynamic_task()` consumes that execution prompt snapshot:
   rendered prompt text becomes the DynamicTask target, the `output` slot becomes
   `output_schema`, `output_format` becomes the default model-task format, and
   the `input` slot remains structured graph input for `${INIT...}`
   placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
-  preserved; multi-statement setup should capture `turn = agent.create_turn()`
-  instead of mutating the shared Agent request. Explicit facade arguments
-  override prompt-derived defaults.
+  preserved; multi-statement setup should capture
+  `execution = agent.create_execution()` instead of mutating the shared Agent
+  request. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
+  deprecated compatibility surfaces until Agently 4.2. Explicit facade
+  arguments override prompt-derived defaults.
 
 Use Dynamic Task when the graph is submitted as data and must be planned,
 validated, pruned, and executed. Use TriggerFlow directly when the developer

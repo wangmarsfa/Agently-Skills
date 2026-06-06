@@ -133,7 +133,7 @@ def main() -> None:
     check(
         "generic_non_framework_playbook_case",
         any(
-            case.get("expected_route_paths") == [["agently-playbook"]]
+            case.get("expected_route_paths") == [["agently"]]
             and "agently" not in case.get("query", "").lower()
             and "triggerflow" not in case.get("query", "").lower()
             for case in cases
@@ -146,7 +146,7 @@ def main() -> None:
         "chinese_quality_validator_case",
         any(
             case.get("id") == "skills-quality-simulator-kickoff-zh"
-            and case.get("expected_route_paths") == [["agently-playbook"]]
+            and case.get("expected_route_paths") == [["agently"]]
             and "agently" not in case.get("query", "").lower()
             for case in cases
         ),
@@ -158,7 +158,7 @@ def main() -> None:
         "ui_ollama_skill_tool_case",
         any(
             case.get("id") == "skill-creation-tool-ui-ollama-zh"
-            and any(path and path[0] == "agently-playbook" for path in case.get("expected_route_paths", []))
+            and any(path and path[0] == "agently" for path in case.get("expected_route_paths", []))
             and "agently" not in case.get("query", "").lower()
             for case in cases
         ),
@@ -170,10 +170,10 @@ def main() -> None:
         "direct_leaf_cases_present",
         any(
             isinstance(case.get("expected_route_paths"), list)
-            and any(path and path[0] != "agently-playbook" for path in case["expected_route_paths"])
+            and any(path and path[0] != "agently" for path in case["expected_route_paths"])
             for case in cases
         ),
-        "fixtures cover direct leaf discovery without forcing agently-playbook first",
+        "fixtures cover direct leaf discovery without forcing agently first",
         failures,
         passes,
     )
@@ -207,10 +207,10 @@ def main() -> None:
             f"{scenario_id}_playbook_led",
             not rule["require_playbook_led"]
             or any(
-                any(path and path[0] == "agently-playbook" for path in case.get("expected_route_paths", []))
+                any(path and path[0] == "agently" for path in case.get("expected_route_paths", []))
                 for case in group
             ),
-            "intent group includes unresolved phrasing that should stop at or start from agently-playbook",
+            "intent group includes unresolved phrasing that should stop at or start from agently",
             failures,
             passes,
         )
@@ -218,7 +218,7 @@ def main() -> None:
             f"{scenario_id}_direct_combo",
             not rule["require_direct_combo"]
             or any(
-                any(path and path[0] != "agently-playbook" for path in case.get("expected_route_paths", []))
+                any(path and path[0] != "agently" for path in case.get("expected_route_paths", []))
                 for case in group
             ),
             "intent group includes explicit phrasing that should route to a non-playbook path",

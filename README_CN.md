@@ -102,7 +102,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 默认 catalog 一共 6 个公开 skills：
 
-- `agently-playbook`
+- `agently`
   未定层级的模型应用、助手、内部工具、自动化、评估器、工作流、项目结构
   重构请求的统一入口。
 - `agently-request`
@@ -126,7 +126,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 选 skill 时，先按这个顺序想：
 
 - 如果用户请求从业务目标、产品行为、重构诉求，或者一个“还没定 owner
-  layer”的问题出发，先走 `agently-playbook`。
+  layer”的问题出发，先走 `agently`。
 - 如果请求保持在一个 request family 内，走 `agently-request`。
 - 如果请求需要模型可调用能力、托管执行依赖、服务暴露或 DevTools wiring，
   走 `agently-runtime`。
@@ -206,12 +206,14 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
   submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
   选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
-- Agent quick prompt 链是 AgentTurn-local request draft。服务可以保留一个配置好的
+- Agent quick prompt 链是 AgentExecution-local request draft。服务可以保留一个配置好的
   Agent 单例，用它承载 settings、模型激活、Actions、Skills、Workspace 和
   `always=True` prompt；每条 `agent.input(...).output(...).async_start()` 链拥有
   自己的 prompt 状态。多语句 request setup 应使用
-  `turn = agent.create_turn()` 并修改这个 turn，不要把本轮 request prompt 累计到共享
-  Agent 上。
+  `execution = agent.create_execution()` 并修改这个 execution，不要把本轮 request
+  prompt 累计到共享 Agent 上。`AgentTurn` / `agent.create_turn()` /
+  `set_turn_prompt(...)` 是 Agently 4.2 前的 deprecated compatibility surface，
+  不应作为默认路径推荐。
 - AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
   loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
   task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把
@@ -278,7 +280,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
   observation、evaluation、playground 与 logs
 
 更完整的公开规范可以看
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md)。
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md)。
 
 ## 安装
 
@@ -296,7 +298,7 @@ export AGENT=codex
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -317,7 +319,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 如果只想最小化安装入口 router：
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 查看默认公开 catalog：

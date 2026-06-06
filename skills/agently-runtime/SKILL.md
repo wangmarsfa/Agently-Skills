@@ -9,7 +9,7 @@ Use this skill when the app needs model-callable capabilities, managed execution
 dependencies, service exposure, or development/runtime tooling around an
 existing request or workflow design.
 
-If the owner layer is still undecided, start with `agently-playbook`. If the
+If the owner layer is still undecided, start with `agently`. If the
 problem is multi-step orchestration, use `agently-triggerflow` first and return
 here for Actions, Execution Environment, service, or DevTools details.
 
@@ -79,9 +79,11 @@ here for Actions, Execution Environment, service, or DevTools details.
   rather than importing core RuntimeEvent emitters; plugin-owned custom Event
   Center messages must use plugin-owned namespaces and are not guaranteed as
   framework consumption contracts
-- keep runtime naming aligned with DevTools: `agent_turn` is a run lineage kind
-  for one Agent-facing turn, while `attempt_index` is model-request retry
-  metadata and must not be treated as an Agent turn counter
+- keep runtime naming aligned with DevTools: `agent_execution` is the canonical
+  run lineage kind for one bounded Agent execution. `agent_turn` remains a
+  compatibility event/run-kind alias until Agently 4.2. `attempt_index` is
+  model-request retry metadata and must not be treated as an AgentExecution
+  counter.
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
@@ -123,16 +125,19 @@ here for Actions, Execution Environment, service, or DevTools details.
   (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE
   as a legacy compatibility transport
-- treat chained Agent quick prompt methods as AgentTurn-local configuration for
-  one request/execution surface: `agent.input(...).output(...).run_skills_task(...)`
-  maps the turn prompt snapshot to the Skill task and maps `output` /
-  `output_format` to the Skills execution `output` / `output_format` contract;
-  Agent-level persistent prompt must be explicit through `always=True`,
-  `set_agent_prompt(...)`, or stable setup APIs. For multi-statement request
-  setup, use `turn = agent.create_turn()` and mutate the turn, not the shared
-  Agent request. `semantic_outputs=` is only a deprecated compatibility alias
-  for direct Skills execution, while Dynamic Task still uses `semantic_outputs`
-  inside TaskDAG specs
+- treat chained Agent quick prompt methods as AgentExecution-local configuration
+  for one request/execution surface:
+  `agent.input(...).output(...).run_skills_task(...)` maps the execution prompt
+  snapshot to the Skill task and maps `output` / `output_format` to the Skills
+  execution `output` / `output_format` contract; Agent-level persistent prompt
+  must be explicit through `always=True`, `set_agent_prompt(...)`, or stable
+  setup APIs. For multi-statement request setup, use
+  `execution = agent.create_execution()` and mutate the execution, not the
+  shared Agent request. `AgentTurn` / `agent.create_turn()` /
+  `set_turn_prompt(...)` are deprecated compatibility surfaces until Agently
+  4.2. `semantic_outputs=` is only a deprecated compatibility alias for direct
+  Skills execution, while Dynamic Task still uses `semantic_outputs` inside
+  TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react

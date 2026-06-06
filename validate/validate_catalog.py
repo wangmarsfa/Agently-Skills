@@ -13,7 +13,7 @@ LEGACY_V1_SKILLS_DIR = LEGACY_V1 / "skills"
 ROUTE_FIXTURES = ROOT / "validate" / "fixtures" / "route_cases.json"
 REFERENCE_FIXTURES = ROOT / "validate" / "fixtures" / "reference_retrieval_cases.json"
 EXPECTED_SKILLS = {
-    "agently-playbook",
+    "agently",
     "agently-request",
     "agently-runtime",
     "agently-dynamic-task",
@@ -99,7 +99,7 @@ def main() -> None:
     actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
     check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches current 6-skill set", failures, passes)
 
-    playbook_text = (SKILLS / "agently-playbook" / "SKILL.md").read_text(encoding="utf-8")
+    playbook_text = (SKILLS / "agently" / "SKILL.md").read_text(encoding="utf-8")
     dynamic_task_text = (SKILLS / "agently-dynamic-task" / "SKILL.md").read_text(encoding="utf-8")
     triggerflow_text = (SKILLS / "agently-triggerflow" / "SKILL.md").read_text(encoding="utf-8")
     check(
@@ -323,7 +323,7 @@ def main() -> None:
     check(
         "route_fixture_covers_direct_leaf_cases",
         any(
-            any(path and path[0] != "agently-playbook" for path in case.get("expected_route_paths", []))
+            any(path and path[0] != "agently" for path in case.get("expected_route_paths", []))
             for case in fixture_cases
         ),
         "route fixtures cover direct leaf discovery cases",

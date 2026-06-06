@@ -134,7 +134,7 @@ a parallel approval/resume system outside TriggerFlow and Action Runtime.
 
 The default catalog contains 6 public skills:
 
-- `agently-playbook`
+- `agently`
   Top-level router for unresolved model-powered product, assistant,
   internal-tool, automation, evaluator, workflow, or project-structure refactor
   requests.
@@ -160,7 +160,7 @@ The default catalog contains 6 public skills:
 Use this mental model when choosing a skill:
 
 - If the request starts from business goals, product behavior, refactor intent,
-  or an unclear owner layer, start with `agently-playbook`.
+  or an unclear owner layer, start with `agently`.
 - If the request stays inside one request family, route to `agently-request`.
 - If the request needs model-callable capabilities, managed execution
   dependencies, service exposure, or DevTools wiring, route to
@@ -275,12 +275,15 @@ converge on these defaults:
   Skills remain deterministic; ambiguous optional candidates use model-owned
   route choice. Prefer `agent.create_execution()` for route diagnostics,
   multiple result views, and process streaming.
-- Agent quick prompt chains are AgentTurn-local request drafts. A service may
-  keep one configured Agent singleton for settings, model activation, Actions,
-  Skills, Workspace, and `always=True` prompt, while each
+- Agent quick prompt chains are AgentExecution-local request drafts. A service
+  may keep one configured Agent singleton for settings, model activation,
+  Actions, Skills, Workspace, and `always=True` prompt, while each
   `agent.input(...).output(...).async_start()` chain owns its own prompt state.
-  For multi-statement request setup, use `turn = agent.create_turn()` and mutate
-  the turn; do not accumulate request-scoped prompt state on the shared Agent.
+  For multi-statement request setup, use `execution = agent.create_execution()`
+  and mutate the execution; do not accumulate request-scoped prompt state on the
+  shared Agent. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
+  deprecated compatibility surfaces until Agently 4.2 and should not be taught
+  as the default path.
 - AgentExecution step contract: use default `mode="one_turn"` for compatibility
   and `mode="task_step"` with explicit `lineage=` / `limits=` for bounded
   developer-owned loop steps. Task-step executions are one step, not the loop
@@ -371,7 +374,7 @@ The default shape should usually separate:
   observation, evaluation, playground, and logs
 
 A fuller public reference lives in
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md).
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md).
 
 ## Install
 
@@ -390,7 +393,7 @@ Default bundle for building new Agently applications:
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -412,7 +415,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 Install only the router when you want the smallest possible starting point:
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 Inspect the default public catalog:

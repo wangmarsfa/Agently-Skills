@@ -13,7 +13,7 @@ Use this file as installation-time guidance after the skills are added into anot
 
 ## Usage Priorities
 
-- Route unresolved product, assistant, and workflow requests through `agently-playbook` first.
+- Route unresolved product, assistant, and workflow requests through `agently` first.
 - Prefer Agently-native capabilities before custom output parsers, retry loops, or orchestration layers.
 - Apply Occam's razor to APIs, architecture, and examples: do not add a new entity,
   method, facade, or compatibility patch when an existing Agently surface already
@@ -114,7 +114,7 @@ Use this file as installation-time guidance after the skills are added into anot
 
 ## Skill Routing Reminders
 
-- `agently-playbook`: unresolved owner layer, project shape, or broad product request
+- `agently`: unresolved owner layer, project shape, or broad product request
 - `agently-request`: provider wiring, env placeholders, model settings, prompt config, structured output, response reuse, session memory, embeddings, and retrieval
 - `agently-runtime`: Action Runtime, tools, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation, evaluation, and playground integration
 - `agently-triggerflow`: explicit orchestration, branching, concurrency, runtime stream, workflow-owned business events, and execution-graph-friendly workflow definitions

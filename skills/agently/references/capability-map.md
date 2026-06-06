@@ -1,6 +1,6 @@
 # Capability Map
 
-Use `agently-playbook` to reduce a broad request into one Agently-native capability path.
+Use `agently` to reduce a broad request into one Agently-native capability path.
 
 The request can start from a generic scenario and does not need to mention Agently explicitly.
 
