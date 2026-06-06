@@ -18,16 +18,17 @@ Use this skill when the core problem is how prompt state should be structured be
 - when the output contract is stable and shared across a request family, keep it
   in prompt config such as `.turn.output` instead of rebuilding it ad hoc in
   Python. `.request` remains accepted as a compatibility alias for `.turn`
-- Agent quick prompt chains create AgentTurn-local request drafts. Expression-local
-  chaining can configure and run one turn directly, for example
+- Agent quick prompt chains create AgentExecution-local request drafts. Expression-local
+  chaining can configure and run one execution directly, for example
   `agent.input(...).output(...).async_start()`. If setup is split across
   statements, conditions, helper calls, or later configuration steps, capture
-  `turn = agent.create_turn()` and mutate that turn with
-  `turn.set_turn_prompt(...)` or quick prompt methods; do not rely on shared
-  Agent request-scoped prompt accumulation. `set_request_prompt(...)` remains a
-  compatibility alias for `set_turn_prompt(...)`. Agent-level persistent setup
-  remains on `always=True`, `set_agent_prompt(...)`, settings, and stable prompt
-  config.
+  `execution = agent.create_execution()` and mutate that execution with
+  `execution.set_execution_prompt(...)` or quick prompt methods; do not rely on
+  shared Agent request-scoped prompt accumulation. `AgentTurn` /
+  `agent.create_turn()` / `set_turn_prompt(...)` are deprecated compatibility
+  surfaces until Agently 4.2. `set_request_prompt(...)` remains a compatibility
+  alias for `set_execution_prompt(...)`. Agent-level persistent setup remains on
+  `always=True`, `set_agent_prompt(...)`, settings, and stable prompt config.
 - set structured output format in prompt config with `$format` inside the
   `output` block when the contract needs a fixed mode, for example
   `.turn.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
