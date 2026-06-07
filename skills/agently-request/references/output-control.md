@@ -54,6 +54,10 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     token streaming or `get_text()` after completion
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
+  - do not treat `instant` `.is_complete` as a global display-order barrier.
+    When several paths share one CLI output area, buffer later-path deltas until
+    the earlier path completion event has been handled; Web UI, SSE, and
+    WebSocket consumers should normally render paths into separate slots
   - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
     and `AgentlyModelResponseMessage` from `agently.types.data`
 - account for observed model reliability when recommending formats:

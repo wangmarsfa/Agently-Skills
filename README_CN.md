@@ -160,6 +160,9 @@ Action Runtime 之外自建平行的审批/恢复系统。
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
   `json`/`flat_markdown`/`hybrid`/`xml_field`/`yaml_literal`/resolved `auto` 的临时结构化
   UI/进度更新；纯文本 streaming 用 `delta`。
+  `.is_complete` 表示 path 完成，不是全局展示顺序屏障；多个 path 共用一个
+  CLI 输出区域时，应在 consumer 中缓冲后续 path 的 delta，等前一个 path 的完成
+  事件处理后再 flush。Web UI、SSE 和 WebSocket 通常应把不同 path 渲染到独立 slot。
   最近 qwen2.5:7b 检查发现 `hybrid` 可能漏输出 section header，或把旧脚手架注释回显进文本字段；未经测试的本地模型不应默认启用 `auto`/`hybrid`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出

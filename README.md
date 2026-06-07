@@ -215,6 +215,10 @@ converge on these defaults:
   fail after retries. Use `instant` streaming for provisional structured
   UI/progress updates on `json`/`flat_markdown`/`hybrid`/`xml_field`/
   `yaml_literal`/resolved `auto`; use `delta` streaming for plain text.
+  Treat `instant` `.is_complete` as path completion, not a global display-order
+  barrier; if multiple paths share one CLI output area, buffer later-path deltas
+  until the earlier path completion event has been handled. Web UI, SSE, and
+  WebSocket consumers should normally render paths into separate slots.
   Recent qwen2.5:7b checks found `hybrid` can omit section headers or echo old
   scaffold comments into text fields, so do not make `auto`/`hybrid` the
   default for untested local models.

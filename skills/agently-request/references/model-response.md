@@ -18,6 +18,11 @@ The user does not need to say `get_response()`. Requests to reuse one result as 
   outer `<think>...</think>` before the answer payload belong in reasoning
   events; `original_delta` / `original_done` keep the raw provider content.
   Payload-internal `<think>` remains ordinary answer text
+- treat `instant` `.is_complete` as path completion, not a global display-order
+  barrier. For Web UI, SSE, or WebSocket consumers, render each path into its
+  own slot. For CLI consumers that print multiple paths into one terminal area,
+  use a small state flag or buffer and flush later-path deltas only after the
+  earlier path's completion event has been handled
 
 ## Anti-Patterns
 
