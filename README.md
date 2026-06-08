@@ -351,7 +351,11 @@ completion by pointing directly at existing examples or tests before checking
 their coverage against the target.
 
 For release acceptance that touches or claims a Foundation-layer capability,
-add a Foundation example effect gate after pyright/pytest. Identify the affected
+add a Foundation example effect gate after pyright/pytest. Treat Foundation as
+framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
+Task/TaskDAG, ActionRuntime, ExecutionEnvironment, Workspace/Recall,
+RuntimeEvent/EventCenter, and provider protocols, not application-level
+AgentExecution or Skills use cases by themselves. Identify the affected
 Foundation capability, run the corresponding core example under `examples/`
 against the release candidate, use real DeepSeek or local Ollama when
 model-owned behavior is involved, and fail closed if the example effect is

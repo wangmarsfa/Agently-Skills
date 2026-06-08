@@ -258,10 +258,13 @@ Action Runtime 之外自建平行的审批/恢复系统。
   companion validation 或明确延期。不能在没有检查证据覆盖目标合同的情况下，直接用已有
   examples 或 tests 宣称完成。
 - 如果 release 验收触及或声称 Foundation 层能力，必须在 pyright/pytest 之后追加
-  Foundation example effect gate：识别受影响的 Foundation 能力，运行 `examples/`
-  下对应核心 example 验证 release candidate 的真实效果；涉及模型拥有的行为时使用真实
-  DeepSeek 或本地 Ollama；如果 example effect 缺失、失败，或只被 tests 证明，则
-  fail closed。
+  Foundation example effect gate。这里的 Foundation 指 ModelRequest/ModelResponse、
+  TriggerFlow、Dynamic Task/TaskDAG、ActionRuntime、ExecutionEnvironment、
+  Workspace/Recall、RuntimeEvent/EventCenter 和 provider protocols 这类 framework
+  substrate，而不是 AgentExecution 或 Skills 的应用层 use case 本身。识别受影响的
+  Foundation 能力，运行 `examples/` 下对应核心 example 验证 release candidate 的
+  真实效果；涉及模型拥有的行为时使用真实 DeepSeek 或本地 Ollama；如果 example effect
+  缺失、失败，或只被 tests 证明，则 fail closed。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。

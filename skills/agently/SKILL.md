@@ -99,11 +99,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   tests, docs/spec, compatibility metadata, companion validation, or explicit
   deferral, and only then conclude whether the feature is complete
 - for release acceptance that touches or claims a Foundation-layer capability,
-  add a Foundation example effect gate after pyright/pytest: identify the
-  affected Foundation capability, run the corresponding core example under
-  `examples/` against the release candidate, use real DeepSeek or local Ollama
-  when model-owned behavior is involved, and fail closed if the example effect
-  is missing, broken, or only proven by tests
+  add a Foundation example effect gate after pyright/pytest: treat Foundation as
+  framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
+  Task/TaskDAG, ActionRuntime, ExecutionEnvironment, Workspace/Recall,
+  RuntimeEvent/EventCenter, and provider protocols, not application-level
+  AgentExecution or Skills use cases by themselves; identify the affected
+  Foundation capability, run the corresponding core example under `examples/`
+  against the release candidate, use real DeepSeek or local Ollama when
+  model-owned behavior is involved, and fail closed if the example effect is
+  missing, broken, or only proven by tests
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.
