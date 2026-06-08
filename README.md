@@ -134,7 +134,7 @@ a parallel approval/resume system outside TriggerFlow and Action Runtime.
 
 The default catalog contains 6 public skills:
 
-- `agently-playbook`
+- `agently`
   Top-level router for unresolved model-powered product, assistant,
   internal-tool, automation, evaluator, workflow, or project-structure refactor
   requests.
@@ -160,7 +160,7 @@ The default catalog contains 6 public skills:
 Use this mental model when choosing a skill:
 
 - If the request starts from business goals, product behavior, refactor intent,
-  or an unclear owner layer, start with `agently-playbook`.
+  or an unclear owner layer, start with `agently`.
 - If the request stays inside one request family, route to `agently-request`.
 - If the request needs model-callable capabilities, managed execution
   dependencies, service exposure, or DevTools wiring, route to
@@ -215,6 +215,10 @@ converge on these defaults:
   fail after retries. Use `instant` streaming for provisional structured
   UI/progress updates on `json`/`flat_markdown`/`hybrid`/`xml_field`/
   `yaml_literal`/resolved `auto`; use `delta` streaming for plain text.
+  Treat `instant` `.is_complete` as path completion, not a global display-order
+  barrier; if multiple paths share one CLI output area, buffer later-path deltas
+  until the earlier path completion event has been handled. Web UI, SSE, and
+  WebSocket consumers should normally render paths into separate slots.
   Recent qwen2.5:7b checks found `hybrid` can omit section headers or echo old
   scaffold comments into text fields, so do not make `auto`/`hybrid` the
   default for untested local models.
@@ -275,12 +279,23 @@ converge on these defaults:
   Skills remain deterministic; ambiguous optional candidates use model-owned
   route choice. Prefer `agent.create_execution()` for route diagnostics,
   multiple result views, and process streaming.
-- Agent quick prompt chains are AgentTurn-local request drafts. A service may
-  keep one configured Agent singleton for settings, model activation, Actions,
-  Skills, Workspace, and `always=True` prompt, while each
+- Agent quick prompt chains are AgentExecution-local ModelRequest drafts. A service
+  may keep one configured Agent singleton for settings, model activation,
+  Actions, Skills, Workspace, and `always=True` prompt, while each
   `agent.input(...).output(...).async_start()` chain owns its own prompt state.
-  For multi-statement request setup, use `turn = agent.create_turn()` and mutate
-  the turn; do not accumulate request-scoped prompt state on the shared Agent.
+  Reusable Agent definition belongs to `agent.define(...)`, `always=True`, or
+  explicit stable setup APIs. For multi-statement execution setup, use
+  `execution = agent.create_execution()` and mutate the execution; do not
+  accumulate pending prompt state on the shared Agent. Agent quick prompt
+  chains return `AgentExecutionResult` from `get_result()`; direct low-level
+  ModelRequest calls return ModelResponseResult. `AgentTurn` /
+  `agent.create_turn()` / `set_turn_prompt(...)` are deprecated compatibility
+  surfaces until Agently 4.2 and should not be taught as the default path.
+- Agent-owned long business tasks should use `agent.create_task(...)` or the
+  explicit `agent.create_task_loop(...)`; both return task-strategy
+  AgentExecution drafts. Consume final data, text, stream, meta, and task refs
+  through AgentExecutionResult or the execution stream/meta facade rather than
+  presenting AgentTask as the normal public handle.
 - AgentExecution step contract: use default `mode="one_turn"` for compatibility
   and `mode="task_step"` with explicit `lineage=` / `limits=` for bounded
   developer-owned loop steps. Task-step executions are one step, not the loop
@@ -335,6 +350,17 @@ compatibility metadata, companion validation, or explicit deferral. Do not claim
 completion by pointing directly at existing examples or tests before checking
 their coverage against the target.
 
+For release acceptance that touches or claims a Foundation-layer capability,
+add a Foundation example effect gate after pyright/pytest. Treat Foundation as
+framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
+Task/TaskDAG, ActionRuntime, ExecutionEnvironment, Workspace/Recall,
+RuntimeEvent/EventCenter, and provider protocols, not application-level
+AgentExecution or Skills use cases by themselves. Identify the affected
+Foundation capability, run the corresponding core example under `examples/`
+against the release candidate, use real DeepSeek or local Ollama when
+model-owned behavior is involved, and fail closed if the example effect is
+missing, broken, or only proven by tests.
+
 When reporting API, recommended usage, examples, or compatibility changes,
 include concise sample code that shows the updated usage shape. Prefer current
 usage snippets or before/after snippets over abstract prose when that makes the
@@ -371,7 +397,7 @@ The default shape should usually separate:
   observation, evaluation, playground, and logs
 
 A fuller public reference lives in
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md).
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md).
 
 ## Install
 
@@ -390,7 +416,7 @@ Default bundle for building new Agently applications:
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -412,7 +438,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 Install only the router when you want the smallest possible starting point:
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 Inspect the default public catalog:

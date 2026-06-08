@@ -102,7 +102,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 
 默认 catalog 一共 6 个公开 skills：
 
-- `agently-playbook`
+- `agently`
   未定层级的模型应用、助手、内部工具、自动化、评估器、工作流、项目结构
   重构请求的统一入口。
 - `agently-request`
@@ -126,7 +126,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
 选 skill 时，先按这个顺序想：
 
 - 如果用户请求从业务目标、产品行为、重构诉求，或者一个“还没定 owner
-  layer”的问题出发，先走 `agently-playbook`。
+  layer”的问题出发，先走 `agently`。
 - 如果请求保持在一个 request family 内，走 `agently-request`。
 - 如果请求需要模型可调用能力、托管执行依赖、服务暴露或 DevTools wiring，
   走 `agently-runtime`。
@@ -160,6 +160,9 @@ Action Runtime 之外自建平行的审批/恢复系统。
   ensure 路径仍可能在重试后失败。`instant` streaming 适合
   `json`/`flat_markdown`/`hybrid`/`xml_field`/`yaml_literal`/resolved `auto` 的临时结构化
   UI/进度更新；纯文本 streaming 用 `delta`。
+  `.is_complete` 表示 path 完成，不是全局展示顺序屏障；多个 path 共用一个
+  CLI 输出区域时，应在 consumer 中缓冲后续 path 的 delta，等前一个 path 的完成
+  事件处理后再 flush。Web UI、SSE 和 WebSocket 通常应把不同 path 渲染到独立 slot。
   最近 qwen2.5:7b 检查发现 `hybrid` 可能漏输出 section header，或把旧脚手架注释回显进文本字段；未经测试的本地模型不应默认启用 `auto`/`hybrid`。
 - 模型输出测试：内容级语义校验应使用带 output control 的 Agently model judge。
   把候选输出、显式规则、预期契约和上下文传给 judge；要求每条规则先输出
@@ -206,12 +209,22 @@ Action Runtime 之外自建平行的审批/恢复系统。
   Skills Executor 和 Dynamic Task candidates 之间已验收的候选驱动 route owner。
   submitted Dynamic Task 和 required Skills 保持确定性；模糊可选候选由模型自主
   选择。需要路线诊断、多种结果视图和过程流式输出时，优先 `agent.create_execution()`。
-- Agent quick prompt 链是 AgentTurn-local request draft。服务可以保留一个配置好的
+- Agent quick prompt 链是 AgentExecution-local request draft。服务可以保留一个配置好的
   Agent 单例，用它承载 settings、模型激活、Actions、Skills、Workspace 和
   `always=True` prompt；每条 `agent.input(...).output(...).async_start()` 链拥有
-  自己的 prompt 状态。多语句 request setup 应使用
-  `turn = agent.create_turn()` 并修改这个 turn，不要把本轮 request prompt 累计到共享
-  Agent 上。
+  自己的 prompt 状态。可复用 Agent 定义写入应使用 `agent.define(...)`、
+  `always=True` 或明确的稳定 setup API。多语句 execution setup 应使用
+  `execution = agent.create_execution()` 并修改这个 execution，不要把本轮
+  pending prompt 累计到共享 Agent 上。Agent quick prompt 链的
+  `get_result()` 返回 `AgentExecutionResult`；直接低层 ModelRequest 调用返回
+  ModelResponseResult。`AgentTurn` / `agent.create_turn()` /
+  `set_turn_prompt(...)` 是 Agently 4.2 前的 deprecated compatibility surface，
+  不应作为默认路径推荐。
+- Agent-owned 长业务任务应使用 `agent.create_task(...)` 或更显性的
+  `agent.create_task_loop(...)`；两者都返回 task-strategy AgentExecution draft。
+  最终 data、text、stream、meta 和 task refs 都应通过 AgentExecutionResult 或
+  execution stream/meta facade 消费，而不是把 AgentTask 作为普通公开 handle
+  推荐。
 - AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
   loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
   task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把
@@ -244,6 +257,14 @@ Action Runtime 之外自建平行的审批/恢复系统。
   example、确定性测试、protocol 测试、docs/spec、compatibility metadata、
   companion validation 或明确延期。不能在没有检查证据覆盖目标合同的情况下，直接用已有
   examples 或 tests 宣称完成。
+- 如果 release 验收触及或声称 Foundation 层能力，必须在 pyright/pytest 之后追加
+  Foundation example effect gate。这里的 Foundation 指 ModelRequest/ModelResponse、
+  TriggerFlow、Dynamic Task/TaskDAG、ActionRuntime、ExecutionEnvironment、
+  Workspace/Recall、RuntimeEvent/EventCenter 和 provider protocols 这类 framework
+  substrate，而不是 AgentExecution 或 Skills 的应用层 use case 本身。识别受影响的
+  Foundation 能力，运行 `examples/` 下对应核心 example 验证 release candidate 的
+  真实效果；涉及模型拥有的行为时使用真实 DeepSeek 或本地 Ollama；如果 example effect
+  缺失、失败，或只被 tests 证明，则 fail closed。
 - AgentOrchestrator：把自动编排保持在 plugin protocol 边界内；不要把 route-owned
   Skills 或 Dynamic Task 执行逻辑直接放进 core，也不要把 facade/mixin 耦合描述成
   扩展契约。
@@ -278,7 +299,7 @@ Action Runtime 之外自建平行的审批/恢复系统。
   observation、evaluation、playground 与 logs
 
 更完整的公开规范可以看
-[`skills/agently-playbook/references/project-framework.md`](skills/agently-playbook/references/project-framework.md)。
+[`skills/agently/references/project-framework.md`](skills/agently/references/project-framework.md)。
 
 ## 安装
 
@@ -296,7 +317,7 @@ export AGENT=codex
 
 ```bash
 for skill in \
-  agently-playbook \
+  agently \
   agently-request \
   agently-runtime \
   agently-dynamic-task \
@@ -317,7 +338,7 @@ npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-migratio
 如果只想最小化安装入口 router：
 
 ```bash
-npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently-playbook -y
+npx skills add AgentEra/Agently-Skills --agent "$AGENT" --skill agently -y
 ```
 
 查看默认公开 catalog：

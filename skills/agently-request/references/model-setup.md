@@ -45,7 +45,9 @@ Use this skill for provider wiring and transport setup before request logic is d
   plus private `modules/request_builder.py`, `credential.py`, `transport.py`,
   `handlers.py`, and `response_adapter.py`. Prefer adding optional
   `build_request_handlers()` that returns Agently core `AttemptHandlers` for
-  request execution. Official runtime events such as `model.requester.error`
+  request execution; annotate attempt stream messages with
+  `AttemptStreamMessage` / `AttemptStreamGenerator` from `agently.types.data`.
+  Official runtime events such as `model.requester.error`
   must be produced by core-owned coordinators such as ModelResponse and
   AttemptRunner, not by plugin-level imports of core emitter helpers.
   Plugin-owned EventCenter messages are private diagnostics only and should not

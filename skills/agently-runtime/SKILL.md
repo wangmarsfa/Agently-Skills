@@ -9,7 +9,7 @@ Use this skill when the app needs model-callable capabilities, managed execution
 dependencies, service exposure, or development/runtime tooling around an
 existing request or workflow design.
 
-If the owner layer is still undecided, start with `agently-playbook`. If the
+If the owner layer is still undecided, start with `agently`. If the
 problem is multi-step orchestration, use `agently-triggerflow` first and return
 here for Actions, Execution Environment, service, or DevTools details.
 
@@ -40,11 +40,14 @@ here for Actions, Execution Environment, service, or DevTools details.
   may use, such as `agent.enable_shell(...)`,
   `agent.enable_workspace_file_actions(...)`, `agent.use_actions(...)`,
   `agent.use_skills(...)`, or `agent.use_dynamic_task(...)`, then create the
-  retained task with `agent.create_task(...)`; do not expose broad shell,
-  filesystem, MCP, or browser access just because the task loop exists
-- for AgentTaskLoop business examples, print or persist `task.stream()` items:
-  use `meta.stream_kind=="snapshot"` for intermediate state captures such as
-  context readiness, plan, execution evidence summary, and verification gaps;
+  task-strategy AgentExecution draft with `agent.create_task(...)` or the more
+  explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
+  public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
+  browser access just because the task loop exists
+- for AgentTaskLoop business examples, print or persist AgentExecution
+  stream/result/meta items: use `meta.stream_kind=="snapshot"` for intermediate
+  state captures such as context readiness, plan, execution evidence summary,
+  and verification gaps;
   enable `options={"agent_task": {"stream_progress": True}}` only when
   natural-language progress is needed; omit `progress_model_key` for template
   progress with no model requests, or set `progress_model_key` to run a
@@ -79,9 +82,11 @@ here for Actions, Execution Environment, service, or DevTools details.
   rather than importing core RuntimeEvent emitters; plugin-owned custom Event
   Center messages must use plugin-owned namespaces and are not guaranteed as
   framework consumption contracts
-- keep runtime naming aligned with DevTools: `agent_turn` is a run lineage kind
-  for one Agent-facing turn, while `attempt_index` is model-request retry
-  metadata and must not be treated as an Agent turn counter
+- keep runtime naming aligned with DevTools: `agent_execution` is the canonical
+  run lineage kind for one bounded Agent execution. `agent_turn` remains a
+  compatibility event/run-kind alias until Agently 4.2. `attempt_index` is
+  model-request retry metadata and must not be treated as an AgentExecution
+  counter.
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
@@ -114,20 +119,28 @@ here for Actions, Execution Environment, service, or DevTools details.
   table and can be inspected with `list_effort_strategies()`; their reference
   implementations live under the Agently builtin Skills Executor
   `modules/effort_strategies/` package
+- direct `agent.run_skills_task(..., stream_handler=...)` handlers receive
+  Skills runtime item dictionaries and can be annotated with
+  `SkillRuntimeStreamHandler`; model stream handlers passed to
+  `context.async_request_model(..., stream_handler=...)` receive `StreamingData`
+  and can be annotated with `ModelStreamingHandler`
 - for MCP, prefer Streamable HTTP URLs for service integrations
   (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE
   as a legacy compatibility transport
-- treat chained Agent quick prompt methods as AgentTurn-local configuration for
-  one request/execution surface: `agent.input(...).output(...).run_skills_task(...)`
-  maps the turn prompt snapshot to the Skill task and maps `output` /
-  `output_format` to the Skills execution `output` / `output_format` contract;
-  Agent-level persistent prompt must be explicit through `always=True`,
-  `set_agent_prompt(...)`, or stable setup APIs. For multi-statement request
-  setup, use `turn = agent.create_turn()` and mutate the turn, not the shared
-  Agent request. `semantic_outputs=` is only a deprecated compatibility alias
-  for direct Skills execution, while Dynamic Task still uses `semantic_outputs`
-  inside TaskDAG specs
+- treat chained Agent quick prompt methods as AgentExecution-local configuration
+  for one request/execution surface:
+  `agent.input(...).output(...).run_skills_task(...)` maps the execution prompt
+  snapshot to the Skill task and maps `output` / `output_format` to the Skills
+  execution `output` / `output_format` contract; Agent-level persistent prompt
+  must be explicit through `agent.define(...)`, `always=True`,
+  `set_agent_prompt(...)`, or stable setup APIs. For multi-statement execution setup, use
+  `execution = agent.create_execution()` and mutate the execution, not the
+  shared Agent pending prompt. `AgentTurn` / `agent.create_turn()` /
+  `set_turn_prompt(...)` are deprecated compatibility surfaces until Agently
+  4.2. `semantic_outputs=` is only a deprecated compatibility alias for direct
+  Skills execution, while Dynamic Task still uses `semantic_outputs` inside
+  TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react
@@ -224,11 +237,14 @@ here for Actions, Execution Environment, service, or DevTools details.
   `await execution.async_record_workspace(collection="observations", checkpoint=True)`,
   then call `workspace.build_context(...)` for the next step; do not make
   Workspace depend on AgentExecution-specific semantics
-- inspect AgentExecution runtime facts through `await execution.async_get_meta()`:
-  `meta["route"]` records the selected route/options, and `meta["logs"]`
-  exposes model response ids, ActionRuntime action logs, and artifact refs when
-  available; use those framework-owned records for Workspace persistence instead
-  of asking the model to copy raw action stdout into final text
+- inspect AgentExecution runtime facts through AgentExecutionResult or the
+  execution facade: `result = execution.get_result()`, `result.get_text()`,
+  `result.get_data()`, `result.get_meta()`, `execution.get_async_generator()`,
+  and `await execution.async_get_meta()`. `meta["route"]` records the selected
+  route/options, and `meta["logs"]` exposes model response ids, ActionRuntime
+  action logs, task refs, and artifact refs when available; use those
+  framework-owned records for Workspace persistence instead of asking the model
+  to copy raw action stdout into final text
 - bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
   "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
   catch `RuntimeStageStallError` from the root `agently.core` export or

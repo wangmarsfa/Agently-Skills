@@ -9,7 +9,7 @@ Use this skill when the work stays on the request side: provider setup, prompt
 contracts, output contracts, response consumption, session continuity, or
 retrieval.
 
-If the owner layer is still unclear, start with `agently-playbook`. If the
+If the owner layer is still unclear, start with `agently`. If the
 request clearly needs branching, waiting, resume, or durable orchestration, use
 `agently-triggerflow` and read this skill only for model-step details.
 
@@ -56,7 +56,11 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   segmentation, keyword hits, or substring rules. Choose smaller or local models
   for simple decisions, and larger models for many labels, dense rules,
   ambiguity, or complex returned structures.
-- use `get_response()` when the same model result must be read multiple ways
+- use `get_result()` when the same result must be read multiple ways. Agent
+  quick prompt chains return `AgentExecutionResult`; direct low-level
+  ModelRequest calls return `ModelResponseResult`. `get_response()` remains a
+  compatibility alias where present, but new Agent examples should prefer
+  `get_result()`
 - keep Session memory separate from TriggerFlow execution state
 - use `workspace.build_context(...)` when ordinary multi-turn task work needs a
   ContextPack from prior Workspace records; use low-level `workspace.search(...)`

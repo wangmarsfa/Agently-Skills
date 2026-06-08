@@ -10,7 +10,7 @@ already exists and the main decision is how to map it into Agently-native
 layers.
 
 If the user is not migrating an existing framework, start with
-`agently-playbook`.
+`agently`.
 
 ## Route Inside This Skill
 

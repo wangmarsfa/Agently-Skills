@@ -1,5 +1,5 @@
 ---
-name: agently-playbook
+name: agently
 description: Use when the user wants to build, initialize, validate, optimize, or refactor a model-powered assistant, internal tool, automation, evaluator, or workflow from a business scenario or common problem statement, including project-structure refactors or starter skeletons that may separate model setup, prompt config, and orchestration, even if the request also mentions a UI, app shell, or local model service such as Ollama, and it is still unclear whether the solution should stay a single request, add supporting capabilities, or become orchestration. The user does not need to mention Agently explicitly.
 ---
 
@@ -63,6 +63,18 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   simple routes with few labels and rules. Use a larger model when labels,
   decision conditions, rule interactions, or the returned data structure are
   complex.
+- configure reusable Agent definition state with `agent.define(...)` when the
+  code owns model defaults, fixed persona/prompt, mounted Actions, Skills,
+  Workspace, Recall, or policy defaults. Keep ordinary `agent.input(...)`,
+  `agent.output(...)`, `.goal(...)`, `.success_criteria(...)`, and execution
+  options on an AgentExecution draft; do not teach shared Agent pending prompt
+  mutation as the default setup pattern.
+- consume Agent quick prompt results through `AgentExecutionResult`:
+  `execution = agent.input(...).output(...)`, then
+  `result = execution.get_result()` and `result.get_data()` /
+  `await result.async_get_data()`, or use `execution.get_async_generator()` and
+  `await execution.async_get_meta()` when the app needs streams or process
+  facts. Direct low-level ModelRequest calls still return ModelResponseResult.
 - when the host owns a developer loop and needs one bounded Agent step, choose
   `agent.create_execution(mode="task_step", lineage=..., limits=...)` plus
   explicit `execution.async_record_workspace(...)` observation/checkpoint writes
@@ -70,17 +82,32 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   multi-turn loop owner or make Workspace depend on AgentExecution semantics
 - when the model should own a single business task's plan, bounded execution,
   evidence recording, verification, and replan loop, choose
-  `agent.create_task(...)` before hand-writing a TriggerFlow loop; keep the
-  first-slice boundary to one Agent owner, one task, 2-5 iterations, and
-  bounded steps that use only explicitly enabled Actions, Skills, or Dynamic
-  Task candidates; treat completion as model verification plus conservative
-  host evidence guards, and use a second model judge for model-owned semantic
-  content instead of accepting structural counters alone
+  `agent.create_task(...)` before hand-writing a TriggerFlow loop; it returns a
+  task-strategy `AgentExecution` draft, not a separate public AgentTask handle.
+  Use `agent.create_task_loop(...)` only when the code needs to be explicit that
+  the long-task loop strategy is selected; it still returns an AgentExecution
+  draft and should be consumed through the same result/stream/meta facade.
+  Keep the first-slice boundary to one Agent owner, one task, 2-5 iterations,
+  and bounded steps that use only explicitly enabled Actions, Skills, or
+  Dynamic Task candidates; treat completion as model verification plus
+  conservative host evidence guards, read task refs through the execution
+  result/meta, and use a second model judge for model-owned semantic content
+  instead of accepting structural counters alone
 - for feature or release acceptance, use coverage-first reasoning: start from
   the target contract in roadmap/spec/issues/docs/compatibility/example rules,
   map each requirement to evidence from examples, deterministic tests, protocol
   tests, docs/spec, compatibility metadata, companion validation, or explicit
   deferral, and only then conclude whether the feature is complete
+- for release acceptance that touches or claims a Foundation-layer capability,
+  add a Foundation example effect gate after pyright/pytest: treat Foundation as
+  framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
+  Task/TaskDAG, ActionRuntime, ExecutionEnvironment, Workspace/Recall,
+  RuntimeEvent/EventCenter, and provider protocols, not application-level
+  AgentExecution or Skills use cases by themselves; identify the affected
+  Foundation capability, run the corresponding core example under `examples/`
+  against the release candidate, use real DeepSeek or local Ollama when
+  model-owned behavior is involved, and fail closed if the example effect is
+  missing, broken, or only proven by tests
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.

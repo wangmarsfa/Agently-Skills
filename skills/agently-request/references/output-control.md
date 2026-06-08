@@ -7,9 +7,9 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 ## Native-First Rules
 
 - default to async-first response consumption when structured output will be streamed, reused, or served over an async boundary
-- prefer prompt-config-owned output contracts such as `.turn.output` when the
-  schema is stable and shared across a request family; `.request.output` remains
-  accepted as a compatibility alias
+- prefer prompt-config-owned output contracts such as `.execution.output` when
+  the schema is stable and shared across a request family; `.turn.output` and
+  `.request.output` remain accepted as compatibility aliases
 - prefer `.output(...)` for machine-readable results when the schema is dynamic, exploratory, or easier to keep close to code
 - choose output format deliberately:
   - omitted `.output(..., format=...)` reads `prompt.default_output_format`;
@@ -46,7 +46,7 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - choose streaming mode separately from output format:
   - use `get_generator(type="instant")` or
     `get_async_generator(type="instant")` when UI/progress consumers need
-    structured field updates before completion
+    structured `StreamingData` field updates before completion
   - `instant` is supported for `json`, `flat_markdown`, `hybrid`,
     `xml_field`, `yaml_literal`, and `auto` after auto resolves to one of its
     structured formats
@@ -54,6 +54,12 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     token streaming or `get_text()` after completion
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
+  - do not treat `instant` `.is_complete` as a global display-order barrier.
+    When several paths share one CLI output area, buffer later-path deltas until
+    the earlier path completion event has been handled; Web UI, SSE, and
+    WebSocket consumers should normally render paths into separate slots
+  - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
+    and `AgentlyModelResponseMessage` from `agently.types.data`
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
     do not depend on retry latency for hot paths. Recent qwen2.5:7b checks
