@@ -350,6 +350,13 @@ compatibility metadata, companion validation, or explicit deferral. Do not claim
 completion by pointing directly at existing examples or tests before checking
 their coverage against the target.
 
+For release acceptance that touches or claims a Foundation-layer capability,
+add a Foundation example effect gate after pyright/pytest. Identify the affected
+Foundation capability, run the corresponding core example under `examples/`
+against the release candidate, use real DeepSeek or local Ollama when
+model-owned behavior is involved, and fail closed if the example effect is
+missing, broken, or only proven by tests.
+
 When reporting API, recommended usage, examples, or compatibility changes,
 include concise sample code that shows the updated usage shape. Prefer current
 usage snippets or before/after snippets over abstract prose when that makes the

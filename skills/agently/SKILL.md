@@ -98,6 +98,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   map each requirement to evidence from examples, deterministic tests, protocol
   tests, docs/spec, compatibility metadata, companion validation, or explicit
   deferral, and only then conclude whether the feature is complete
+- for release acceptance that touches or claims a Foundation-layer capability,
+  add a Foundation example effect gate after pyright/pytest: identify the
+  affected Foundation capability, run the corresponding core example under
+  `examples/` against the release candidate, use real DeepSeek or local Ollama
+  when model-owned behavior is involved, and fail closed if the example effect
+  is missing, broken, or only proven by tests
 - route complex arithmetic, long-number computation, weighting, aggregation, or
   statistical work through executable code or tools; use the model to produce or
   review the calculation plan, not to be the calculator.
