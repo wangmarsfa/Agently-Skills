@@ -279,15 +279,23 @@ converge on these defaults:
   Skills remain deterministic; ambiguous optional candidates use model-owned
   route choice. Prefer `agent.create_execution()` for route diagnostics,
   multiple result views, and process streaming.
-- Agent quick prompt chains are AgentExecution-local request drafts. A service
+- Agent quick prompt chains are AgentExecution-local ModelRequest drafts. A service
   may keep one configured Agent singleton for settings, model activation,
   Actions, Skills, Workspace, and `always=True` prompt, while each
   `agent.input(...).output(...).async_start()` chain owns its own prompt state.
-  For multi-statement request setup, use `execution = agent.create_execution()`
-  and mutate the execution; do not accumulate request-scoped prompt state on the
-  shared Agent. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
-  deprecated compatibility surfaces until Agently 4.2 and should not be taught
-  as the default path.
+  Reusable Agent definition belongs to `agent.define(...)`, `always=True`, or
+  explicit stable setup APIs. For multi-statement execution setup, use
+  `execution = agent.create_execution()` and mutate the execution; do not
+  accumulate pending prompt state on the shared Agent. Agent quick prompt
+  chains return `AgentExecutionResult` from `get_result()`; direct low-level
+  ModelRequest calls return ModelResponseResult. `AgentTurn` /
+  `agent.create_turn()` / `set_turn_prompt(...)` are deprecated compatibility
+  surfaces until Agently 4.2 and should not be taught as the default path.
+- Agent-owned long business tasks should use `agent.create_task(...)` or the
+  explicit `agent.create_task_loop(...)`; both return task-strategy
+  AgentExecution drafts. Consume final data, text, stream, meta, and task refs
+  through AgentExecutionResult or the execution stream/meta facade rather than
+  presenting AgentTask as the normal public handle.
 - AgentExecution step contract: use default `mode="one_turn"` for compatibility
   and `mode="task_step"` with explicit `lineage=` / `limits=` for bounded
   developer-owned loop steps. Task-step executions are one step, not the loop

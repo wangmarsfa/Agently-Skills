@@ -17,10 +17,16 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   or resume semantics should be TriggerFlow-backed rather than hidden inside a
   local executor state machine
 - prefer `agent.create_task(...)` when the app needs one Agent-owned business
-  task loop where the model owns planning, verification, and replan; use
+  task loop where the model owns planning, verification, and replan; it returns
+  a task-strategy `AgentExecution` draft, not a separate public AgentTask
+  handle. Use `agent.create_task_loop(...)` only when the code should make the
+  task-loop strategy explicit; it still returns an AgentExecution draft. Use
   TriggerFlow directly when the application owns explicit stages, branching,
   pause/resume, or restart topology
-- for AgentTaskLoop examples, consume `task.stream()` and surface
+- for AgentTaskLoop examples, consume the AgentExecution result/stream/meta
+  (`result = execution.get_result()`, `result.get_text()`,
+  `result.get_data()`, `result.get_meta()`,
+  `execution.get_async_generator()`, `execution.async_get_meta()`) and surface task refs or
   `meta.stream_kind=="snapshot"` items as compact intermediate state captures;
   enable `options={"agent_task": {"stream_progress": True}}` only when the
   example or host needs natural-language operator updates; omit

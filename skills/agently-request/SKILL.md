@@ -56,7 +56,11 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   segmentation, keyword hits, or substring rules. Choose smaller or local models
   for simple decisions, and larger models for many labels, dense rules,
   ambiguity, or complex returned structures.
-- use `get_response()` when the same model result must be read multiple ways
+- use `get_result()` when the same result must be read multiple ways. Agent
+  quick prompt chains return `AgentExecutionResult`; direct low-level
+  ModelRequest calls return `ModelResponseResult`. `get_response()` remains a
+  compatibility alias where present, but new Agent examples should prefer
+  `get_result()`
 - keep Session memory separate from TriggerFlow execution state
 - use `workspace.build_context(...)` when ordinary multi-turn task work needs a
   ContextPack from prior Workspace records; use low-level `workspace.search(...)`

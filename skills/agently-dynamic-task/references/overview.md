@@ -30,20 +30,26 @@ Layer ownership:
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
 - In Agent mode, chained quick prompt methods create an AgentExecution-local
-  request draft. `agent.create_dynamic_task()` consumes that execution prompt snapshot:
+  ModelRequest draft. `agent.create_dynamic_task()` consumes that execution prompt snapshot:
   rendered prompt text becomes the DynamicTask target, the `output` slot becomes
   `output_schema`, `output_format` becomes the default model-task format, and
   the `input` slot remains structured graph input for `${INIT...}`
   placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
   preserved; multi-statement setup should capture
   `execution = agent.create_execution()` instead of mutating the shared Agent
-  request. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
+  pending prompt. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
   deprecated compatibility surfaces until Agently 4.2. Explicit facade
   arguments override prompt-derived defaults.
 
 Use Dynamic Task when the graph is submitted as data and must be planned,
 validated, pruned, and executed. Use TriggerFlow directly when the developer
 owns a stable workflow topology in code.
+
+When Dynamic Task is selected inside one long Agent-owned business task, keep
+the outer handle as `agent.create_task(...)` or `agent.create_task_loop(...)`.
+Both return task-strategy AgentExecution drafts; read final data, text, stream,
+metadata, and task refs through AgentExecutionResult or the execution
+stream/meta facade instead of introducing a separate public AgentTask handle.
 
 The executor does not require an Agent instance. Agent or model-provider access
 belongs to the facade, planner, model adapter, or resolver handler. That keeps

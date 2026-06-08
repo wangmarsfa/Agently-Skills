@@ -212,11 +212,19 @@ Action Runtime 之外自建平行的审批/恢复系统。
 - Agent quick prompt 链是 AgentExecution-local request draft。服务可以保留一个配置好的
   Agent 单例，用它承载 settings、模型激活、Actions、Skills、Workspace 和
   `always=True` prompt；每条 `agent.input(...).output(...).async_start()` 链拥有
-  自己的 prompt 状态。多语句 request setup 应使用
-  `execution = agent.create_execution()` 并修改这个 execution，不要把本轮 request
-  prompt 累计到共享 Agent 上。`AgentTurn` / `agent.create_turn()` /
+  自己的 prompt 状态。可复用 Agent 定义写入应使用 `agent.define(...)`、
+  `always=True` 或明确的稳定 setup API。多语句 execution setup 应使用
+  `execution = agent.create_execution()` 并修改这个 execution，不要把本轮
+  pending prompt 累计到共享 Agent 上。Agent quick prompt 链的
+  `get_result()` 返回 `AgentExecutionResult`；直接低层 ModelRequest 调用返回
+  ModelResponseResult。`AgentTurn` / `agent.create_turn()` /
   `set_turn_prompt(...)` 是 Agently 4.2 前的 deprecated compatibility surface，
   不应作为默认路径推荐。
+- Agent-owned 长业务任务应使用 `agent.create_task(...)` 或更显性的
+  `agent.create_task_loop(...)`；两者都返回 task-strategy AgentExecution draft。
+  最终 data、text、stream、meta 和 task refs 都应通过 AgentExecutionResult 或
+  execution stream/meta facade 消费，而不是把 AgentTask 作为普通公开 handle
+  推荐。
 - AgentExecution step contract：兼容路径使用默认 `mode="one_turn"`；开发者自有
   loop 的有界步骤使用 `mode="task_step"`，并显式传 `lineage=` / `limits=`。
   task-step execution 是单步，不是 loop owner；进入下一步前，应由 host 显式把

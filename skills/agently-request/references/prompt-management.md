@@ -16,22 +16,27 @@ Use this skill when the core problem is how prompt state should be structured be
   extraction
 - keep task-specific request contracts in prompt config, and keep only widely reused persona setup in small code-side factories
 - when the output contract is stable and shared across a request family, keep it
-  in prompt config such as `.turn.output` instead of rebuilding it ad hoc in
-  Python. `.request` remains accepted as a compatibility alias for `.turn`
-- Agent quick prompt chains create AgentExecution-local request drafts. Expression-local
+  in prompt config such as `.execution.output` instead of rebuilding it ad hoc
+  in Python. `.turn` and `.request` remain accepted as compatibility aliases
+  for `.execution`
+- use `agent.define(...)` for reusable Agent definition state such as model
+  defaults, stable persona, fixed prompt, mounted Actions or Skills, Workspace,
+  Recall, and policy defaults. Ordinary quick prompt calls are execution-local
+  drafts, not shared Agent definition writes
+- Agent quick prompt chains create AgentExecution-local ModelRequest drafts. Expression-local
   chaining can configure and run one execution directly, for example
   `agent.input(...).output(...).async_start()`. If setup is split across
   statements, conditions, helper calls, or later configuration steps, capture
   `execution = agent.create_execution()` and mutate that execution with
   `execution.set_execution_prompt(...)` or quick prompt methods; do not rely on
-  shared Agent request-scoped prompt accumulation. `AgentTurn` /
+  shared Agent pending prompt accumulation. `AgentTurn` /
   `agent.create_turn()` / `set_turn_prompt(...)` are deprecated compatibility
   surfaces until Agently 4.2. `set_request_prompt(...)` remains a compatibility
   alias for `set_execution_prompt(...)`. Agent-level persistent setup remains on
   `always=True`, `set_agent_prompt(...)`, settings, and stable prompt config.
 - set structured output format in prompt config with `$format` inside the
   `output` block when the contract needs a fixed mode, for example
-  `.turn.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
+  `.execution.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
   `yaml_literal`, or `auto`. This maps to the same Prompt slot as
   `.output(..., format=...)`; `.format`, `$output_format`, and
   `.output_format` are accepted aliases

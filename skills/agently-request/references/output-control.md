@@ -7,9 +7,9 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 ## Native-First Rules
 
 - default to async-first response consumption when structured output will be streamed, reused, or served over an async boundary
-- prefer prompt-config-owned output contracts such as `.turn.output` when the
-  schema is stable and shared across a request family; `.request.output` remains
-  accepted as a compatibility alias
+- prefer prompt-config-owned output contracts such as `.execution.output` when
+  the schema is stable and shared across a request family; `.turn.output` and
+  `.request.output` remain accepted as compatibility aliases
 - prefer `.output(...)` for machine-readable results when the schema is dynamic, exploratory, or easier to keep close to code
 - choose output format deliberately:
   - omitted `.output(..., format=...)` reads `prompt.default_output_format`;

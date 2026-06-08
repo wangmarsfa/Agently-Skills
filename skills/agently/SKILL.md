@@ -63,6 +63,18 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   simple routes with few labels and rules. Use a larger model when labels,
   decision conditions, rule interactions, or the returned data structure are
   complex.
+- configure reusable Agent definition state with `agent.define(...)` when the
+  code owns model defaults, fixed persona/prompt, mounted Actions, Skills,
+  Workspace, Recall, or policy defaults. Keep ordinary `agent.input(...)`,
+  `agent.output(...)`, `.goal(...)`, `.success_criteria(...)`, and execution
+  options on an AgentExecution draft; do not teach shared Agent pending prompt
+  mutation as the default setup pattern.
+- consume Agent quick prompt results through `AgentExecutionResult`:
+  `execution = agent.input(...).output(...)`, then
+  `result = execution.get_result()` and `result.get_data()` /
+  `await result.async_get_data()`, or use `execution.get_async_generator()` and
+  `await execution.async_get_meta()` when the app needs streams or process
+  facts. Direct low-level ModelRequest calls still return ModelResponseResult.
 - when the host owns a developer loop and needs one bounded Agent step, choose
   `agent.create_execution(mode="task_step", lineage=..., limits=...)` plus
   explicit `execution.async_record_workspace(...)` observation/checkpoint writes
@@ -70,12 +82,17 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   multi-turn loop owner or make Workspace depend on AgentExecution semantics
 - when the model should own a single business task's plan, bounded execution,
   evidence recording, verification, and replan loop, choose
-  `agent.create_task(...)` before hand-writing a TriggerFlow loop; keep the
-  first-slice boundary to one Agent owner, one task, 2-5 iterations, and
-  bounded steps that use only explicitly enabled Actions, Skills, or Dynamic
-  Task candidates; treat completion as model verification plus conservative
-  host evidence guards, and use a second model judge for model-owned semantic
-  content instead of accepting structural counters alone
+  `agent.create_task(...)` before hand-writing a TriggerFlow loop; it returns a
+  task-strategy `AgentExecution` draft, not a separate public AgentTask handle.
+  Use `agent.create_task_loop(...)` only when the code needs to be explicit that
+  the long-task loop strategy is selected; it still returns an AgentExecution
+  draft and should be consumed through the same result/stream/meta facade.
+  Keep the first-slice boundary to one Agent owner, one task, 2-5 iterations,
+  and bounded steps that use only explicitly enabled Actions, Skills, or
+  Dynamic Task candidates; treat completion as model verification plus
+  conservative host evidence guards, read task refs through the execution
+  result/meta, and use a second model judge for model-owned semantic content
+  instead of accepting structural counters alone
 - for feature or release acceptance, use coverage-first reasoning: start from
   the target contract in roadmap/spec/issues/docs/compatibility/example rules,
   map each requirement to evidence from examples, deterministic tests, protocol
