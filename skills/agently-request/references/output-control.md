@@ -82,10 +82,12 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     required, a target model is known to ignore markdown section headers, or the
     schema contains no prose/code string fields and many nested arrays
 - for Agently `4.1.0.1+`, prefer tuple `ensure` in `.output(...)` for fixed
-  required leaves. Required string leaves must contain non-blank text; missing
-  keys, `None`, blank strings, empty wildcard matches, or wildcard matches
-  containing blank required values fail and share the normal retry budget.
-  `False` and `0` remain valid typed values
+  required leaves. Third-slot `True` and runtime `ensure_keys` check path/key
+  presence only, so `None`, blank strings, `False`, `0`, empty lists, and other
+  intentionally empty values remain valid when the path exists. Use third-slot
+  `"not_null"` only when a required path must also contain a meaningful value;
+  it rejects `None`, blank strings, empty lists or wildcard matches, and lists
+  containing missing required values while still accepting `False` and `0`
 - use manual `ensure_keys` only when the required path is runtime-dependent, conditional, or awkward to express in the static schema
 - `max_retries=3` means Agently may make up to three additional model attempts
   after the initial call when parsing, required-key extraction, strict output
@@ -141,7 +143,7 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
 - do not handwrite JSON post-processors when `.output(...)` already owns the contract
 - do not rebuild a stable shared schema in Python if prompt config can own it once
 - do not build custom retry loops for missing keys before using tuple `ensure` or, when necessary, runtime `ensure_keys`
-- do not overload tuple `ensure` or `ensure_keys` with value checks that belong in `.validate(...)`
+- do not overload tuple `True` or runtime `ensure_keys` with value checks that belong in explicit `"not_null"` or `.validate(...)`
 - do not default to sync-only result handling when the caller is already async-capable
 - do not rely on keyword, substring, regex, or text snapshot checks as the main
   assertion for whether model-generated content satisfies business rules
