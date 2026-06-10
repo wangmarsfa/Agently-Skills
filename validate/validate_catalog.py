@@ -8,8 +8,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / "skills"
-LEGACY_V1 = ROOT / "legacy" / "v1"
-LEGACY_V1_SKILLS_DIR = LEGACY_V1 / "skills"
 ROUTE_FIXTURES = ROOT / "validate" / "fixtures" / "route_cases.json"
 REFERENCE_FIXTURES = ROOT / "validate" / "fixtures" / "reference_retrieval_cases.json"
 EXPECTED_SKILLS = {
@@ -19,20 +17,6 @@ EXPECTED_SKILLS = {
     "agently-dynamic-task",
     "agently-triggerflow",
     "agently-migration",
-}
-LEGACY_V1_SKILLS = {
-    "agently-playbook",
-    "agently-model-setup",
-    "agently-prompt-management",
-    "agently-output-control",
-    "agently-model-response",
-    "agently-session-memory",
-    "agently-agent-extensions",
-    "agently-knowledge-base",
-    "agently-triggerflow",
-    "agently-migration-playbook",
-    "agently-langchain-to-agently",
-    "agently-langgraph-to-triggerflow",
 }
 PUBLIC_FILES = [
     ROOT / "README.md",
@@ -95,7 +79,13 @@ def main() -> None:
         failures,
         passes,
     )
-    check("legacy_v1_dir_exists", LEGACY_V1.exists(), "legacy/v1 directory exists", failures, passes)
+    check(
+        "legacy_dir_absent",
+        not (ROOT / "legacy").exists(),
+        "default branch does not contain archived catalog directories",
+        failures,
+        passes,
+    )
     actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
     check("catalog_exact", actual_skills == EXPECTED_SKILLS, "public catalog matches current 6-skill set", failures, passes)
 
@@ -182,82 +172,12 @@ def main() -> None:
                     passes,
                 )
 
-    legacy_actual_skills = {path.name for path in LEGACY_V1_SKILLS_DIR.iterdir() if path.is_dir()} if LEGACY_V1_SKILLS_DIR.exists() else set()
-    check(
-        "legacy_v1_catalog_exact",
-        legacy_actual_skills == LEGACY_V1_SKILLS,
-        "legacy/v1 catalog preserves the frozen 12-skill V1 set",
-        failures,
-        passes,
-    )
-    legacy_support_path = LEGACY_V1 / "compatibility" / "support.json"
-    legacy_readme_path = LEGACY_V1 / "README.md"
-    check("legacy_v1_support_exists", legacy_support_path.exists(), "legacy/v1 compatibility support exists", failures, passes)
-    check("legacy_v1_readme_exists", legacy_readme_path.exists(), "legacy/v1 README exists", failures, passes)
-    if legacy_support_path.exists():
-        legacy_support = json.loads(legacy_support_path.read_text(encoding="utf-8"))
-        check(
-            "legacy_v1_generation",
-            legacy_support.get("catalog_generation") == "v1",
-            "legacy/v1 declares catalog_generation v1",
-            failures,
-            passes,
-        )
-        check(
-            "legacy_v1_last_supported_framework_version",
-            isinstance(legacy_support.get("last_supported_framework_version"), str)
-            and bool(legacy_support.get("last_supported_framework_version")),
-            "legacy/v1 declares last_supported_framework_version",
-            failures,
-            passes,
-        )
-        check(
-            "legacy_v1_frozen",
-            legacy_support.get("status") == "frozen",
-            "legacy/v1 support manifest marks V1 frozen",
-            failures,
-            passes,
-        )
-    if legacy_readme_path.exists():
-        legacy_readme = legacy_readme_path.read_text(encoding="utf-8")
-        check(
-            "legacy_v1_readme_last_supported",
-            "4.1.1" in legacy_readme and "frozen" in legacy_readme.lower(),
-            "legacy/v1 README states the last supported framework version and frozen status",
-            failures,
-            passes,
-        )
-    for skill_name in sorted(LEGACY_V1_SKILLS):
-        skill_dir = LEGACY_V1_SKILLS_DIR / skill_name
-        skill_md = skill_dir / "SKILL.md"
-        check(f"legacy_v1_{skill_name}_skill_md", skill_md.exists(), "legacy V1 SKILL.md exists", failures, passes)
-        if skill_md.exists():
-            text = skill_md.read_text(encoding="utf-8")
-            frontmatter = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
-            check(f"legacy_v1_{skill_name}_frontmatter", frontmatter is not None, "legacy V1 frontmatter exists", failures, passes)
-            if frontmatter is not None:
-                block = frontmatter.group(1)
-                check(
-                    f"legacy_v1_{skill_name}_name",
-                    f"name: {skill_name}" in block,
-                    "legacy V1 frontmatter name matches directory",
-                    failures,
-                    passes,
-                )
-                check(
-                    f"legacy_v1_{skill_name}_description",
-                    "description:" in block,
-                    "legacy V1 frontmatter description exists",
-                    failures,
-                    passes,
-                )
-
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     retired_archive_name = "old" + "_skills"
     check(
-        "legacy_archive_uses_versioned_path",
+        "retired_archive_dir_absent",
         not (ROOT / retired_archive_name).exists(),
-        "legacy archive uses legacy/v1 rather than the retired archive name",
+        "retired archive directory is absent from the default branch",
         failures,
         passes,
     )
@@ -279,9 +199,9 @@ def main() -> None:
             passes,
         )
         check(
-            f"{public_file.name}_no_legacy_v1_default_path",
-            "legacy/v1/skills" not in text or public_file.name in {"README.md", "README_CN.md"},
-            "public file does not use legacy/v1 as a default skill path",
+            f"{public_file.name}_no_legacy_v1_path",
+            "legacy/v1" not in text,
+            "public file does not reference archived catalog filesystem paths",
             failures,
             passes,
         )
@@ -444,6 +364,13 @@ def main() -> None:
         "reference_fixture_covers_state_vs_flow_data",
         any(case.get("id") == "triggerflow-state-vs-flow-data-zh" for case in reference_cases),
         "reference retrieval fixtures cover execution state versus flow data guidance",
+        failures,
+        passes,
+    )
+    check(
+        "reference_fixture_covers_model_quality_validation",
+        any(case.get("id") == "model-quality-validation-routing-zh" for case in reference_cases),
+        "reference retrieval fixtures cover model-request-based quality and routing guidance",
         failures,
         passes,
     )

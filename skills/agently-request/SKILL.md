@@ -19,6 +19,10 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - prompt slots, prompt config, YAML/JSON prompt files, mappings, or reusable request contracts -> `references/prompt-management.md`
 - VLM image questions, local image files, image URLs, or multi-image input -> use `.image(question=..., file=...|url=...|files=[...]|urls=[...])`; keep `.attachment([...])` for low-level rich-content passthrough or exact mixed-content ordering
 - stable fields, required keys, machine-readable output, `.output(...)`, `ensure_keys`, or validation -> `references/output-control.md`
+- model-output quality checks, intent routing, scenario matching, business
+  classification, grading, or tests that should use model judges instead of
+  keyword/regex checks -> start from `agently` and read
+  `skills/agently/references/model-quality-validation.md`
 - one response consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
 - conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
 - embeddings, Chroma collections, Workspace recall, retrieval, or KB-to-answer -> `references/knowledge-base.md`
@@ -51,6 +55,14 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
 - when testing model-owned content, use an Agently model judge with output
   control and assert structured boolean rule judgments; avoid keyword,
   substring, regex, or snapshot checks as the primary semantic correctness test
+- in development scripts and service modules, make intent recognition, scenario
+  matching, business classification, and route selection Agently model requests
+  with explicit output schemas. Do not replace those decisions with jieba,
+  token counters, keyword dictionaries, substring checks, or regex route rules.
+- in test scripts, make output quality evaluation, grading, and semantic
+  acceptance a second Agently model request with structured evidence, reasons,
+  and boolean fields. Keep deterministic code for schema, enum, and smoke
+  checks only.
 - for scenario routing, intent detection, and business classification, use a
   model request with an Agently output schema instead of tokenization, word
   segmentation, keyword hits, or substring rules. Choose smaller or local models

@@ -8,10 +8,10 @@
     "v2"
   ],
   "recommended_bundle": "app",
-  "legacy_generations": [
+  "archived_catalog_generations": [
     {
       "generation": "v1",
-      "path": "legacy/v1",
+      "branch": "update/archive-legacy-v1-catalog",
       "last_supported_framework_version": "4.1.1",
       "status": "frozen"
     }
