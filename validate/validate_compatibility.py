@@ -8,7 +8,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORT = ROOT / "compatibility" / "support.json"
 DEFAULT_BUNDLE_MANIFEST = ROOT / "bundles" / "manifest.json"
-LEGACY_V1_SUPPORT = ROOT / "legacy" / "v1" / "compatibility" / "support.json"
 AGENTLY_ROOT = ROOT.parent / "Agently"
 AGENTLY_INDEX = AGENTLY_ROOT / "compatibility" / "index.json"
 AGENTLY_IN_DEVELOPMENT = AGENTLY_ROOT / "compatibility" / "in-development.json"
@@ -37,6 +36,7 @@ def main() -> None:
     supported_catalog_generations = support.get("supported_catalog_generations", [])
     recommended_bundle = support.get("recommended_bundle")
     aligned_version = support.get("aligned_framework_version")
+    archived_catalogs = support.get("archived_catalog_generations", [])
 
     check("schema_version", support.get("schema_version") == 1, "support manifest schema is 1", failures, passes)
     check("framework", support.get("framework") == "agently", "framework is agently", failures, passes)
@@ -52,6 +52,37 @@ def main() -> None:
     check("recommended_bundle", recommended_bundle == "app", "current support manifest recommends app bundle", failures, passes)
     check("authoring_protocols", bool(authoring), "authoring protocols declared", failures, passes)
     check("devtools_guidance_protocols", bool(devtools_guidance), "devtools guidance protocols declared", failures, passes)
+    archived_v1 = next((item for item in archived_catalogs if item.get("generation") == "v1"), None)
+    check("archived_v1_listed", isinstance(archived_v1, dict), "support manifest lists archived V1 generation", failures, passes)
+    if isinstance(archived_v1, dict):
+        check(
+            "archived_v1_branch",
+            isinstance(archived_v1.get("branch"), str) and "/" in archived_v1.get("branch", ""),
+            "archived V1 catalog is referenced by branch, not by a default-branch path",
+            failures,
+            passes,
+        )
+        check(
+            "archived_v1_no_path",
+            "path" not in archived_v1,
+            "archived V1 catalog does not declare an in-tree path",
+            failures,
+            passes,
+        )
+        check(
+            "archived_v1_last_supported",
+            archived_v1.get("last_supported_framework_version") == "4.1.1",
+            "archived V1 catalog declares its last supported Agently version",
+            failures,
+            passes,
+        )
+        check(
+            "archived_v1_frozen",
+            archived_v1.get("status") == "frozen",
+            "archived V1 catalog is marked frozen",
+            failures,
+            passes,
+        )
 
     default_manifest = json.loads(DEFAULT_BUNDLE_MANIFEST.read_text(encoding="utf-8"))
     check(
@@ -69,31 +100,19 @@ def main() -> None:
         passes,
     )
 
-    legacy_support = json.loads(LEGACY_V1_SUPPORT.read_text(encoding="utf-8"))
-    legacy_generations = support.get("legacy_generations", [])
-    legacy_v1 = next((item for item in legacy_generations if item.get("generation") == "v1"), None)
-    check("legacy_v1_listed", isinstance(legacy_v1, dict), "support manifest lists legacy V1 generation", failures, passes)
-    if isinstance(legacy_v1, dict):
-        check(
-            "legacy_v1_last_supported_matches",
-            legacy_v1.get("last_supported_framework_version") == legacy_support.get("last_supported_framework_version"),
-            "root support legacy V1 last-supported version matches legacy/v1 support manifest",
-            failures,
-            passes,
-        )
-        default_skills = {
-            skill
-            for bundle in default_manifest.get("bundles", [])
-            for skill in bundle.get("active_skills", [])
-        }
-        legacy_default_refs = {skill for skill in default_skills if skill.startswith("legacy/")}
-        check(
-            "legacy_v1_not_default_bundle",
-            not legacy_default_refs,
-            "default bundle active skills do not reference legacy paths",
-            failures,
-            passes,
-        )
+    default_skills = {
+        skill
+        for bundle in default_manifest.get("bundles", [])
+        for skill in bundle.get("active_skills", [])
+    }
+    archived_default_refs = {skill for skill in default_skills if skill.startswith("legacy/")}
+    check(
+        "archived_catalogs_not_default_bundle",
+        not archived_default_refs,
+        "default bundle active skills do not reference archived catalog paths",
+        failures,
+        passes,
+    )
 
     if AGENTLY_INDEX.exists():
         index = json.loads(AGENTLY_INDEX.read_text(encoding="utf-8"))
@@ -165,29 +184,36 @@ def main() -> None:
             failures,
             passes,
         )
-        in_dev_legacy = skills.get("legacy_generations", [])
-        in_dev_legacy_v1 = next((item for item in in_dev_legacy if item.get("generation") == "v1"), None)
+        in_dev_archives = skills.get("archived_catalog_generations", [])
+        in_dev_archived_v1 = next((item for item in in_dev_archives if item.get("generation") == "v1"), None)
         check(
-            "in_development_legacy_v1_declared",
-            isinstance(in_dev_legacy_v1, dict),
-            "Agently in-development manifest declares legacy V1 generation",
+            "in_development_archived_v1_declared",
+            isinstance(in_dev_archived_v1, dict),
+            "Agently in-development manifest declares archived V1 generation",
             failures,
             passes,
         )
-        if isinstance(in_dev_legacy_v1, dict):
-            last_supported = in_dev_legacy_v1.get("last_supported_framework_version")
+        if isinstance(in_dev_archived_v1, dict) and isinstance(archived_v1, dict):
+            last_supported = in_dev_archived_v1.get("last_supported_framework_version")
             check(
-                "in_development_legacy_v1_last_supported_matches",
-                last_supported == legacy_support.get("last_supported_framework_version"),
-                "Agently in-development legacy V1 last-supported version matches Agently-Skills",
+                "in_development_archived_v1_last_supported_matches",
+                last_supported == archived_v1.get("last_supported_framework_version"),
+                "Agently in-development archived V1 last-supported version matches Agently-Skills",
+                failures,
+                passes,
+            )
+            check(
+                "in_development_archived_v1_branch_matches",
+                in_dev_archived_v1.get("branch") == archived_v1.get("branch"),
+                "Agently in-development archived V1 branch matches Agently-Skills",
                 failures,
                 passes,
             )
             if isinstance(target_version, str) and isinstance(last_supported, str):
                 check(
-                    "legacy_v1_not_after_target",
+                    "archived_v1_not_after_target",
                     version_tuple(last_supported) <= version_tuple(target_version),
-                    "legacy V1 last-supported version is not newer than the current development target",
+                    "archived V1 last-supported version is not newer than the current development target",
                     failures,
                     passes,
                 )
@@ -203,16 +229,16 @@ def main() -> None:
         passes,
     )
     check(
-        "readme_mentions_legacy_v1",
-        "legacy/v1" in readme and "4.1.1" in readme,
-        "README documents legacy V1 rollback and last supported Agently version",
+        "readme_no_legacy_v1_path",
+        "legacy/v1" not in readme,
+        "README does not document retired catalog directories as an in-tree path",
         failures,
         passes,
     )
     check(
-        "readme_cn_mentions_legacy_v1",
-        "legacy/v1" in readme_cn and "4.1.1" in readme_cn,
-        "README_CN documents legacy V1 rollback and last supported Agently version",
+        "readme_cn_no_legacy_v1_path",
+        "legacy/v1" not in readme_cn,
+        "README_CN does not document retired catalog directories as an in-tree path",
         failures,
         passes,
     )

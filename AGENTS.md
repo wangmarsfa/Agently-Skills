@@ -6,8 +6,8 @@ description: Central catalog and documentation for Agently Skills V2. Use when w
 # Agently Skills Catalog
 
 This package publishes the current Agently Skills catalog generation `v2` under
-`skills/`. The frozen V1 catalog is archived under `legacy/v1/` and is not part
-of default installation, routing, or bundle guidance.
+`skills/`. Historical catalogs are preserved on frozen archive branches instead
+of the default branch so coding-agent retrieval only sees the current catalog.
 
 Use this file as installation-time guidance after the skills are added into another project or agent environment.
 
@@ -30,8 +30,8 @@ Use this file as installation-time guidance after the skills are added into anot
   several core systems; split large implementations by registry, planner,
   executor, adapter, facade, and contract boundaries rather than by arbitrary
   line count.
-- Do not recommend `legacy/v1/` for new projects; it exists only for explicit
-  rollback or historical projects.
+- Do not recommend archived catalog branches for new projects; they exist only
+  for explicit rollback or historical inspection.
 
 ## Coordinated Release Rules
 

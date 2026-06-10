@@ -221,6 +221,42 @@
       ]
     },
     {
+      "id": "model-quality-validation-routing-zh",
+      "query": "我在写一个 Agently 模型应用，开发脚本里要做意图识别和场景匹配，测试脚本里要评估模型输出质量。不要用分词、关键词或 regex，应该先看哪份参考来按 Agently 模型请求方式写这些判断和样例？",
+      "matched_skills": [
+        "agently"
+      ],
+      "expected_reference_sets": [
+        [
+          "skills/agently/references/model-quality-validation.md"
+        ]
+      ],
+      "concepts": [
+        {
+          "id": "semantic_judgment_model_request",
+          "description": "Semantic judgments should use Agently model requests with explicit output schemas."
+        },
+        {
+          "id": "development_intent_routing",
+          "description": "Development scripts should use model requests for intent recognition and scenario routing."
+        },
+        {
+          "id": "test_model_judge",
+          "description": "Test scripts should evaluate model-owned output quality with a second model-judge request."
+        },
+        {
+          "id": "deterministic_smoke_boundary",
+          "description": "Deterministic code remains appropriate for schema, enum, file, API, and smoke checks."
+        }
+      ],
+      "required_concepts": [
+        "semantic_judgment_model_request",
+        "development_intent_routing",
+        "test_model_judge",
+        "deterministic_smoke_boundary"
+      ]
+    },
+    {
       "id": "dynamic-task-first-class-boundary-en",
       "query": "After routing to Dynamic Task, which reference explains why Dynamic Task is a first-class Agently API, how it validates TaskDAGs, and how TriggerFlow is only the execution substrate?",
       "matched_skills": [

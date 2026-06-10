@@ -24,18 +24,51 @@ here for Actions, Execution Environment, service, or DevTools details.
 - prefer `@agent.action_func` and `agent.use_actions(...)`; `tool_func`, `use_tool`, `use_tools`, and `agently.builtins.tools` are compatibility surfaces
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
 - do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
-- for durable multi-turn task records, prefer `agent.use_workspace(...)`; for
-  model-callable local file actions, use `agent.enable_workspace_file_actions(...)`, which
+- default Agents expose `agent.workspace` as a lazy Foundation Workspace
+  capability; use `agent.use_workspace(...)` when the app needs an explicit
+  root, read-only mode, direct backend, or registered provider, and keep in mind
+  that ordinary model requests do not persist automatically
+- for durable multi-turn task records, write through `agent.workspace` or
+  explicitly configure it with `agent.use_workspace(...)`; for model-callable
+  local file actions, use `agent.enable_workspace_file_actions(...)`, which
   exposes the current Workspace file working tree and inherits
-  `agent.workspace.files_root` when a Foundation Workspace is configured
+  `agent.workspace.files_root`
 - use `workspace.build_context(...)` for Workspace-backed Recall; advanced
   model-assisted planners, vector retrieval, rerankers, and compressors should
   plug into RecallPlanner/Retriever/ContextBuilder instead of becoming WorkLoop
   or Action shortcuts
 - for explicit TriggerFlow loops, store structured observations and decisions
-  in Workspace, link decisions to evidence with `workspace.link(...)`, recover
-  state with `workspace.latest_checkpoint(...)`, and inspect backend wiring with
-  `workspace.capabilities()`
+  in Workspace, link decisions to evidence with `workspace.link(...)` or
+  `workspace.link_evidence(...)`, keep large payloads behind
+  `workspace.ref_envelope(...)`, recover state with
+  `workspace.latest_checkpoint(...)`, bind durable execution ports by creating
+  the execution with `runtime_resources={"workspace": workspace}` or explicitly
+  calling `execution.set_checkpoint_store(workspace)` and
+  `execution.set_runtime_event_store(workspace)`, and inspect backend wiring
+  with `workspace.capabilities()`; when restoring, read the checkpoint state
+  through `workspace.latest_checkpoint(...)` / `workspace.get_data(...)` and
+  pass it back to TriggerFlow `async_rehydrate(...)` so pause/resume and DAG
+  join semantics stay owned by TriggerFlow
+- for restart diagnostics in explicit workflows, persist compact RuntimeEvent
+  facts through a configured TriggerFlow runtime event store or explicit
+  `workspace.append_runtime_event(...)` calls, then query bounded ranges with
+  `workspace.query_runtime_events(...)`; Workspace stores durable facts and refs,
+  while TriggerFlow still owns pause/resume, replay, DAG readiness, and
+  approval/exchange lifecycle semantics
+- for distributed TriggerFlow recovery, pass
+  `require_distributed_provider=True` when saving checkpoints; this must fail
+  closed unless the selected providers report CAS, lease, range-read,
+  retention, and RuntimeEvent sequence capabilities
+- third-party Workspace backends can replace the local backend through
+  `agent.use_workspace(backend)` or named provider registration with
+  `Agently.workspace.register_backend_provider(name, factory)` plus
+  `agent.use_workspace(root, provider=name, provider_options={...})` when they
+  implement the Workspace backend protocol; current framework tests include a
+  protocol-level remote audit provider proof plus Workspace-backed checkpoint
+  rehydration tests for pause/continue, policy approval waits, and
+  `when(..., mode="and")` join progress, but public guidance must not imply
+  production Redis, Postgres, or object-storage support until real adapters and
+  operational guarantees exist
 - for AgentTaskLoop applications, enable only the bounded capabilities the task
   may use, such as `agent.enable_shell(...)`,
   `agent.enable_workspace_file_actions(...)`, `agent.use_actions(...)`,
@@ -62,6 +95,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   (`accepted=False`, `artifact_status="partial"`); when semantic content quality
   matters, combine deterministic smoke checks with an Agently model-judge
   request and do not use counts or keyword hits as the primary acceptance signal
+- AgentTaskLoop strategy persistence writes planning, observation, verification,
+  checkpoint, and evidence-link records through the bound Workspace provider;
+  checkpoints use the checkpoint-store port and task evidence relationships use
+  `workspace.link_evidence(...)`
 - for AgentTaskLoop business-system examples, mocks may provide facts, source
   records, policies, missing data, or conflicting inputs, but must not provide
   hidden expected answers, pass/fail fields, or deterministic business-quality
@@ -235,8 +272,12 @@ here for Actions, Execution Environment, service, or DevTools details.
 - keep AgentExecution memory explicit: write observations/checkpoints/artifacts
   through the execution's bound Workspace helper, such as
   `await execution.async_record_workspace(collection="observations", checkpoint=True)`,
-  then call `workspace.build_context(...)` for the next step; do not make
-  Workspace depend on AgentExecution-specific semantics
+  which writes requested checkpoints through the Workspace checkpoint-store port
+  and records an evidence link between the AgentExecution record and checkpoint;
+  then call `workspace.build_context(...)` for the next step; ordinary one-turn
+  AgentExecution remains explicit, while AgentTaskLoop owns its strategy-level
+  persistence; do not make Workspace depend on AgentExecution-specific strategy
+  semantics
 - inspect AgentExecution runtime facts through AgentExecutionResult or the
   execution facade: `result = execution.get_result()`, `result.get_text()`,
   `result.get_data()`, `result.get_meta()`, `execution.get_async_generator()`,

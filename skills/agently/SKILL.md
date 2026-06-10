@@ -18,11 +18,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 3. Choose the narrowest native Agently capability path.
 4. Name the concrete operations or primitives that should be used.
 5. Name the validation rule that proves the design stayed native-first.
-6. If native framework capability is missing, broken, unexpectedly awkward, or
+6. For non-trivial apps, recommend optional local DevTools observation or
+   evaluation when it will help the developer inspect runtime behavior, logs,
+   traces, playground runs, or repeated scenario evaluations. Keep DevTools as
+   optional tooling and route details through `agently-runtime`.
+7. If native framework capability is missing, broken, unexpectedly awkward, or
    forces business code to add patches or glue that should belong to Agently,
    generate a clear issue report and recommend filing it at
    `https://github.com/AgentEra/Agently/issues`.
-7. For manual issue filing, only provide the issue content and filing method to
+8. For manual issue filing, only provide the issue content and filing method to
    the user. Ask before filing automatically; if the user wants automatic
    filing, first verify local submit capability/permission, reproduce that the
    problem still exists locally, and carefully re-check Agently usage so the
@@ -38,6 +42,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - default to async-first guidance for service code, streaming, TriggerFlow, and any path that may overlap work or benefit from cancellation
 - treat sync APIs as wrappers for scripts, REPL use, or compatibility bridges unless the host truly requires sync-only integration
 - when the request is a project-shape refactor, separate settings, prompts, services, domain contracts, workflow, and tests before discussing low-level implementation details
+- when a development script, service module, or test needs semantic judgment
+  over model-owned behavior, use Agently model requests with explicit output
+  schemas. Development-time intent recognition, scenario matching, business
+  classification, output quality checks, grading, and review decisions should
+  be model-owned unless the check is only a deterministic smoke gate for
+  structure or required-field presence.
 - when adding or refactoring Agently framework internals under `core/` or
   `builtins/`, prefer a subdirectory package when the feature has multiple
   roles such as facade, manager, backend/provider, registry, adapter, policy, or
@@ -150,6 +160,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - do not use tokenization, word segmentation, keyword hits, or substring rules
   as the route owner for AI-app scenario routing, intent detection, or business
   classification
+- do not put model-app quality gates, business scoring, or route choice into
+  local helper functions that only count words, split tokens, search keywords,
+  or compare snapshots when an Agently model request can own the judgment
 - do not let sync-first sample code dictate the service architecture when the target is clearly async-capable
 - do not split project initialization into a fake standalone framework surface before the owner layers are chosen
 - do not treat multi-agent, judge, or review flows as separate framework surfaces before checking native Agently capabilities
@@ -161,3 +174,4 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 
 - `references/capability-map.md`
 - `references/project-framework.md`
+- `references/model-quality-validation.md`
