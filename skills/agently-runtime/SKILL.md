@@ -24,10 +24,23 @@ here for Actions, Execution Environment, service, or DevTools details.
 - prefer `@agent.action_func` and `agent.use_actions(...)`; `tool_func`, `use_tool`, `use_tools`, and `agently.builtins.tools` are compatibility surfaces
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
 - do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
-- default Agents expose `agent.workspace` as a lazy Foundation Workspace
-  capability; use `agent.use_workspace(...)` when the app needs an explicit
-  root, read-only mode, direct backend, or registered provider, and keep in mind
-  that ordinary model requests do not persist automatically
+- default Agents and TriggerFlow executions expose lazy Foundation Workspace
+  bindings; use `agent.use_workspace(...)` or
+  `flow.create_execution(workspace=...)` when the app needs an explicit root,
+  read-only mode, shared instance, direct backend, or registered provider, and
+  keep in mind that ordinary model requests do not persist automatically
+- create application-owned shared Workspace instances with
+  `Workspace(...)` or `Agently.create_workspace(...)` and bind each participant
+  with `agent.use_workspace(shared_workspace)` or
+  `flow.create_execution(workspace=shared_workspace)` when Agents,
+  TriggerFlow executions, or service workers must share task information; do
+  not rely on separate default Workspaces to communicate; use
+  `flow.create_execution(workspace=False)` only when an execution should have no
+  Workspace binding
+- move information between separate Workspaces in application or TriggerFlow
+  business logic by searching/reading the source Workspace, writing or
+  ingesting into the destination Workspace, and linking refs as needed;
+  Workspace itself is not a cross-space messaging or replication protocol
 - for durable multi-turn task records, write through `agent.workspace` or
   explicitly configure it with `agent.use_workspace(...)`; for model-callable
   local file actions, use `agent.enable_workspace_file_actions(...)`, which
@@ -42,7 +55,7 @@ here for Actions, Execution Environment, service, or DevTools details.
   `workspace.link_evidence(...)`, keep large payloads behind
   `workspace.ref_envelope(...)`, recover state with
   `workspace.latest_checkpoint(...)`, bind durable execution ports by creating
-  the execution with `runtime_resources={"workspace": workspace}` or explicitly
+  the execution with `flow.create_execution(workspace=workspace)` or explicitly
   calling `execution.set_checkpoint_store(workspace)` and
   `execution.set_runtime_event_store(workspace)`, and inspect backend wiring
   with `workspace.capabilities()`; when restoring, read the checkpoint state

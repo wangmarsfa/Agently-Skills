@@ -8,9 +8,18 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - keep extension choice explicit: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
 - treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
-- default Agents expose `agent.workspace` as a lazy Foundation Workspace
-  capability; call `agent.use_workspace(...)` when a stable explicit root,
-  read-only mode, direct backend, or registered provider is required
+- default Agents and TriggerFlow executions expose lazy Foundation Workspace
+  bindings; call `agent.use_workspace(...)` or
+  `flow.create_execution(workspace=...)` when a stable explicit root,
+  read-only mode, shared instance, direct backend, or registered provider is
+  required
+- create shared task information scopes with `Workspace(...)` or
+  `Agently.create_workspace(...)` and bind Agents, TriggerFlow executions, or
+  service workers to that same instance when they must collaborate over durable
+  facts; do not expect separate default Workspaces to communicate implicitly
+- move facts across separate Workspaces in application or TriggerFlow business
+  logic with explicit search/read plus write/ingest/link operations; Workspace
+  is not a cross-space messaging or replication protocol
 - use `agent.workspace` for durable multi-turn task records, artifacts, search,
   links, checkpoints, stable ref envelopes, bounded reads, RuntimeEvent records,
   evidence links, and retention anchors
@@ -38,7 +47,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `workspace.ref_envelope(...)`, `workspace.read_bounded(...)`, and
   `workspace.stream_read(...)` over storing large or structured loop state
   directly in TriggerFlow state; configure execution durability with
-  `flow.create_execution(runtime_resources={"workspace": workspace})` or
+  `flow.create_execution(workspace=workspace)` or
   explicit `execution.set_checkpoint_store(workspace)` and
   `execution.set_runtime_event_store(workspace)` calls when the loop needs
   restart diagnostics; read checkpoint state back through

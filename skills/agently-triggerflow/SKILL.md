@@ -111,11 +111,20 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 When generating or editing Python code, use the actual Agently API shape:
 
 ```python
-from agently import Agently, TriggerFlow, TriggerFlowRuntimeData
+from agently import Agent, Agently, TriggerFlow, TriggerFlowRuntimeData, Workspace
 
-agent = Agently.create_agent()
+agent = Agent()
+factory_agent = Agently.create_agent()
 flow = TriggerFlow(name="workflow-name")
+factory_flow = Agently.create_trigger_flow("factory-workflow")
+shared_workspace = Workspace("./.agently/workflows/shared")
 ```
+
+`Agent()` / `Agently.create_agent()` and `TriggerFlow()` /
+`Agently.create_trigger_flow(...)` are both valid first-class creation styles.
+`Workspace(...)` / `Agently.create_workspace(...)` are both valid first-class
+Workspace creation styles. Use one style consistently in an example unless
+showing the API equivalence.
 
 `when`, `emit_nowait`, and `pause_for` are not top-level imports from
 `agently`. They are methods on flow or runtime data objects:
@@ -127,6 +136,10 @@ flow = TriggerFlow(name="workflow-name")
   `execution = flow.create_execution(auto_close=False)`,
   `await execution.async_start(input_value)` using a positional start value, and
   `snapshot = await execution.async_close()`
+- `flow.create_execution()` binds an execution-scoped lazy Workspace by default;
+  pass `workspace=False` to opt out, or
+  `flow.create_execution(workspace=shared_workspace)` when an application-owned
+  Workspace should be shared with Agents, service workers, or other executions
 - do not call `execution.async_start(input_value=...)`; pass the start value
   positionally
 - do not assume `execution.async_start("start")` emits a custom `"start"` event.
@@ -143,9 +156,6 @@ flow = TriggerFlow(name="workflow-name")
 
 Do not write `from agently import when, emit_nowait, pause_for`, and do not use
 `@flow.when(...)` as a decorator.
-Do not import `Agent` from `agently` or call `Agent()` directly; create agents
-with `Agently.create_agent()` so plugin manager and settings ownership stay
-inside the framework boundary.
 
 ## Dynamic Task Boundary
 
