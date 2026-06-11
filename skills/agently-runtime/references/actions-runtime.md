@@ -48,15 +48,48 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `workspace.stream_read(...)` over storing large or structured loop state
   directly in TriggerFlow state; configure execution durability with
   `flow.create_execution(workspace=workspace)` or
-  explicit `execution.set_checkpoint_store(workspace)` and
-  `execution.set_runtime_event_store(workspace)` calls when the loop needs
-  restart diagnostics; read checkpoint state back through
+  `runtime_resources={"snapshot_store": workspace, "runtime_event_store": workspace}` when the loop needs
+  restart diagnostics; read snapshot state back through
   `workspace.latest_checkpoint(...)` / `workspace.get_data(...)` and pass it
-  to TriggerFlow `async_rehydrate(...)` for restart because TriggerFlow owns
-  pause/resume, policy approval waits, and DAG join replay semantics; use
-  `execution.async_save_checkpoint(require_distributed_provider=True)` only for
+  to TriggerFlow `async_load(...)` for restart because TriggerFlow owns
+  pause/resume, policy approval waits, and DAG join replay semantics; pass a
+  stable `resume_request_id` and actor to `execution.async_continue_with(...)`
+  for webhook or approval callback retries so TriggerFlow can persist accepted,
+  dispatched, and completed/dispatch-failed resume phases, while making
+  callbacks that reach an expired execution-local lease fail fast before acceptance;
+  declare importable resource resolver descriptors with
+  `flow.declare_resource_requirement(..., resolver=..., provider_kind=...,
+  config_ref=..., secret_ref=..., fail_policy=...)` when workers can rebuild
+  live clients from shared host/plugin modules, and rely on TriggerFlow
+  load diagnostics for missing resolver, unhealthy resource,
+  policy-forbidden resource, expired lease, active lease owner conflict,
+  DAG join state mismatch, fail-open, and fail-closed cases; use
+  `pause_for(..., channel_id=..., provider_id=..., wait_mode=...,
+  hot_wait_timeout=..., cold_persistence_policy=..., request_payload_schema=...,
+  response_payload_schema=..., audit_metadata=...)` to persist ExternalWait
+  provider/channel/schema/audit metadata, including stable `exchange_id` values
+  that Workspace RuntimeEvent records can index; when the host owns an approval
+  router, queue, or exchange transport, bind it with runtime resource key
+  `execution_exchange_provider`, and implement provider `publish_request(...)`
+  to return `exchange_id`, `audit_metadata`, or `provider_metadata` while
+  TriggerFlow keeps the wait/resume ledger; durable RuntimeEvent records carry
+  parent signal, aggregation scope, operator id, interrupt id, resume request
+  id, actor id, exchange id, lease owner id, snapshot refs, and artifact refs
+  for DevTools and recovery diagnostics; use
+  `execution.set_compaction_policy(...)` when long-running
+  workflows externalize large state behind Workspace or provider artifact refs
+  and need compacted snapshot restore with retained lineage anchors; use
+  `workspace.put_snapshot(..., expected_state_version=...)` for CAS guarded
+  snapshot writes, `workspace.claim_lease(...)` /
+  `workspace.heartbeat_lease(...)` / `workspace.release_lease(...)` for
+  provider-owned lease projection, and `workspace.put_artifact_ref(...)` for
+  large durable payload refs; use
+  `execution.async_save(require_distributed_provider=True)` only for
   providers that report distributed CAS, lease, range-read, retention, and
-  RuntimeEvent sequencing capabilities
+  RuntimeEvent sequencing capabilities and expose matching snapshot, lease,
+  and artifact-ref methods; the local Workspace backend satisfies this seam for
+  single-node development/restart recovery, but it is not a production
+  cross-worker backend
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
   `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,

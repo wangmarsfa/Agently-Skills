@@ -55,30 +55,68 @@ here for Actions, Execution Environment, service, or DevTools details.
   `workspace.link_evidence(...)`, keep large payloads behind
   `workspace.ref_envelope(...)`, recover state with
   `workspace.latest_checkpoint(...)`, bind durable execution ports by creating
-  the execution with `flow.create_execution(workspace=workspace)` or explicitly
-  calling `execution.set_checkpoint_store(workspace)` and
-  `execution.set_runtime_event_store(workspace)`, and inspect backend wiring
-  with `workspace.capabilities()`; when restoring, read the checkpoint state
+  the execution with `flow.create_execution(workspace=workspace)` or with
+  `runtime_resources={"snapshot_store": workspace, "runtime_event_store": workspace}`,
+  and inspect backend wiring
+  with `workspace.capabilities()`; when restoring, read the snapshot state
   through `workspace.latest_checkpoint(...)` / `workspace.get_data(...)` and
-  pass it back to TriggerFlow `async_rehydrate(...)` so pause/resume and DAG
-  join semantics stay owned by TriggerFlow
+  pass it back to TriggerFlow `async_load(...)` so pause/resume and DAG
+  join semantics stay owned by TriggerFlow; use
+  `flow.declare_resource_requirement(..., resolver=..., provider_kind=...,
+  config_ref=..., secret_ref=..., fail_policy=...)` for importable resource
+  resolver descriptors when workers can reconstruct live clients from shared
+  host/plugin modules, relying on TriggerFlow load diagnostics for
+  missing resolver, unhealthy resource, policy-forbidden resource, fail-open,
+  and fail-closed cases; use `pause_for(..., channel_id=..., provider_id=...,
+  wait_mode=..., hot_wait_timeout=..., cold_persistence_policy=...,
+  request_payload_schema=..., response_payload_schema=..., audit_metadata=...)`
+  to persist ExternalWait provider/channel/schema/audit metadata, and put a
+  stable `exchange_id` in `audit_metadata` when Workspace RuntimeEvent records
+  should be queryable by exchange; when the host owns an approval router, queue,
+  or exchange transport, bind it with runtime resource key
+  `execution_exchange_provider`, and implement provider `publish_request(...)`
+  to return `exchange_id`, `audit_metadata`, or `provider_metadata` without
+  taking over TriggerFlow resume lifecycle; use
+  `execution.set_compaction_policy(...)` for long-running
+  TriggerFlow executions that externalize large payloads behind Workspace or
+  provider artifact refs while keeping only compaction facts and retained
+  lineage anchors in the execution snapshot; use
+  `workspace.put_snapshot(..., expected_state_version=...)` for CAS guarded
+  snapshot writes, `workspace.claim_lease(...)` /
+  `workspace.heartbeat_lease(...)` / `workspace.release_lease(...)` for
+  provider-owned lease projection, and `workspace.put_artifact_ref(...)` for
+  large durable payload refs
 - for restart diagnostics in explicit workflows, persist compact RuntimeEvent
   facts through a configured TriggerFlow runtime event store or explicit
   `workspace.append_runtime_event(...)` calls, then query bounded ranges with
   `workspace.query_runtime_events(...)`; Workspace stores durable facts and refs,
   while TriggerFlow still owns pause/resume, replay, DAG readiness, and
-  approval/exchange lifecycle semantics
+  approval/exchange lifecycle semantics; durable RuntimeEvent records now carry
+  parent signal, aggregation scope, operator id, interrupt id, resume request
+  id, actor id, lease owner id, snapshot refs, and artifact refs
+- for webhook, approval, or external callback resume flows, pass a stable
+  `resume_request_id` and actor to `execution.async_continue_with(...)`; the
+  TriggerFlow resume ledger records accepted, dispatched, and completed or
+  dispatch-failed phases; callbacks delivered to expired execution-local leases
+  fail fast before acceptance without writing resume ledger entries, while the interrupt carries an ExternalWait
+  request envelope for projection and restart diagnostics
 - for distributed TriggerFlow recovery, pass
-  `require_distributed_provider=True` when saving checkpoints; this must fail
+  `require_distributed_provider=True` when persisting snapshots; this must fail
   closed unless the selected providers report CAS, lease, range-read,
-  retention, and RuntimeEvent sequence capabilities
+  retention, and RuntimeEvent sequence capabilities and expose matching
+  snapshot, lease, and artifact-ref methods; use `inspect_load(...)`
+  to surface expired lease warnings and active lease owner conflicts before
+  dispatch; the local Workspace backend
+  satisfies this seam for single-node development/restart recovery, but do not
+  describe it as a production cross-worker Redis/Postgres/object-storage
+  backend
 - third-party Workspace backends can replace the local backend through
   `agent.use_workspace(backend)` or named provider registration with
   `Agently.workspace.register_backend_provider(name, factory)` plus
   `agent.use_workspace(root, provider=name, provider_options={...})` when they
   implement the Workspace backend protocol; current framework tests include a
-  protocol-level remote audit provider proof plus Workspace-backed checkpoint
-  rehydration tests for pause/continue, policy approval waits, and
+  protocol-level remote audit provider proof plus Workspace-backed snapshot
+  load tests for pause/continue, policy approval waits, and
   `when(..., mode="and")` join progress, but public guidance must not imply
   production Redis, Postgres, or object-storage support until real adapters and
   operational guarantees exist
