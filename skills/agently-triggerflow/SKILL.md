@@ -59,23 +59,61 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - rely on chunk-internal `data.emit(...)`, `data.async_emit(...)`, `data.emit_nowait(...)`, and `data.async_emit_nowait(...)` to inherit the current TriggerFlow runtime scope; do not assume unrelated external emits can be paired by `when(..., mode="and")` unless the host routes them through one scoped flow stage or carries explicit correlation in the payload
 - use execution runtime state through `get_state(...)` / `set_state(...)` instead of legacy runtime-data helpers in new examples
 - treat shared flow data as a risky cross-execution surface and avoid it unless the task explicitly needs shared state
-- when discussing restart or distributed recovery, describe `execution.save()`
-  as an execution snapshot that includes a versioned `checkpoint` envelope with
-  durable TriggerFlow progress, flow definition fingerprint validation,
-  interrupt/resume ledgers, resource requirements, lease metadata, and managed
-  execution environment requirements.
-  Do not imply live `runtime_resources`, clients, callbacks, tasks, semaphores,
-  or Python coroutine frames are serialized. Declare future resources with
-  `flow.declare_resource_requirement(...)` or
+- when discussing restart or distributed pause/resume, describe TriggerFlow as
+  providing foundations for host-managed recovery, not a complete production
+  distributed workflow engine. `execution.save()` is a versioned top-level
+  execution snapshot with durable TriggerFlow progress, flow definition
+  fingerprint validation, interrupt/resume ledgers, resource requirements,
+  lease metadata, and managed execution environment requirements. TriggerFlow
+  core is process-stateless between save/load; live `runtime_resources`,
+  clients, callbacks, tasks, semaphores, stateful sessions, and Python
+  coroutine frames are not serialized. `runtime_resources` is only the
+  process-local mount point for live objects that the host has already created,
+  restored, and validated. If a resource carries state, the external system
+  that owns it must persist a state ref/version/lease or fence token and a
+  resolver/provider must validate it before load is ready. Declare future
+  resources with `flow.declare_resource_requirement(...)` or
   `execution.declare_resource_requirement(...)`, inspect or restore with
-  `execution.inspect_rehydration(...)` / `execution.async_rehydrate(...)`, pass a
-  stable `resume_request_id` to `continue_with(...)` for external callbacks, and
-  persist through a checkpoint store that implements `put_checkpoint(...)` while
-  the production store owns atomic claim, lease enforcement, and conflict
-  handling. If a checkpoint fingerprint is missing or does not match the
-  current flow definition, `inspect_rehydration(...)` reports
-  `invalid_snapshot` and `load(...)` rejects the snapshot
-- for service packaging, treat ordinary `TriggerFlow(...)` as the definition/planning surface; prefer module-level named chunks and conditions, inject stable dependencies through flow-level `runtime_resources`, and inject request-specific dependencies through execution-level `runtime_resources`
+  `execution.inspect_load(...)` / `execution.async_load(...)`, pass a stable
+  `resume_request_id` to `continue_with(...)` for external callbacks, and
+  persist through a snapshot store that implements `put_snapshot(...)` while
+  the production store owns atomic claim, lease enforcement, conflict handling,
+  outbox ordering, and external side-effect idempotency. Fail-closed pending
+  resolvers or pending managed execution environments should be treated as
+  `status="pending_resources"` and `ready=False` until `async_load(...)`
+  resolves and validates live resources. Late callbacks delivered to an
+  expired execution-local lease fail fast before resume acceptance without
+  writing resume ledger entries; the reclaimed worker should load or claim
+  first and then use the same stable `resume_request_id`. For long-running
+  executions, use `execution.set_compaction_policy(...)` when snapshot writes
+  should automatically run a host-owned reducer and store large payloads behind
+  provider artifact refs; TriggerFlow records compaction facts, retained
+  anchors, and load read bounds, while Workspace or an enterprise provider owns
+  artifact storage and retention anchor persistence. For framework-level
+  validation, run `examples/trigger_flow/durable_recovery.py` when available; it
+  proves Workspace-backed snapshot load and duplicate callback idempotency
+  without pretending a production approval transport exists. Use
+  `examples/trigger_flow/fastapi_sqlite_exchange_provider.py` when service-level
+  provider replacement should be shown: it packages the flow as a module-level
+  `TriggerFlow(...)` object with top-level `.to(...)` / `.when(...)` wiring,
+  stores top-level execution snapshots in SQLite, and routes approval waits
+  through a SQLite `ExecutionExchangeProvider` exposed by FastAPI without
+  claiming production distributed guarantees. If a snapshot
+  fingerprint is missing or does not match the current flow definition,
+  `inspect_load(...)` reports `invalid_snapshot` and `load(...)` rejects the
+  snapshot
+- for service packaging, prefer an importable module that owns the complete flow
+  definition: a module-level `TriggerFlow(...)` object, module-level chunk
+  handlers, and module-level `.to(...)` / `.when(...)` wiring. Service modules
+  should import that flow object and start executions from it. Normal Python
+  imports execute the module body once per process for the same module name;
+  TriggerFlow duplicate-definition protection is only the second line of
+  defense when application code explicitly runs the same wiring again on the
+  same flow object. Create live dependencies in host-owned factories or
+  importable resolvers, and use `runtime_resources` only as the final
+  process-local attachment point for already-created live objects. Use a
+  `build_flow(...)` helper only when the application genuinely needs multiple
+  configured flow instances or test isolation, not as the default service shape
 - route model-generated or app-submitted DAG data to `agently-dynamic-task`; Dynamic Task is a first-class Agently API that uses TriggerFlow as an execution substrate, not a TriggerFlow sub-API
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - for a developer-owned Todo DAG or other dependency graph represented as
