@@ -103,7 +103,8 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
 - use `agent.action.get_action_info()` / `get_tool_info()` for visible schemas;
   agent-scoped Actions, MCP tools, and `enable_*` helpers are included by
-  default, while explicit tags narrow the list
+  default, while explicit tags narrow the list; execution environment `env`
+  values are redacted in this visible metadata while env keys remain visible
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - treat `model_digest`, `artifact_refs`, and Workspace record refs as the normal
@@ -162,6 +163,22 @@ raw = agent.action.read_action_artifact(
     action_call_id=artifact_ref["action_call_id"],
 )
 ```
+
+When host code explicitly calls `agent.get_action_result(prompt=...)`, the
+prompt is marked as having consumed the ActionRuntime loop even when the
+returned records are empty. Later response materialization for that same prompt
+should not re-enter ActionRuntime. If the host needs an authoritative action
+evidence rollup, call `agent.action.summarize_records(records,
+validation_command_markers=[...])`; the summary reports failed actions,
+commands attempted/run, and the latest matching validation command.
+
+`agent.get_action_result(..., timeout=N)` bounds the full ActionFlow lifecycle,
+including model-owned structured planning and native tool-call selection. Catch
+`RuntimeStageStallError(stage="action_loop_close")` for framework-level
+timeouts. For `planning_protocol="native_tool_calls"`, a zero-tool-call planner
+result can return a skipped diagnostic record with code
+`action_runtime.native_tool_calls.empty`; do not treat that diagnostic as
+executed work.
 
 ## Example Guidance
 

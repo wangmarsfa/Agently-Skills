@@ -124,7 +124,11 @@ agent.action.register_bash_sandbox_action(
 )
 ```
 
-This is the right profile for “read local files only” or “search the repo tree”. Keep `allow_unsafe=False` and do not include `curl`, `wget`, `pip`, `uv`, or `poetry`.
+This is the right profile for “read local files only” or “search the repo tree”.
+Keep `allow_unsafe=False` and do not include `curl`, `wget`, `pip`, `uv`, or
+`poetry`. If the host passes `env=...` to a managed action helper, those raw
+values are for the execution provider only; visible action metadata should
+redact env values while preserving key names.
 
 ### Network Read Only
 

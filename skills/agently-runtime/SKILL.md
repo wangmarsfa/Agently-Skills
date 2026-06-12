@@ -157,6 +157,23 @@ here for Actions, Execution Environment, service, or DevTools details.
   Agently model-judge request
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
+- `agent.action.get_action_info()` and `get_action_list()` return visible
+  metadata with execution environment `env` values redacted; raw env values are
+  only for the execution provider path
+- after explicit `agent.get_action_result(prompt=..., store_for_reply=True)`,
+  the prompt is marked as having consumed the action loop even when no records
+  were produced, so later response materialization should not re-enter
+  ActionRuntime for that prompt
+- `agent.get_action_result(..., timeout=N)` bounds the full ActionFlow
+  lifecycle, including planning/model-owned tool selection; catch
+  `RuntimeStageStallError(stage="action_loop_close")` instead of relying on a
+  host-side kill as the primary timeout signal
+- for native tool-call planning, a zero-tool-call result can surface as a
+  skipped diagnostic record with code `action_runtime.native_tool_calls.empty`;
+  treat it as planning evidence, not executed work
+- use `agent.action.summarize_records(records, validation_command_markers=...)`
+  when a host needs authoritative action evidence such as failed actions,
+  commands attempted/run, and latest validation result
 - treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
 - Action executors should declare or consume managed resources instead of secretly owning long-lived MCP clients, sandboxes, browsers, SQLite connections, or process runners
 - keep permission profiles explicit: search-only, local-files-only, network-read, install-capable shell, or trusted executor
