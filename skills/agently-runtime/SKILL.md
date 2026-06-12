@@ -204,6 +204,18 @@ here for Actions, Execution Environment, service, or DevTools details.
   authoring/smoke tests; use `agent.run_skills_task(...)` for explicit Skills
   execution; remote selectors may use git URLs, GitHub shorthand such as
   `anthropics/skills`, and `subpath=` when selecting one Skill from a pack
+- when a custom planner, Dynamic Task, or TaskDAG node needs full Skill context
+  without forcing the complete Skills execution route, use
+  `agent.build_skills_context_pack(...)`,
+  `agent.async_build_skills_context_pack(...)`, or
+  `Agently.skills_executor.build_context_pack(...)`; the returned
+  `agently.skills.context_pack.v1` payload can include `SKILL.md` guidance,
+  task-relevant references/examples/assets, citations, diagnostics, optional
+  public lookup, and policy-gated script Action candidates
+- for DAG-shaped consumers of Skill context, pass
+  `Agently.skills_executor.task_dag_resolver()` to `TaskDAGExecutor` and use
+  `kind="skill"` nodes; do not build a separate scheduler or execute bundled
+  scripts while constructing context packs
 - for explicit Skills execution, `effort="fast"` maps to the low-overhead
   single-shot path, `effort="normal"` runs the full preflight -> research ->
   plan -> execute -> verify -> reflect -> finalize runtime chain, and
