@@ -171,10 +171,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   Center messages must use plugin-owned namespaces and are not guaranteed as
   framework consumption contracts
 - keep runtime naming aligned with DevTools: `agent_execution` is the canonical
-  run lineage kind for one bounded Agent execution. `agent_turn` remains a
-  compatibility event/run-kind alias until Agently 4.2. `attempt_index` is
-  model-request retry metadata and must not be treated as an AgentExecution
-  counter.
+  run lineage kind for one bounded Agent execution. The old turn-named runtime
+  namespace is removed from the current development-line contract.
+  `attempt_index` is model-request retry metadata and must not be treated as an
+  AgentExecution counter.
 - for framework-side Skills Executor work, prefer the `Agently.skills_executor`
   facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
@@ -224,11 +224,9 @@ here for Actions, Execution Environment, service, or DevTools details.
   must be explicit through `agent.define(...)`, `always=True`,
   `set_agent_prompt(...)`, or stable setup APIs. For multi-statement execution setup, use
   `execution = agent.create_execution()` and mutate the execution, not the
-  shared Agent pending prompt. `AgentTurn` / `agent.create_turn()` /
-  `set_turn_prompt(...)` are deprecated compatibility surfaces until Agently
-  4.2. `semantic_outputs=` is only a deprecated compatibility alias for direct
-  Skills execution, while Dynamic Task still uses `semantic_outputs` inside
-  TaskDAG specs
+  shared Agent pending prompt. `semantic_outputs=` is only a deprecated
+  compatibility alias for direct Skills execution, while Dynamic Task still
+  uses `semantic_outputs` inside TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to `single_shot` model
   requests using their full Markdown guidance, while declared staged/react
@@ -315,11 +313,9 @@ here for Actions, Execution Environment, service, or DevTools details.
   such as `task_dag.tasks.<task_id>.fields.<field_path>` rather than raw provider
   token events
 - for bounded developer-owned loops, use
-  `agent.create_execution(mode="task_step", lineage=..., limits=..., options=...)`; the
-  default `mode="one_turn"` preserves ordinary one-turn Agent behavior, while
-  task-step mode adds lineage, diagnostics, stream correlation metadata, and
-  shared model-request budget counting across direct model routes, Dynamic Task
-  model tasks, and Skills model stages
+  `agent.create_execution(lineage=..., limits=..., options=...)`; lineage,
+  diagnostics, stream correlation metadata, and shared model-request budget
+  counting now describe the bounded step without a public mode name
 - keep AgentExecution memory explicit: write observations/checkpoints/artifacts
   through the execution's bound Workspace helper, such as
   `await execution.async_record_workspace(collection="observations", checkpoint=True)`,

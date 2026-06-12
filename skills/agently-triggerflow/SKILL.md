@@ -114,7 +114,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   process-local attachment point for already-created live objects. Use a
   `build_flow(...)` helper only when the application genuinely needs multiple
   configured flow instances or test isolation, not as the default service shape
-- route model-generated or app-submitted DAG data to `agently-dynamic-task`; Dynamic Task is a first-class Agently API that uses TriggerFlow as an execution substrate, not a TriggerFlow sub-API
+- route model-generated or app-submitted DAG data to `agently-dynamic-task`; TaskDAG is the DAG foundation capability, Dynamic Task is the convenience facade over it, and TriggerFlow is the execution substrate rather than the facade API
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - for a developer-owned Todo DAG or other dependency graph represented as
   stable Python flow code, express multi-dependency joins with

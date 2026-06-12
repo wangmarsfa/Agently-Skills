@@ -1,7 +1,10 @@
-# Dynamic Task Overview
+# TaskDAG / Dynamic Task Overview
 
-Dynamic Task is Agently's framework-level surface for dynamic DAG execution.
-It belongs above TriggerFlow conceptually:
+TaskDAG is the Agently DAG foundation capability. It owns graph data,
+planning, validation, handler resolution, execution, dependency results,
+semantic outputs, and runtime placeholders. Dynamic Task is the current
+compatibility and convenience facade over that DAG substrate. It belongs above
+TriggerFlow conceptually:
 
 ```text
 Agently.create_dynamic_task(...)
@@ -37,19 +40,19 @@ Layer ownership:
   placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
   preserved; multi-statement setup should capture
   `execution = agent.create_execution()` instead of mutating the shared Agent
-  pending prompt. `AgentTurn` / `agent.create_turn()` / `set_turn_prompt(...)` are
-  deprecated compatibility surfaces until Agently 4.2. Explicit facade
-  arguments override prompt-derived defaults.
+  pending prompt. Explicit facade arguments override prompt-derived defaults.
 
-Use Dynamic Task when the graph is submitted as data and must be planned,
-validated, pruned, and executed. Use TriggerFlow directly when the developer
-owns a stable workflow topology in code.
+Use TaskDAG modules when the graph is submitted as data and must be planned,
+validated, pruned, customized, resolved to handlers, and executed. Use the
+Dynamic Task facade when ordinary app code wants one compact compatibility
+entrypoint. Use TriggerFlow directly when the developer owns a stable workflow
+topology in code.
 
-When Dynamic Task is selected inside one long Agent-owned business task, keep
-the outer handle as `agent.create_task(...)` or `agent.create_task_loop(...)`.
-Both return task-strategy AgentExecution drafts; read final data, text, stream,
-metadata, and task refs through AgentExecutionResult or the execution
-stream/meta facade instead of introducing a separate public AgentTask handle.
+When a DAG is selected inside one long Agent-owned business task, keep the
+outer handle as `agent.create_task(...)` or `agent.create_task_loop(...)`. Both
+return task-strategy AgentExecution drafts; read final data, text, stream,
+metadata, and task refs through AgentExecutionResult or the execution stream/meta
+facade instead of introducing a separate public AgentTask handle.
 
 The executor does not require an Agent instance. Agent or model-provider access
 belongs to the facade, planner, model adapter, or resolver handler. That keeps
@@ -96,9 +99,9 @@ stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
 the Agent stream must terminate and surface the original error to the consumer;
 do not add external timeout workarounds or swallow failing chunks in examples.
 For developer-owned loops, wrap the Agent execution as
-`create_execution(mode="task_step", lineage=..., limits=...)` so Dynamic Task
-model planning/tasks share the AgentExecution model-request budget and stream
-items carry execution lineage metadata.
+`create_execution(lineage=..., limits=...)` so Dynamic Task model planning/tasks
+share the AgentExecution model-request budget and stream items carry execution
+lineage metadata.
 
 Recommended API boundaries:
 

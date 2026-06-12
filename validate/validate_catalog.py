@@ -108,10 +108,12 @@ def main() -> None:
         passes,
     )
     check(
-        "dynamic_task_first_class",
-        "first-class Agently API" in dynamic_task_text
-        and "not a TriggerFlow sub-API" in dynamic_task_text,
-        "dynamic task is documented as a first-class surface rather than a TriggerFlow sub-API",
+        "taskdag_foundation_dynamic_task_facade",
+        "TaskDAG is the Agently DAG foundation capability" in dynamic_task_text
+        and "compatibility and convenience facade" in dynamic_task_text
+        and "TriggerFlow is" in dynamic_task_text
+        and "execution substrate" in dynamic_task_text,
+        "TaskDAG is documented as the DAG foundation, with Dynamic Task as facade and TriggerFlow as substrate",
         failures,
         passes,
     )

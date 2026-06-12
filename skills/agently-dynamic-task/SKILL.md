@@ -1,6 +1,6 @@
 ---
 name: agently-dynamic-task
-description: Use when the user needs Agently Dynamic Task, model-generated or app-submitted DAG planning, TaskDAG validation, DynamicTaskResolver handlers, or TaskDAGExecutor execution through Agently.create_dynamic_task. Dynamic Task is a first-class Agently API that uses TriggerFlow as an execution substrate.
+description: Use when the user needs Agently TaskDAG / Dynamic Task, model-generated or app-submitted DAG planning, TaskDAG validation, DynamicTaskResolver handlers, TaskDAGExecutor execution, or the Agently.create_dynamic_task compatibility facade. TaskDAG is the DAG foundation capability; Dynamic Task is the convenience facade over it and uses TriggerFlow as the execution substrate.
 ---
 
 # Agently Dynamic Task
@@ -9,18 +9,20 @@ Use this skill when the problem is a dynamic task graph: a model or application
 submits DAG data that must be planned, validated, pruned, resolved to handlers,
 and executed.
 
-Dynamic Task is an Agently first-class API. It is not a TriggerFlow sub-API.
-TriggerFlow is the execution substrate under `TaskDAGExecutor`, while
-`Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are the
-ordinary app-facing entrypoints.
+TaskDAG is the Agently DAG foundation capability. Dynamic Task is the current
+compatibility and convenience facade over TaskDAG planning and execution, not a
+TriggerFlow sub-API and not the strategic Agent task lifecycle. TriggerFlow is
+the execution substrate under `TaskDAGExecutor`, while
+`Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` remain
+compact app-facing facade entrypoints.
 
 ## Native-First Rules
 
-- use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` for ordinary app code
-- when Dynamic Task is only one bounded phase inside a broader business task,
+- use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` when ordinary app code wants the compact facade
+- when a DAG is only one bounded phase inside a broader business task,
   keep `agent.create_task(...)` or `agent.create_task_loop(...)` as the outer
-  AgentExecution owner and expose Dynamic Task as an explicitly enabled Agent
-  candidate; do not turn Dynamic Task into the long-running AgentTask lifecycle
+  AgentExecution owner and expose the DAG as an explicitly enabled Agent
+  candidate; do not turn the Dynamic Task facade into the long-running AgentTask lifecycle
   owner
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning

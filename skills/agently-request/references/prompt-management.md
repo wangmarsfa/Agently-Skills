@@ -17,8 +17,8 @@ Use this skill when the core problem is how prompt state should be structured be
 - keep task-specific request contracts in prompt config, and keep only widely reused persona setup in small code-side factories
 - when the output contract is stable and shared across a request family, keep it
   in prompt config such as `.execution.output` instead of rebuilding it ad hoc
-  in Python. `.turn` and `.request` remain accepted as compatibility aliases
-  for `.execution`
+  in Python. Removed turn/request prompt config keys should be migrated to
+  `.execution`
 - use `agent.define(...)` for reusable Agent definition state such as model
   defaults, stable persona, fixed prompt, mounted Actions or Skills, Workspace,
   Recall, and policy defaults. Ordinary quick prompt calls are execution-local
@@ -29,11 +29,9 @@ Use this skill when the core problem is how prompt state should be structured be
   statements, conditions, helper calls, or later configuration steps, capture
   `execution = agent.create_execution()` and mutate that execution with
   `execution.set_execution_prompt(...)` or quick prompt methods; do not rely on
-  shared Agent pending prompt accumulation. `AgentTurn` /
-  `agent.create_turn()` / `set_turn_prompt(...)` are deprecated compatibility
-  surfaces until Agently 4.2. `set_request_prompt(...)` remains a compatibility
-  alias for `set_execution_prompt(...)`. Agent-level persistent setup remains on
-  `always=True`, `set_agent_prompt(...)`, settings, and stable prompt config.
+  shared Agent pending prompt accumulation. Agent-level persistent setup remains
+  on `agent.define(...)`, `always=True`, `set_agent_prompt(...)`, settings, and
+  stable prompt config.
 - set structured output format in prompt config with `$format` inside the
   `output` block when the contract needs a fixed mode, for example
   `.execution.output.$format: json`, `flat_markdown`, `hybrid`, `xml_field`,
