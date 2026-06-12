@@ -13,7 +13,6 @@ TRIGGERFLOW_LEGACY_ALLOWLIST: set[Path] = set()
 DEPRECATED_TRIGGERFLOW_TOKENS = [
     ".end(",
     ".start(",
-    "get_result(",
     "set_result(",
     "get_runtime_data(",
     "set_runtime_data(",
@@ -24,6 +23,10 @@ DEPRECATED_TRIGGERFLOW_TOKENS = [
     "append_flow_data(",
     "del_flow_data(",
     "get_runtime_stream(",
+]
+DEPRECATED_TRIGGERFLOW_PATTERNS = [
+    ("execution.get_result(", re.compile(r"\bexecution\.get_result\(")),
+    ("execution.async_get_result(", re.compile(r"\bexecution\.async_get_result\(")),
 ]
 
 
@@ -85,6 +88,14 @@ def main() -> None:
                 f"triggerflow_examples_no_deprecated_{example_path.stem}_{token}",
                 token not in content,
                 f"recommended TriggerFlow example does not use deprecated token {token}",
+                failures,
+                passes,
+            )
+        for name, pattern in DEPRECATED_TRIGGERFLOW_PATTERNS:
+            check(
+                f"triggerflow_examples_no_deprecated_{example_path.stem}_{name}",
+                pattern.search(content) is None,
+                f"recommended TriggerFlow example does not use deprecated lifecycle call {name}",
                 failures,
                 passes,
             )

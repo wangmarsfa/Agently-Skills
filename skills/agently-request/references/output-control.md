@@ -57,8 +57,9 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     When several paths share one CLI output area, buffer later-path deltas until
     the earlier path completion event has been handled; Web UI, SSE, and
     WebSocket consumers should normally render paths into separate slots
-  - for typed handlers, import `StreamingData`, `AgentlySpecificResponseMessage`,
-    and `AgentlyModelResponseMessage` from `agently.types.data`
+  - for typed handlers, import `StreamingData`, `AgentlySpecificResultMessage`,
+    and `AgentlyModelResultMessage` from `agently`; use `agently.types.data`
+    for the full typed data namespace
 - account for observed model reliability when recommending formats:
   - `auto` can degrade to JSON and retry when markdown-style parsing fails, but
     do not depend on retry latency for hot paths. Recent qwen2.5:7b checks

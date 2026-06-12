@@ -23,7 +23,7 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   classification, grading, or tests that should use model judges instead of
   keyword/regex checks -> start from `agently` and read
   `skills/agently/references/model-quality-validation.md`
-- one response consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
+- one result consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
 - conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
 - embeddings, Chroma collections, Workspace recall, retrieval, or KB-to-answer -> `references/knowledge-base.md`
 

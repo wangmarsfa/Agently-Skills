@@ -240,7 +240,8 @@ here for Actions, Execution Environment, service, or DevTools details.
   Skills runtime item dictionaries and can be annotated with
   `SkillRuntimeStreamHandler`; model stream handlers passed to
   `context.async_request_model(..., stream_handler=...)` receive `StreamingData`
-  and can be annotated with `ModelStreamingHandler`
+  and can be annotated with `ModelStreamingHandler`; the common aliases are
+  available from `agently`
 - for MCP, prefer Streamable HTTP URLs for service integrations
   (`agent.use_mcp("https://host/mcp")`), use `headers=` for URL auth, and use
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE

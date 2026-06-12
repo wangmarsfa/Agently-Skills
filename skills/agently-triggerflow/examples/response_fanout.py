@@ -58,15 +58,15 @@ def _build_plan_response(prompt: str):
     return (
         agent.input(prompt)
         .output({"status": (str, None, True), "actions": [(str, None, True)]})
-        .get_response()
+        .get_result()
     )
 
 
 async def plan_step(data):
-    response = _build_plan_response(f"Plan next actions for: {data.input}")
+    result = _build_plan_response(f"Plan next actions for: {data.input}")
     return {
-        "status_text": await response.result.async_get_text(),
-        "plan": await response.result.async_get_data(max_retries=1),
+        "status_text": await result.async_get_text(),
+        "plan": await result.async_get_data(max_retries=1),
     }
 
 

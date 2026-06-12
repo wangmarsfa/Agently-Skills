@@ -55,18 +55,18 @@ async def judge(data):
         "Return JSON only. judge_items must contain exactly two items: item 0 is clarity with score 8 and comment Clear and direct. item 1 is evidence with score 7 and comment Backed by examples.",
         always=True,
     )
-    response = (
+    result = (
         agent
         .input(f"Score this draft and explain strengths: {data.input['essay']}")
         .output({"judge_items": [{"name": (str, None, True), "score": (int, None, True), "comment": (str, None, True)}]})
-        .get_response()
+        .get_result()
     )
 
     partial = {"judge_items": []}
     emitted_items = set()
 
-    # `instant` yields agently.types.data.StreamingData items.
-    async for msg in response.get_async_generator(type="instant"):
+    # `instant` yields agently.StreamingData items.
+    async for msg in result.get_async_generator(type="instant"):
         path = getattr(msg, "path", None) or getattr(msg, "wildcard_path", None)
         match = PATH_PATTERN.match(path or "")
         if match is None:
@@ -91,9 +91,9 @@ async def judge(data):
                 }
             )
 
-    result = await response.result.async_get_data(max_retries=1)
-    await data.async_set_state("judge_result", result)
-    return result
+    final = await result.async_get_data(max_retries=1)
+    await data.async_set_state("judge_result", final)
+    return final
 
 
 async def main():
