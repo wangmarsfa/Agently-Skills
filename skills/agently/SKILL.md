@@ -116,6 +116,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
+- when a checkpointed AgentTaskLoop must resume after a crash, use
+  `agent.resume(task_id)` or `await agent.async_resume(task_id)` and consume the
+  returned task-strategy `AgentExecution` through `.start()`/`.async_start()`,
+  result, stream, and meta surfaces. Treat `resume_task(...)` as a compatibility
+  alias only; do not teach `AgentTask.async_resume(...)`, `task.async_run()`, or
+  a bare AgentTask handle as the recommended public lifecycle
 - for feature or release acceptance, use coverage-first reasoning: start from
   the target contract in roadmap/spec/issues/docs/compatibility/example rules,
   map each requirement to evidence from examples, deterministic tests, protocol
