@@ -283,6 +283,9 @@ here for Actions, Execution Environment, service, or DevTools details.
   built-in Search/Browse/HTTP/Workspace/Python/shell-script/MCP capabilities,
   while `approval` and `off` fail closed with diagnostics instead of silently
   mounting tools
+- with `capability_scope="execution"`, SkillsExecutor releases only capabilities
+  newly mounted for that execution; if the host Agent already owns the requested
+  action id, reuse that action and leave it registered after the Skills run
 - for search-oriented Skills, prefer the framework Search package backed by the
   `ddgs` Python package; keep `ddgs` upgraded with
   `python -m pip install --upgrade ddgs` before real search runs, and leave the
