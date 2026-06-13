@@ -25,16 +25,21 @@ here for Actions, Execution Environment, service, or DevTools details.
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
 - do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
-  bindings; use `agent.use_workspace(...)` or
-  `flow.create_execution(workspace=...)` when the app needs an explicit root,
-  read-only mode, shared instance, direct backend, or registered provider, and
-  keep in mind that ordinary model requests do not persist automatically
+  bindings backed by the current session/script physical Workspace; Agent,
+  execution, and task records are logical partitions, while file actions use
+  scoped roots under `files/agents/<agent-scope>`,
+  `files/executions/<execution-id>`, or `files/tasks/<task-id>`; use
+  `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when
+  the app needs an explicit root, read-only mode, direct backend, or registered
+  provider, and keep in mind that ordinary model requests do not persist
+  automatically
 - create application-owned shared Workspace instances with
   `Workspace(...)` or `Agently.create_workspace(...)` and bind each participant
   with `agent.use_workspace(shared_workspace)` or
   `flow.create_execution(workspace=shared_workspace)` when Agents,
-  TriggerFlow executions, or service workers must share task information; do
-  not rely on separate default Workspaces to communicate; use
+  TriggerFlow executions, or service workers must share task information across
+  an explicitly selected domain; do not rely on separate explicit Workspaces to
+  communicate; use
   `flow.create_execution(workspace=False)` only when an execution should have no
   Workspace binding
 - move information between separate Workspaces in application or TriggerFlow

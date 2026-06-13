@@ -174,10 +174,12 @@ showing the API equivalence.
   `execution = flow.create_execution(auto_close=False)`,
   `await execution.async_start(input_value)` using a positional start value, and
   `snapshot = await execution.async_close()`
-- `flow.create_execution()` binds an execution-scoped lazy Workspace by default;
-  pass `workspace=False` to opt out, or
+- `flow.create_execution()` binds the current session/script default Workspace
+  by default and assigns the execution a scoped file root under
+  `files/executions/<execution-id>`; pass `workspace=False` to opt out, or
   `flow.create_execution(workspace=shared_workspace)` when an application-owned
-  Workspace should be shared with Agents, service workers, or other executions
+  Workspace should be selected explicitly for Agents, service workers, or other
+  executions
 - do not call `execution.async_start(input_value=...)`; pass the start value
   positionally
 - do not assume `execution.async_start("start")` emits a custom `"start"` event.

@@ -9,14 +9,18 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
-  bindings; call `agent.use_workspace(...)` or
-  `flow.create_execution(workspace=...)` when a stable explicit root,
-  read-only mode, shared instance, direct backend, or registered provider is
-  required
+  bindings backed by the current session/script physical Workspace; Agent,
+  execution, and task records are logical partitions, while file actions use
+  scoped roots under `files/agents/<agent-scope>`,
+  `files/executions/<execution-id>`, or `files/tasks/<task-id>`; call
+  `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when a
+  stable explicit root, read-only mode, direct backend, or registered provider
+  is required
 - create shared task information scopes with `Workspace(...)` or
   `Agently.create_workspace(...)` and bind Agents, TriggerFlow executions, or
-  service workers to that same instance when they must collaborate over durable
-  facts; do not expect separate default Workspaces to communicate implicitly
+  service workers to that same instance when they must collaborate over an
+  explicitly selected durable information domain; do not expect separate
+  explicit Workspaces to communicate implicitly
 - move facts across separate Workspaces in application or TriggerFlow business
   logic with explicit search/read plus write/ingest/link operations; Workspace
   is not a cross-space messaging or replication protocol
