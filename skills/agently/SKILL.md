@@ -91,7 +91,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   AgentExecution step or may prefer a bounded TaskDAG/DAG-shaped step. DAG
   completion is only evidence for AgentTaskLoop verification; DynamicTask is a
   compatibility/convenience facade over DAG planning and execution, not a
-  second public lifecycle.
+  second public lifecycle. In auto mode, a failed DAG-shaped step should cause
+  later replans to avoid the same DAG shape; use explicit `step_plan="dag"` only
+  when DAG remains the intended contract after such a failure.
 - consume Agent quick prompt results through `AgentExecutionResult`:
   `execution = agent.input(...).output(...)`, then
   `result = execution.get_result()` and `result.get_data()` /
@@ -116,6 +118,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
+- when AgentTaskLoop completion depends on a particular capability, express it
+  as framework contract rather than prompt force: expose capabilities through
+  planner metadata, use structured `step_scope` for bounded action steps, and
+  use `capability_evidence_requirements` for completion evidence. For side
+  effects such as workspace writes/readbacks, require `action_succeeded`
+  evidence for the host Actions instead of accepting model claims. Preserve
+  prior action evidence in Workspace context packs before bulky execution
+  metadata so later Skills or Action steps can use the actual evidence, not only
+  a summary saying evidence was collected.
 - when a checkpointed AgentTaskLoop must resume after a crash, use
   `agent.resume(task_id)` or `await agent.async_resume(task_id)` and consume the
   returned task-strategy `AgentExecution` through `.start()`/`.async_start()`,

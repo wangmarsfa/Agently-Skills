@@ -128,6 +128,13 @@ here for Actions, Execution Environment, service, or DevTools details.
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
   browser access just because the task loop exists
+- when an AgentTaskLoop Skills step must perform side effects, grant the
+  relevant ActionRuntime tools/actions explicitly through route or effort
+  configuration, declare required side-effect actions when a Skills React loop
+  should stop after they succeed, and pair the task with structured
+  `action_succeeded` evidence requirements for those host Actions. A Skills
+  response that says it wrote or read an artifact is not execution evidence by
+  itself.
 - for AgentTaskLoop business examples, print or persist AgentExecution
   stream/result/meta items: use `meta.stream_kind=="snapshot"` for intermediate
   state captures such as context readiness, plan, execution evidence summary,
@@ -265,6 +272,9 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for Skills `react` tool use, delegate model-owned action planning and
   execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
   approvals, concurrency, and managed resources stay on the Action layer
+- when Skills `react` delegates to ActionRuntime, keep the selected SKILL.md
+  guidance/resource context in the ActionRuntime planning prompt. Delegation
+  with only task text and observation history bypasses the Skill guidance.
 - when Skills `react`, AgentTaskLoop, or another higher-level runtime delegates
   action planning to ActionRuntime, set `action.planning_model_key` to the
   intended `model_pool` business key so action planning uses the same model
@@ -404,6 +414,9 @@ here for Actions, Execution Environment, service, or DevTools details.
 - do not build a parallel action/tool dispatcher before checking Action Runtime
 - do not hand-roll tool schema prompts or kwargs planners in Skills when the
   Agent ActionRuntime can plan against the registered action list
+- do not accept prompt-only or React Skills text as proof of file writes,
+  readbacks, shell execution, HTTP calls, or other side effects; require
+  ActionRuntime records and structured evidence
 - do not expose core Execution Environment manager APIs as the default app-development mental model
 - do not route package installation or filesystem mutation through the Python sandbox
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits
