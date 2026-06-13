@@ -4,6 +4,15 @@ Use this skill when the output contract is already chosen and the remaining issu
 
 The user does not need to say `get_result()`. Requests to reuse one result as text, parsed data, metadata, or progressive updates should route here.
 
+Optional request scheduling belongs to model request settings, not custom
+caller-side semaphores. Use `model_request.scheduler.max_concurrency`,
+`model_request.scheduler.rate_per_second`, and optional
+`model_request.scheduler.providers.<provider>` overrides when a service or
+long-running task needs provider-level dispatch limits. Use
+`model_request.retry_backoff_base` and `model_request.retry_backoff_max` when
+retries should back off instead of immediately re-issuing. If these settings are
+absent, dispatch and retry timing keep the legacy immediate behavior.
+
 ## Native-First Rules
 
 - prefer `get_result()` when one request result must be consumed more than once

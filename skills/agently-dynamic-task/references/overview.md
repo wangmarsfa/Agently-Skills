@@ -59,6 +59,13 @@ belongs to the facade, planner, model adapter, or resolver handler. That keeps
 the core executor reusable for submitted local DAGs, model DAGs, action DAGs,
 and Skills Executor context-pack integration.
 
+TaskDAG node fallback can express bounded retry with
+`fallback: {on_error: "retry", max_attempts: ..., backoff_base: ..., then: ...}`.
+Keep this as a node-level execution policy: retry exhaustion should continue to
+the terminal fallback such as `then: "skip"` or fail closed, and long-task
+verification must still consume the DAG result as evidence instead of treating a
+retried node as automatic task success.
+
 When a submitted DAG needs Skill guidance, use the Skills Executor resolver
 adapter instead of inventing a scheduler. Register
 `Agently.skills_executor.task_dag_resolver()` with `TaskDAGExecutor` and model
