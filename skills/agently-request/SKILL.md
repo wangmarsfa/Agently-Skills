@@ -75,10 +75,10 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   `get_result()`
 - keep Session memory separate from TriggerFlow execution state
 - use `workspace.build_context(...)` when ordinary multi-turn task work needs a
-  ContextPack from prior Workspace records; use low-level `workspace.search(...)`
+  ContextPackage from prior Workspace records; use low-level `workspace.search(...)`
   for debugging or explicit filters
 - when the next request should be produced by an Agent-owned task loop, let
-  `agent.create_task(...)` build the ContextPack between iterations and record
+  `agent.create_task(...)` build the ContextPackage between iterations and record
   observations, decisions, verification, and checkpoints; do not duplicate that
   loop with ad hoc request retries
 - use `workspace.get_data(...)`, `workspace.links(...)`,

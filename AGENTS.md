@@ -25,7 +25,7 @@ Use this file as installation-time guidance after the skills are added into anot
 - For Agently framework internals, follow the core module style: class-owned
   runtime state, typed data contracts under `agently/types/data`, protocol or
   handler seams under `agently/types/plugins`, and retained implementation
-  owners for Action, ExecutionEnvironment, TriggerFlow, and DynamicTask. A
+  owners for Action, ExecutionResource, TriggerFlow, and DynamicTask. A
   high-level capability can live outside `agently/core` when it composes
   several core systems; split large implementations by registry, planner,
   executor, adapter, facade, and contract boundaries rather than by arbitrary

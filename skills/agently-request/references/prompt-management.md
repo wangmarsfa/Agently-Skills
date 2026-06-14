@@ -21,7 +21,7 @@ Use this skill when the core problem is how prompt state should be structured be
   `.execution`
 - use `agent.define(...)` for reusable Agent definition state such as model
   defaults, stable persona, fixed prompt, mounted Actions or Skills, Workspace,
-  Recall, and policy defaults. Ordinary quick prompt calls are execution-local
+  ContextBuilder, and policy defaults. Ordinary quick prompt calls are execution-local
   drafts, not shared Agent definition writes
 - Agent quick prompt chains create AgentExecution-local ModelRequest drafts. Expression-local
   chaining can configure and run one execution directly, for example

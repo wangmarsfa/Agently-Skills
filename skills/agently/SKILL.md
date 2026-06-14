@@ -75,7 +75,8 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   complex.
 - configure reusable Agent definition state with `agent.define(...)` when the
   code owns model defaults, fixed persona/prompt, mounted Actions, Skills,
-  Workspace, Recall, or policy defaults. Keep ordinary `agent.input(...)`,
+  Workspace, ContextBuilder profile, or policy defaults. Keep ordinary
+  `agent.input(...)`,
   `agent.output(...)`, `.goal(goal_or_goals, success_criteria=None)` /
   `.goals(...)` as the same goal-pursuit entrypoint, and execution options on
   an AgentExecution draft; do not teach shared Agent
@@ -103,7 +104,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - when the host owns a developer loop and needs one bounded Agent step, choose
   `agent.create_execution(lineage=..., limits=...)` plus explicit
   `execution.async_record_workspace(...)` observation/checkpoint writes before
-  building the next ContextPack; do not introduce task-step mode as a public
+  building the next ContextPackage; do not introduce task-step mode as a public
   category or make Workspace depend on AgentExecution semantics
 - when the model should own a single business task's plan, bounded execution,
   evidence recording, verification, and replan loop, choose
@@ -141,7 +142,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - for release acceptance that touches or claims a Foundation-layer capability,
   add a Foundation example effect gate after pyright/pytest: treat Foundation as
   framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
-  Task/TaskDAG, ActionRuntime, ExecutionEnvironment, Workspace/Recall,
+  Task/TaskDAG, ActionRuntime, ExecutionResource, Workspace/ContextBuilder,
   RuntimeEvent/EventCenter, and provider protocols, not application-level
   AgentExecution or Skills use cases by themselves; identify the affected
   Foundation capability, run the corresponding core example under `examples/`
@@ -175,7 +176,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 ## Capability Routing
 
 - model setup, prompt management, output control, response reuse, session memory, embeddings, KB, or retrieval-to-answer -> `agently-request`
-- Action Runtime, built-in actions, tools compatibility, MCP, Execution Environment, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation and evaluation integration -> `agently-runtime`
+- Action Runtime, built-in actions, tools compatibility, MCP, ExecutionResource, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools` observation and evaluation integration -> `agently-runtime`
 - model-generated or app-submitted DAG planning, TaskDAG validation, resolver handlers, or Dynamic Task execution -> `agently-dynamic-task`
 - branching, concurrency, waiting/resume, mixed sync/async orchestration, event-driven fan-out, process-clarity refactors, runtime stream, graph-friendly workflow definitions, or explicit multi-stage quality loops -> `agently-triggerflow`
 - migration choice between LangChain and LangGraph -> `agently-migration`

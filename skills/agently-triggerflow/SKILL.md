@@ -64,7 +64,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   distributed workflow engine. `execution.save()` is a versioned top-level
   execution snapshot with durable TriggerFlow progress, flow definition
   fingerprint validation, interrupt/resume ledgers, resource requirements,
-  lease metadata, and managed execution environment requirements. TriggerFlow
+  lease metadata, and managed execution resource requirements. TriggerFlow
   core is process-stateless between save/load; live `runtime_resources`,
   clients, callbacks, tasks, semaphores, stateful sessions, and Python
   coroutine frames are not serialized. `runtime_resources` is only the
@@ -79,7 +79,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   persist through a snapshot store that implements `put_snapshot(...)` while
   the production store owns atomic claim, lease enforcement, conflict handling,
   outbox ordering, and external side-effect idempotency. Fail-closed pending
-  resolvers or pending managed execution environments should be treated as
+  resolvers or pending managed execution resources should be treated as
   `status="pending_resources"` and `ready=False` until `async_load(...)`
   resolves and validates live resources. Late callbacks delivered to an
   expired execution-local lease fail fast before resume acceptance without
@@ -176,7 +176,8 @@ showing the API equivalence.
   `snapshot = await execution.async_close()`
 - `flow.create_execution()` binds the current session/script default Workspace
   by default and assigns the execution a scoped file root under
-  `files/executions/<execution-id>`; pass `workspace=False` to opt out, or
+  `files/lineage/<root-kind>/<root-id>/.../execution/<execution-id>/files`;
+  pass `workspace=False` to opt out, or
   `flow.create_execution(workspace=shared_workspace)` when an application-owned
   Workspace should be selected explicitly for Agents, service workers, or other
   executions

@@ -5,14 +5,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 ## Native-First Rules
 
 - prefer the native Action Runtime, built-in action packages, legacy tool facades, and MCP surfaces before handwritten wrappers
-- keep extension choice explicit: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
-- treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
+- keep extension choice explicit: Action Runtime, ExecutionResource, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
+- treat `Agently.execution_resource` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
   bindings backed by the current session/script physical Workspace; Agent,
   execution, and task records are logical partitions, while file actions use
-  scoped roots under `files/agents/<agent-scope>`,
-  `files/executions/<execution-id>`, or `files/tasks/<task-id>`; call
+  lineage-scoped roots under
+  `files/lineage/<root-kind>/<root-id>/.../<leaf-kind>/<leaf-id>/files`; call
   `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when a
   stable explicit root, read-only mode, direct backend, or registered provider
   is required
@@ -28,8 +28,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   links, checkpoints, stable ref envelopes, bounded reads, RuntimeEvent records,
   evidence links, and retention anchors
 - use `workspace.build_context(...)` to package those records for later model
-  calls; ordinary application code should not hand-write recall filters when a
-  ContextPack through RecallPlanner/Retriever/ContextBuilder fits
+  calls; ordinary application code should not hand-write retrieval filters when
+  a ContextPackage through ContextPlanner, WorkspaceContextRetriever, and
+  ContextPackager fits
 - for AgentExecution evidence, keep persistence explicit with
   `execution.async_record_workspace(..., checkpoint=True)`; the helper writes
   requested checkpoints through the Workspace checkpoint-store port and records
@@ -126,9 +127,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   return a blocked or approval-required result with a user-facing explanation.
 - for Skills Executor or artifact-producing workflows, missing local libraries
   are not a natural degraded-success path; plan a controlled install-capable
-  Action or ExecutionEnvironment ensure step, preserve the ActionResult, and
+  Action or ExecutionResource ensure step, preserve the ActionResult, and
   fail closed if policy denies or installation fails
-- treat MCP, Bash, Python sandbox, Node.js, Docker, SQLite, vector-store, browser, and remote-runner lifecycle as Execution Environment concerns when they need managed handles
+- treat MCP, Bash, Python sandbox, Node.js, Docker, SQLite, vector-store, browser, and remote-runner lifecycle as ExecutionResource concerns when they need managed handles
 - Action executors should declare or consume managed resources instead of hiding lifecycle ownership
 - treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source checkout
 - keep observation or evaluation bridge wiring in the app layer through `Agently.event_center`
@@ -144,13 +145,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - when the surrounding runtime uses `model_pool`, set
   `action.planning_model_key` to the intended business key so ActionRuntime
   planning uses the same model routing
-- do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_environment` can own the dependency
+- do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_resource` can own the dependency
 - do not recommend core manager/provider APIs to ordinary app developers when a built-in Action or Agent Component is the right surface
 - do not create a custom waiter or auto-function shim first
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` is the supported public path
 - do not build a custom runtime upload bridge before checking `ObservationBridge`
 
-## Action Loop Recall
+## Action Loop Context Building
 
 For `run_bash`, `run_python`, `run_nodejs`, `query_sqlite`, `browse`, `search`,
 and similar explicit-instruction Actions, later model rounds should receive a
@@ -187,7 +188,7 @@ executed work.
 ## Example Guidance
 
 Current Action Runtime examples live under `examples/action_runtime/`,
-`examples/builtin_actions/`, and `examples/execution_environment/`. Recommended
+`examples/builtin_actions/`, and `examples/execution_resource/`. Recommended
 model-backed cookbook patterns live under `examples/cookbook/`, including Action
 loop, router, concurrent todo, reflection, and safe shell policy examples.
 Historical built-in tool examples live under `examples/archived/builtin_tools/`

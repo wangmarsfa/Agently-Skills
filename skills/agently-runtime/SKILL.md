@@ -1,6 +1,6 @@
 ---
 name: agently-runtime
-description: "Use when the user wants Agently runtime extension capabilities: Action Runtime, built-in action packages, legacy tool compatibility, MCP access, Execution Environment lifecycle, FastAPIHelper or streaming API exposure, auto-function helpers, KeyWaiter, or optional agently-devtools observation, evaluation, and playground integration."
+description: "Use when the user wants Agently runtime extension capabilities: Action Runtime, built-in action packages, legacy tool compatibility, MCP access, ExecutionResource lifecycle, FastAPIHelper or streaming API exposure, auto-function helpers, KeyWaiter, or optional agently-devtools observation, evaluation, and playground integration."
 ---
 
 # Agently Runtime
@@ -11,24 +11,24 @@ existing request or workflow design.
 
 If the owner layer is still undecided, start with `agently`. If the
 problem is multi-step orchestration, use `agently-triggerflow` first and return
-here for Actions, Execution Environment, service, or DevTools details.
+here for Actions, ExecutionResource, service, or DevTools details.
 
 ## Route Inside This Skill
 
 - Action Runtime, `@agent.action_func`, `agent.use_actions(...)`, built-in Search/Browse, sandbox actions, or legacy tools -> `references/actions-runtime.md`
-- Action vs Execution Environment boundaries, `agent.enable_*` helpers, provider lifecycle, managed MCP/sandbox/process/browser/SQLite resources -> `references/actions-execution-environment.md`
+- Action vs ExecutionResource boundaries, `agent.enable_*` helpers, provider lifecycle, managed MCP/sandbox/process/browser/SQLite resources -> `references/actions-execution-resource.md`
 - observation, evaluation, playground, local logs, or `agently-devtools` -> `references/devtools.md`
 
 ## Native-First Rules
 
 - prefer `@agent.action_func` and `agent.use_actions(...)`; `tool_func`, `use_tool`, `use_tools`, and `agently.builtins.tools` are compatibility surfaces
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
-- do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not Execution Environment
+- do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not ExecutionResource
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
   bindings backed by the current session/script physical Workspace; Agent,
   execution, and task records are logical partitions, while file actions use
-  scoped roots under `files/agents/<agent-scope>`,
-  `files/executions/<execution-id>`, or `files/tasks/<task-id>`; use
+  lineage-scoped roots under
+  `files/lineage/<root-kind>/<root-id>/.../<leaf-kind>/<leaf-id>/files`; use
   `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when
   the app needs an explicit root, read-only mode, direct backend, or registered
   provider, and keep in mind that ordinary model requests do not persist
@@ -51,10 +51,10 @@ here for Actions, Execution Environment, service, or DevTools details.
   local file actions, use `agent.enable_workspace_file_actions(...)`, which
   exposes the current Workspace file working tree and inherits
   `agent.workspace.files_root`
-- use `workspace.build_context(...)` for Workspace-backed Recall; advanced
-  model-assisted planners, vector retrieval, rerankers, and compressors should
-  plug into RecallPlanner/Retriever/ContextBuilder instead of becoming WorkLoop
-  or Action shortcuts
+- use `workspace.build_context(...)` for Workspace-backed context building;
+  advanced model-assisted planners, vector retrieval, rerankers, and
+  compressors should plug into ContextPlanner, WorkspaceContextRetriever, or
+  ContextPackager instead of becoming WorkLoop or Action shortcuts
 - for explicit TriggerFlow loops, store structured observations and decisions
   in Workspace, link decisions to evidence with `workspace.link(...)` or
   `workspace.link_evidence(...)`, keep large payloads behind
@@ -186,7 +186,7 @@ here for Actions, Execution Environment, service, or DevTools details.
 - use `agent.action.summarize_records(records, validation_command_markers=...)`
   when a host needs authoritative action evidence such as failed actions,
   commands attempted/run, and latest validation result
-- treat `Agently.execution_environment` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
+- treat `Agently.execution_resource` as an advanced framework/plugin surface for lifecycle, policy, approval, health, and release
 - Action executors should declare or consume managed resources instead of secretly owning long-lived MCP clients, sandboxes, browsers, SQLite connections, or process runners
 - keep permission profiles explicit: search-only, local-files-only, network-read, install-capable shell, or trusted executor
 - treat `agently-devtools` as optional PyPI-installed tooling; wire observation through public bridge APIs, not source-repo paths
@@ -239,7 +239,7 @@ here for Actions, Execution Environment, service, or DevTools details.
 - for application-specific Skills action strategies, use
   `Agently.skills_executor.register_effort_strategy(name, handler)` and invoke
   it with `effort=name`; the handler should compose model requests,
-  ActionRuntime/MCP, ExecutionEnvironment, TriggerFlow, or Dynamic Task through
+  ActionRuntime/MCP, ExecutionResource, TriggerFlow, or Dynamic Task through
   the Agent runtime context instead of building a parallel tool dispatcher
 - Skills effort strategy handlers follow the `SkillsEffortStrategyHandler`
   protocol with keyword arguments `context`, `task`, `plan`, `output_format`,
@@ -331,7 +331,7 @@ here for Actions, Execution Environment, service, or DevTools details.
 - script resources under `scripts/` can be wrapped as scoped shell actions only
   when host policy allows `script_run`; the action root must be the installed
   Skill directory and execution still goes through ActionRuntime /
-  ExecutionEnvironment boundaries
+  ExecutionResource boundaries
 - public Agent Skills `allowed-tools` is experimental and, if supported, can
   only restrict or pre-approve already-mounted host tools; it must not create
   tools, synthesize backends, mount MCP, or choose Skills execution strategy by
@@ -348,7 +348,7 @@ here for Actions, Execution Environment, service, or DevTools details.
   definition; Agently install metadata and decision cards are descriptive
   runtime aids, not authoring formats or availability gates
 - for Skills actions, use the global PolicyApproval contract plus
-  Action/ExecutionEnvironment resource boundaries; when the request is
+  Action/ExecutionResource boundaries; when the request is
   orchestrated, pending approvals must become TriggerFlow `policy_approval`
   interrupts instead of Skills snapshots
 - keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
@@ -422,7 +422,7 @@ here for Actions, Execution Environment, service, or DevTools details.
 - do not accept prompt-only or React Skills text as proof of file writes,
   readbacks, shell execution, HTTP calls, or other side effects; require
   ActionRuntime records and structured evidence
-- do not expose core Execution Environment manager APIs as the default app-development mental model
+- do not expose core ExecutionResource manager APIs as the default app-development mental model
 - do not route package installation or filesystem mutation through the Python sandbox
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits
 - do not make DevTools the source of truth for workflow structure
@@ -434,5 +434,5 @@ here for Actions, Execution Environment, service, or DevTools details.
 ## Read Next
 
 - `references/actions-runtime.md`
-- `references/actions-execution-environment.md`
+- `references/actions-execution-resource.md`
 - `references/devtools.md`

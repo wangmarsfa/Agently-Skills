@@ -55,7 +55,7 @@ The default catalog contains 6 public skills:
   memory, embeddings, knowledge-base indexing, retrieval, and retrieval-backed
   answers.
 - `agently-runtime` - Action Runtime, built-in action packages, tool
-  compatibility, MCP, Execution Environment lifecycle, service exposure,
+  compatibility, MCP, ExecutionResource lifecycle, service exposure,
   auto-function helpers, and `KeyWaiter`.
 - `agently-dynamic-task` - Dynamic Task DAG planning, `TaskDAG` validation,
   resolver handlers, and `TaskDAGExecutor` execution through

@@ -47,7 +47,7 @@ README 中。
   输出、响应复用、streaming 消费、session memory、embeddings、knowledge-base
   索引、检索与 retrieval-backed answers。
 - `agently-runtime` - Action Runtime、内置 action packages、tool 兼容入口、
-  MCP、Execution Environment 生命周期、服务暴露、auto-function helpers、
+  MCP、ExecutionResource 生命周期、服务暴露、auto-function helpers、
   以及 `KeyWaiter`。
 - `agently-dynamic-task` - Dynamic Task DAG 规划、`TaskDAG` 校验、resolver
   handlers，以及通过 `Agently.create_dynamic_task(...)` 使用 `TaskDAGExecutor`
