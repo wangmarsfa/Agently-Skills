@@ -408,9 +408,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `response.materialization_idle_timeout`; use `None` for unlimited budgets and
   avoid permanent debug-only timeout wrappers in examples; provider first-event
   and stream-idle waits should surface as `RuntimeStageStallError` with
-  `stage="response_first_event"` or `stage="response_stream"`; OpenAI-compatible
-  transient disconnects before output starts use same-request
-  `OpenAICompatible.request_retry`; explicit
+  `stage="response_first_event"` or `stage="response_stream"`; transient
+  disconnects before output starts use same-request `<Requester>.request_retry`
+  on OpenAICompatible, OpenAIResponsesCompatible, and AnthropicCompatible; explicit
   response stream errors should propagate from response getters with the
   original provider or ActionFlow reason before materialization timeout is used
   as a fallback
