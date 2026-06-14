@@ -33,6 +33,9 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `progress_model_key` for template progress with no model requests, or set
   `progress_model_key` to run a separate background model that summarizes only
   existing snapshots/task metadata without adding main-loop fields or latency;
+  model-generated progress streams `progress_delta` items before the final
+  `progress` item; use `progress_language` or the global
+  `agent_task.progress.language` setting when the host needs a fixed language;
   prove replan behavior from stream verification/replan events and snapshots
   rather than hiding the proof in a local Python loop; mocked business systems
   may supply defective facts or conflicting source data, but must not return
@@ -115,6 +118,14 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `build_flow(...)` helper only when the application genuinely needs multiple
   configured flow instances or test isolation, not as the default service shape
 - route model-generated or app-submitted DAG data to `agently-dynamic-task`; TaskDAG is the DAG foundation capability, Dynamic Task is the convenience facade over it, and TriggerFlow is the execution substrate rather than the facade API
+- when discussing the new Blocks lifecycle, describe it as the framework
+  lowering bridge from bounded ExecutionPlan / PlanBlock instances or
+  validated TaskDAG nodes into TriggerFlow-backed ExecutionBlockGraph. Do not
+  tell users to generate live Python TriggerFlow chunks from planner output for
+  the current run; trusted ExecutionBlocks, handlers, Workspace resources, and
+  PolicyApproval waits must be registered or provided by the host. Blocks
+  wait blocks record waiting evidence, while resume state remains in the
+  TriggerFlow interrupt/resume ledger
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - for a developer-owned Todo DAG or other dependency graph represented as
   stable Python flow code, express multi-dependency joins with

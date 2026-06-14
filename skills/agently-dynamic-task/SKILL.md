@@ -16,6 +16,12 @@ the execution substrate under `TaskDAGExecutor`, while
 `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` remain
 compact app-facing facade entrypoints.
 
+When lower-level evidence or runtime visualization matters, use
+`TaskDAGExecutor.compile_blocks(...)` or `async_run_blocks(...)`: TaskDAG still
+owns graph validation, dependency semantics, and semantic outputs; Blocks only
+lowers the validated DAG segment into a TriggerFlow-backed
+`ExecutionBlockGraph` and maps EvidenceEnvelope/ResultAdapter output.
+
 ## Native-First Rules
 
 - use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` when ordinary app code wants the compact facade
@@ -25,6 +31,9 @@ compact app-facing facade entrypoints.
   candidate; do not turn the Dynamic Task facade into the long-running AgentTask lifecycle
   owner
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
+- use `TaskDAGExecutor.compile_blocks(...)` or `async_run_blocks(...)` when the
+  caller needs the Blocks lifecycle evidence path; do not bypass
+  `TaskDAGValidator` or treat Blocks as the DAG owner
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
 - use submitted DAG `inputs` placeholders for small runtime wiring:

@@ -3,7 +3,7 @@ name: agently
 description: Use when the user wants to build, initialize, validate, optimize, or refactor a model-powered assistant, internal tool, automation, evaluator, or workflow from a business scenario or common problem statement, including project-structure refactors or starter skeletons that may separate model setup, prompt config, and orchestration, even if the request also mentions a UI, app shell, or local model service such as Ollama, and it is still unclear whether the solution should stay a single request, add supporting capabilities, or become orchestration. The user does not need to mention Agently explicitly.
 ---
 
-# Agently Playbook
+# Agently
 
 Use this skill first when the request still starts from business goals, refactor goals, product behavior, or broad model-app language.
 
@@ -86,15 +86,33 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   sections such as `budget`, `planning`, `execution`, `verification`, `replan`,
   and `progress`; do not introduce raw iteration-count builders or treat effort
   as permission, data visibility, or completion acceptance.
+- in Goal Pursuit / AgentTaskLoop examples, caller facts and the requested
+  structured output contract may live on the same `AgentExecution` draft through
+  `.input(...)` and `.output(...)`; AgentTaskLoop treats that execution prompt
+  snapshot as task context during planning, bounded step execution, and
+  verification. Do not duplicate those facts into framework hardcode only to
+  make the task loop see them.
 - treat `execution.step_plan` as `auto` by default. Use
   `effort(..., execution={"step_plan": "direct" | "dag"})` only as explicit
   strategy guidance for whether a Goal Pursuit iteration must stay one bounded
   AgentExecution step or may prefer a bounded TaskDAG/DAG-shaped step. DAG
   completion is only evidence for AgentTaskLoop verification; DynamicTask is a
   compatibility/convenience facade over DAG planning and execution, not a
-  second public lifecycle. In auto mode, a failed DAG-shaped step should cause
-  later replans to avoid the same DAG shape; use explicit `step_plan="dag"` only
-  when DAG remains the intended contract after such a failure.
+  second public lifecycle. `step_plan="direct"` means model-proposed
+  DynamicTask/DAG candidates are rejected for that bounded step. In auto mode, a
+  failed DAG-shaped step should cause later replans to avoid the same DAG shape;
+  use explicit `step_plan="dag"` only when DAG remains the intended contract
+  after such a failure.
+- treat Blocks as the internal lowering bridge from AgentTaskLoop
+  `ExecutionPlan` / `PlanBlock` instances and validated TaskDAG nodes to
+  TriggerFlow-backed `ExecutionBlockGraph`, not as a public task lifecycle.
+  PlanBlock selection is evidence of need, not permission; ExecutionBlocks
+  cannot accept task completion. Blocks registries fail closed on unknown block
+  kinds, invalid runtime bindings, invalid signal contracts, denied
+  capabilities, or pending capabilities without an `approval_wait`.
+  `skill_activation` loads selected Skill guidance/resources and records
+  skill-context evidence, while side-effect evidence must come from downstream
+  ActionRuntime, Workspace, approval, or other concrete execution blocks.
 - consume Agent quick prompt results through `AgentExecutionResult`:
   `execution = agent.input(...).output(...)`, then
   `result = execution.get_result()` and `result.get_data()` /

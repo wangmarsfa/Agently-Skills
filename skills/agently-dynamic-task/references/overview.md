@@ -4,7 +4,7 @@ TaskDAG is the Agently DAG foundation capability. It owns graph data,
 planning, validation, handler resolution, execution, dependency results,
 semantic outputs, and runtime placeholders. Dynamic Task is the current
 compatibility and convenience facade over that DAG substrate. It belongs above
-TriggerFlow conceptually:
+Blocks and TriggerFlow conceptually:
 
 ```text
 Agently.create_dynamic_task(...)
@@ -16,6 +16,9 @@ DynamicTask facade
         +-- TaskDAGValidator
         +-- DynamicTaskResolver
         +-- TaskDAGExecutor
+                |
+                v
+          Blocks ExecutionBlockGraph
                 |
                 v
           TriggerFlow execution substrate
@@ -30,6 +33,9 @@ Layer ownership:
   `ensure_keys`, model instructions, and retry validation wiring.
 - `TaskDAGValidator`, `TaskDAGResolver`, and `TaskDAGExecutor` are core
   runtime owners.
+- `TaskDAGExecutor.compile_blocks(...)` and `async_run_blocks(...)` keep
+  TaskDAG validation and semantic-output ownership in TaskDAG, then lower the
+  validated segment through Blocks to TriggerFlow-backed execution and evidence.
 - `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
   the app-facing facade entrypoints.
 - In Agent mode, chained quick prompt methods create an AgentExecution-local
@@ -125,6 +131,8 @@ Recommended API boundaries:
 - graph validation: `TaskDAGValidator`
 - handler lookup: `DynamicTaskResolver`
 - execution integration: `TaskDAGExecutor`
+- Blocks lifecycle evidence: `TaskDAGExecutor.compile_blocks(...)` /
+  `TaskDAGExecutor.async_run_blocks(...)`
 
 For Skills Executor work, use Dynamic Task as the DAG substrate rather than
 placing Skills execution under TriggerFlow directly. Skills execution may

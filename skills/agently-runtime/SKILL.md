@@ -148,10 +148,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   natural-language progress is needed; omit `progress_model_key` for template
   progress with no model requests, or set `progress_model_key` to run a
   separate background model that summarizes only existing snapshots/task
-  metadata without adding main-loop fields or latency; progress model failures
-  are side-channel diagnostics/warnings, not main task `model.request_failed`
-  errors; progress model inputs should be operator-safe and omit low-level
-  Workspace/SQLite fallback diagnostics that remain available in task meta
+  metadata without adding main-loop fields or latency; model-generated progress
+  streams `progress_delta` items before the final `progress` item; set
+  `progress_language` per execution or `agent_task.progress.language` globally
+  when operator updates must be Chinese, English, or another fixed language;
+  progress model failures are side-channel diagnostics/warnings, not main task
+  `model.request_failed` errors; progress model inputs should be operator-safe
+  and omit low-level Workspace/SQLite fallback diagnostics that remain
+  available in task meta
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
   leave useful Workspace files, but those are partial artifacts
@@ -224,14 +228,23 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `agently.skills.context_pack.v1` payload can include `SKILL.md` guidance,
   task-relevant references/examples/assets, citations, diagnostics, optional
   public lookup, and policy-gated script Action candidates
+- when a planner needs progressive Skill activation for PlanBlock selection,
+  use `Agently.skills_executor.activate_skill(...)` or the
+  `capability_adapter()` facade. Treat the returned SkillActivation as
+  skill-context evidence and capability need discovery only; it does not execute
+  bundled resources, grant Actions/MCP/shell/browser access, or prove side
+  effects
 - for DAG-shaped consumers of Skill context, pass
   `Agently.skills_executor.task_dag_resolver()` to `TaskDAGExecutor` and use
   `kind="skill"` nodes; do not build a separate scheduler or execute bundled
   scripts while constructing context packs
-- for explicit Skills execution, `effort="fast"` maps to the low-overhead
-  single-shot path, `effort="normal"` runs the full preflight -> research ->
-  plan -> execute -> verify -> reflect -> finalize runtime chain, and
-  `effort="max"` increases retry budget for that chain
+- for explicit Skills execution, `agent.run_skills_task(...)` is a
+  compatibility facade over Blocks lowering: it builds an ExecutionPlan with
+  `skill_activation` PlanBlocks plus a concrete strategy PlanBlock, then lowers
+  to a TriggerFlow-backed ExecutionBlockGraph; `effort="fast"` maps to the
+  low-overhead single-shot compatibility label, `effort="normal"` runs the full
+  preflight -> research -> plan -> execute -> verify -> reflect -> finalize
+  compatibility chain, and `effort="max"` increases retry budget for that chain
 - when Skills are reached through Agent auto-orchestration, pass route-owned
   effort with `agent.create_execution(options=ExecutionOptions(routes={
   "skills": SkillsRouteOptions(effort="normal")}))` or the equivalent dict;
@@ -243,11 +256,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   the Agent runtime context instead of building a parallel tool dispatcher
 - Skills effort strategy handlers follow the `SkillsEffortStrategyHandler`
   protocol with keyword arguments `context`, `task`, `plan`, `output_format`,
-  `effort`, and `effort_config`; builtin strategies `single_shot`,
+  `effort`, and `effort_config`; builtin route labels `single_shot`,
   `runtime_chain`, `staged`, and `react` are exposed through the same strategy
   table and can be inspected with `list_effort_strategies()`; their reference
   implementations live under the Agently builtin Skills Executor
-  `modules/effort_strategies/` package
+  `modules/effort_strategies/` package and are invoked as trusted Blocks runtime
+  handlers, not as a separate Skills-owned lifecycle
 - direct `agent.run_skills_task(..., stream_handler=...)` handlers receive
   Skills runtime item dictionaries and can be annotated with
   `SkillRuntimeStreamHandler`; model stream handlers passed to
@@ -270,10 +284,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   compatibility alias for direct Skills execution, while Dynamic Task still
   uses `semantic_outputs` inside TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
-  capability definition; selected Skills default to `single_shot` model
-  requests using their full Markdown guidance, while declared staged/react
-  strategies should compose TriggerFlow and ActionFlow/ActionRuntime rather
-  than adding a Skills-local executor
+  capability definition; selected Skills default to a `single_shot`
+  compatibility route that lowers to a handler-backed `model_request` block,
+  while staged/react/custom labels lower to handler-backed `flow_segment`
+  blocks and should compose TriggerFlow and ActionFlow/ActionRuntime rather than
+  adding a Skills-local executor
 - for Skills `react` tool use, delegate model-owned action planning and
   execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
   approvals, concurrency, and managed resources stay on the Action layer
