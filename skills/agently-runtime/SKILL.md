@@ -159,7 +159,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   stream `model_delta` observation items with
   `validation_role=="observation_only"` only when `stream_model_stage_deltas` or
   a stage-specific override is explicitly enabled; use them for UI/log
-  visibility only, not for acceptance or verifier evidence
+  visibility only, not for acceptance or verifier evidence; frontend consumers
+  should buffer/bucket high-frequency deltas or use smooth incremental rendering
+  to avoid render pressure and visible screen jitter
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
   leave useful Workspace files, but those are partial artifacts
