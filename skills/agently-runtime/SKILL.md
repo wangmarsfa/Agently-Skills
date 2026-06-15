@@ -155,7 +155,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   progress model failures are side-channel diagnostics/warnings, not main task
   `model.request_failed` errors; progress model inputs should be operator-safe
   and omit low-level Workspace/SQLite fallback diagnostics that remain
-  available in task meta
+  available in task meta; requirements, planner, and verifier model requests can
+  stream `model_delta` observation items with
+  `validation_role=="observation_only"` only when `stream_model_stage_deltas` or
+  a stage-specific override is explicitly enabled; use them for UI/log
+  visibility only, not for acceptance or verifier evidence
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
   leave useful Workspace files, but those are partial artifacts
@@ -208,14 +212,19 @@ here for Actions, ExecutionResource, service, or DevTools details.
   namespace is removed from the current development-line contract.
   `attempt_index` is model-request retry metadata and must not be treated as an
   AgentExecution counter.
-- for framework-side Skills Executor work, prefer the `Agently.skills_executor`
-  facade backed by the builtin `SkillsExecutor` plugin; Agently 4.1.2.5 did not
+- for framework-side Skills Manager work, prefer the `Agently.skills_manager`
+  facade backed by the builtin `SkillsManager` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias
 - for Agently 4.1.3 Skills runtime work, prefer Action-like management:
   declare installed ids or remote source selectors on `agent.use_skills(...)`
-  and let Skills Executor lazily discover, install, and mount selected
-  capabilities; keep `install_skills_pack(...)` for prewarming, offline mirrors,
+  and let Skills Manager lazily discover, install, and expose selected
+  capability needs/candidates; AgentExecution owns run-local mounting,
+  execution, and cleanup. Keep `install_skills_pack(...)` for prewarming, offline mirrors,
   deterministic CI fixtures, and explicit registry maintenance
+- Skills installs default to the user-global registry `~/.agently/skills`;
+  override `skills.registry.root` only for isolation, and use
+  `skills.registry.proxy` or `runtime.network.proxy` when remote pack fetches
+  need a configured proxy
 - use `install_skills(...)` for one local Skill directory during
   authoring/smoke tests; use `agent.run_skills_task(...)` for explicit Skills
   execution; remote selectors may use git URLs, GitHub shorthand such as
@@ -224,18 +233,18 @@ here for Actions, ExecutionResource, service, or DevTools details.
   without forcing the complete Skills execution route, use
   `agent.build_skills_context_pack(...)`,
   `agent.async_build_skills_context_pack(...)`, or
-  `Agently.skills_executor.build_context_pack(...)`; the returned
+  `Agently.skills_manager.build_context_pack(...)`; the returned
   `agently.skills.context_pack.v1` payload can include `SKILL.md` guidance,
   task-relevant references/examples/assets, citations, diagnostics, optional
   public lookup, and policy-gated script Action candidates
 - when a planner needs progressive Skill activation for PlanBlock selection,
-  use `Agently.skills_executor.activate_skill(...)` or the
+  use `Agently.skills_manager.activate_skill(...)` or the
   `capability_adapter()` facade. Treat the returned SkillActivation as
   skill-context evidence and capability need discovery only; it does not execute
   bundled resources, grant Actions/MCP/shell/browser access, or prove side
   effects
 - for DAG-shaped consumers of Skill context, pass
-  `Agently.skills_executor.task_dag_resolver()` to `TaskDAGExecutor` and use
+  `Agently.skills_manager.task_dag_resolver()` to `TaskDAGExecutor` and use
   `kind="skill"` nodes; do not build a separate scheduler or execute bundled
   scripts while constructing context packs
 - for explicit Skills execution, `agent.run_skills_task(...)` is a
@@ -250,7 +259,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   "skills": SkillsRouteOptions(effort="normal")}))` or the equivalent dict;
   this is an execution option, not a prompt slot
 - for application-specific Skills action strategies, use
-  `Agently.skills_executor.register_effort_strategy(name, handler)` and invoke
+  `Agently.skills_manager.register_effort_strategy(name, handler)` and invoke
   it with `effort=name`; the handler should compose model requests,
   ActionRuntime/MCP, ExecutionResource, TriggerFlow, or Dynamic Task through
   the Agent runtime context instead of building a parallel tool dispatcher
@@ -259,7 +268,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `effort`, and `effort_config`; builtin route labels `single_shot`,
   `runtime_chain`, `staged`, and `react` are exposed through the same strategy
   table and can be inspected with `list_effort_strategies()`; their reference
-  implementations live under the Agently builtin Skills Executor
+  implementations live under the Agently builtin Skills Manager
   `modules/effort_strategies/` package and are invoked as trusted Blocks runtime
   handlers, not as a separate Skills-owned lifecycle
 - direct `agent.run_skills_task(..., stream_handler=...)` handlers receive
@@ -303,7 +312,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   capability manifests; do not author or recommend `allowed-actions`,
   `allow-scripts`, `mcp`, `mcpServers`, `execution`, or `stages` frontmatter as
   Agently capability declarations
-- SkillsExecutor discovers selected Skill capability needs from `SKILL.md`,
+- SkillsManager discovers selected Skill capability needs from `SKILL.md`,
   resource indexes, public `compatibility`, public `metadata`, and optional
   model-assisted inference, then records structured `capability_needs`; selected
   Skills may guide the model to use capabilities when available, but they do not
@@ -313,7 +322,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   built-in Search/Browse/HTTP/Workspace/Python/shell-script/MCP capabilities,
   while `approval` and `off` fail closed with diagnostics instead of silently
   mounting tools
-- with `capability_scope="execution"`, SkillsExecutor releases only capabilities
+- with `capability_scope="execution"`, AgentExecution releases only capabilities
   newly mounted for that execution; if the host Agent already owns the requested
   action id, reuse that action and leave it registered after the Skills run
 - for search-oriented Skills, prefer the framework Search package backed by the
@@ -333,7 +342,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   through Workspace-scoped file actions, and treat ActionRuntime as the callable
   surface rather than the owner of Workspace semantics
 - Skills capability `approval` is resolved through Agently's global
-  PolicyApproval handler, not a SkillsExecutor-local handler:
+  PolicyApproval handler, not a SkillsManager-local handler:
   `input_timeout_fail` by default, `auto_approve` for tests/trusted local
   profiles, `fail_closed` when a host wants pending diagnostics or TriggerFlow
   policy interrupts, `input` for local CLI interruption, or a host-provided
@@ -351,10 +360,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   only restrict or pre-approve already-mounted host tools; it must not create
   tools, synthesize backends, mount MCP, or choose Skills execution strategy by
   itself
-- for Agently 4.1.2.x auto-orchestration work, treat
-  `agent.use_skills(...).input(...).start()` as route-candidate registration
-  owned by the Agent route planner, not prompt-only Skills guidance injection by
-  default
+- for Agently auto-orchestration work, treat
+  `agent.use_skills(...).input(...).get_result()` as route-candidate
+  registration when the caller needs reusable data/text/meta/stream readers;
+  this is owned by the Agent route planner, not prompt-only Skills guidance
+  injection by default
 - for ambiguous optional route candidates, keep submitted Dynamic Task and
   required Skills deterministic, but let the model choose among optional auto
   Dynamic Task, model-decision Skills, and ordinary Action-backed model request
@@ -396,6 +406,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
   to copy raw action stdout into final text
+- when AgentExecution route planning selects direct `model_request`, treat
+  Action and Observation as skipped business stages and consume the model result
+  as passthrough. If Action or Skill candidates are available but the selected
+  route remains `model_request`, they are only route-available capabilities, not
+  a planned Action/Skill task. Only actual action/tool records become
+  side-effect evidence for verification, Workspace persistence, or replan.
 - bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
   "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
   catch `RuntimeStageStallError` from the root `agently.core` export or
