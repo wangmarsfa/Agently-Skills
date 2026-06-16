@@ -63,7 +63,7 @@ facade instead of introducing a separate public AgentTask handle.
 The executor does not require an Agent instance. Agent or model-provider access
 belongs to the facade, planner, model adapter, or resolver handler. That keeps
 the core executor reusable for submitted local DAGs, model DAGs, action DAGs,
-and Skills Executor context-pack integration.
+and Skills Manager context-pack integration.
 
 TaskDAG node fallback can express bounded retry with
 `fallback: {on_error: "retry", max_attempts: ..., backoff_base: ..., then: ...}`.
@@ -72,9 +72,9 @@ the terminal fallback such as `then: "skip"` or fail closed, and long-task
 verification must still consume the DAG result as evidence instead of treating a
 retried node as automatic task success.
 
-When a submitted DAG needs Skill guidance, use the Skills Executor resolver
+When a submitted DAG needs Skill guidance, use the Skills Manager resolver
 adapter instead of inventing a scheduler. Register
-`Agently.skills_executor.task_dag_resolver()` with `TaskDAGExecutor` and model
+`Agently.skills_manager.task_dag_resolver()` with `TaskDAGExecutor` and model
 that step as `kind: "skill"` with `inputs.skill_ids`, `inputs.task`,
 `inputs.intent`, and optional include flags. The node result is an
 `agently.skills.context_pack.v1` payload for downstream planner or model steps;
@@ -134,7 +134,7 @@ Recommended API boundaries:
 - Blocks lifecycle evidence: `TaskDAGExecutor.compile_blocks(...)` /
   `TaskDAGExecutor.async_run_blocks(...)`
 
-For Skills Executor work, use Dynamic Task as the DAG substrate rather than
-placing Skills execution under TriggerFlow directly. Skills execution may
+For Skills Manager context work, use Dynamic Task as the DAG substrate rather than
+placing Skill context construction under TriggerFlow directly. Skills Manager may
 provide resolver handlers, context-pack adapters, or facade defaults, but the
 public concept remains Dynamic Task.

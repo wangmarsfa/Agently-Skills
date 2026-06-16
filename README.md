@@ -30,13 +30,13 @@ TriggerFlow orchestration, and Dynamic Task DAG execution.
 Agently-Skills is the official skills package for coding agents that need to
 build with Agently.
 
-It is not the same thing as the framework-side **Skills Executor** that lives
-inside the Agently runtime:
+It is not the same thing as the framework-side **Skills Manager** and
+AgentExecution Skill activation path inside the Agently runtime:
 
 - `Agently-Skills` - guidance bundles for coding agents such as Codex and Claude Code
-- Agently `Skills Executor` - framework runtime capability for apps and agents
-  to expose declarative skill cards, produce `SkillExecutionPlan` objects, and
-  execute selected skill behavior loops
+- Agently `Skills Manager` - framework runtime capability for apps and agents
+  to install, index, inspect, and progressively disclose standard `SKILL.md`
+  packages; AgentExecution owns planning and concrete Skill activation
 
 Individual skill directories are standard `SKILL.md` packages with optional
 references, examples, outputs, and scripts. Detailed API guidance belongs in

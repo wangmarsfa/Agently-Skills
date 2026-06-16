@@ -27,11 +27,13 @@ TriggerFlow 编排、Dynamic Task DAG 执行等原生能力面。
 
 Agently-Skills 是面向 coding agents 的 Agently 官方 Skills 套件。
 
-它和 Agently 框架运行时里的 **Skills Executor** 不是一回事：
+它和 Agently 框架运行时里的 **Skills Manager** 以及 AgentExecution Skill
+activation 路径不是一回事：
 
 - `Agently-Skills` - 给 Codex、Claude Code 等 coding agent 用的指导型 skill 包
-- Agently `Skills Executor` - Agently app / agent 暴露 declarative skill cards、
-  生成 `SkillExecutionPlan`，并执行所选 skill behavior loop 的框架 runtime 能力
+- Agently `Skills Manager` - Agently app / agent 安装、索引、检查和渐进披露标准
+  `SKILL.md` 包的框架 runtime 能力；规划和具体 Skill activation 由
+  AgentExecution 拥有
 
 单个 skill 目录是标准 `SKILL.md` 包，可按需带 references、examples、outputs 和
 scripts。详细 API 指导应放在这些 skill 包和一层 reference 文件里，不应堆在仓库

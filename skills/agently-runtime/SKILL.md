@@ -228,18 +228,20 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `skills.registry.proxy` or `runtime.network.proxy` when remote pack fetches
   need a configured proxy
 - use `install_skills(...)` for one local Skill directory during
-  authoring/smoke tests; use `agent.run_skills_task(...)` for explicit Skills
-  execution; remote selectors may use git URLs, GitHub shorthand such as
+  authoring/smoke tests; use AgentExecution with `execution.require_skills(...)`
+  for explicit required Skill activation; remote selectors may use git URLs,
+  GitHub shorthand such as
   `anthropics/skills`, and `subpath=` when selecting one Skill from a pack
 - when a custom planner, Dynamic Task, or TaskDAG node needs full Skill context
-  without forcing the complete Skills execution route, use
+  without forcing Skill activation execution, use
   `agent.build_skills_context_pack(...)`,
   `agent.async_build_skills_context_pack(...)`, or
   `Agently.skills_manager.build_context_pack(...)`; the returned
   `agently.skills.context_pack.v1` payload can include `SKILL.md` guidance,
   task-relevant references/examples/assets, citations, diagnostics, optional
   public lookup, and policy-gated script Action candidates
-- when a planner needs progressive Skill activation for PlanBlock selection,
+- when a planner needs progressive Skill context before lowering a Task to a
+  `skill_activation` ExecutionBlock,
   use `Agently.skills_manager.activate_skill(...)` or the
   `capability_adapter()` facade. Treat the returned SkillActivation as
   skill-context evidence and capability need discovery only; it does not execute
@@ -249,32 +251,24 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `Agently.skills_manager.task_dag_resolver()` to `TaskDAGExecutor` and use
   `kind="skill"` nodes; do not build a separate scheduler or execute bundled
   scripts while constructing context packs
-- for explicit Skills execution, `agent.run_skills_task(...)` is a
-  compatibility facade over Blocks lowering: it builds an ExecutionPlan with
-  `skill_activation` PlanBlocks plus a concrete strategy PlanBlock, then lowers
-  to a TriggerFlow-backed ExecutionBlockGraph; `effort="fast"` maps to the
-  low-overhead single-shot compatibility label, `effort="normal"` runs the full
-  preflight -> research -> plan -> execute -> verify -> reflect -> finalize
-  compatibility chain, and `effort="max"` increases retry budget for that chain
-- when Skills are reached through Agent auto-orchestration, pass route-owned
-  effort with `agent.create_execution(options=ExecutionOptions(routes={
-  "skills": SkillsRouteOptions(effort="normal")}))` or the equivalent dict;
+- for explicit required Skills, create an AgentExecution draft, set prompt and
+  output contracts on that draft, then call `execution.require_skills([...])`.
+  Required multiple Skills are preserved in caller order and lowered to ordered
+  TaskGraph Tasks plus ordered `skill_activation` ExecutionBlocks; later Skills
+  receive compact previous Skill results as evidence
+- when Skills are reached through Agent auto-orchestration, pass
+  execution-block-owned effort with
+  `agent.create_execution(options=ExecutionOptions(execution_blocks={
+  "skill_activation": SkillActivationOptions(effort="normal")}))` or the
+  equivalent dict;
   this is an execution option, not a prompt slot
-- for application-specific Skills action strategies, use
-  `Agently.skills_manager.register_effort_strategy(name, handler)` and invoke
-  it with `effort=name`; the handler should compose model requests,
-  ActionRuntime/MCP, ExecutionResource, TriggerFlow, or Dynamic Task through
-  the Agent runtime context instead of building a parallel tool dispatcher
-- Skills effort strategy handlers follow the `SkillsEffortStrategyHandler`
-  protocol with keyword arguments `context`, `task`, `plan`, `output_format`,
-  `effort`, and `effort_config`; builtin route labels `single_shot`,
-  `runtime_chain`, `staged`, and `react` are exposed through the same strategy
-  table and can be inspected with `list_effort_strategies()`; their reference
-  implementations live under the Agently builtin Skills Manager
-  `modules/effort_strategies/` package and are invoked as trusted Blocks runtime
-  handlers, not as a separate Skills-owned lifecycle
-- direct `agent.run_skills_task(..., stream_handler=...)` handlers receive
-  Skills runtime item dictionaries and can be annotated with
+- do not add application-specific Skills execution strategies through
+  framework-level strategy registration. Model requests, ActionRuntime/MCP,
+  ExecutionResource, TriggerFlow, Dynamic Task, and host policy should be
+  composed by AgentExecution planning/lowering instead of a parallel
+  Skills-owned dispatcher
+- Skill activation stream handlers receive Skills runtime item dictionaries and
+  can be annotated with
   `SkillRuntimeStreamHandler`; model stream handlers passed to
   `context.async_request_model(..., stream_handler=...)` receive `StreamingData`
   and can be annotated with `ModelStreamingHandler`; the common aliases are
@@ -284,22 +278,17 @@ here for Actions, ExecutionResource, service, or DevTools details.
   MCP config dictionaries for stdio/multi-server local integrations; treat SSE
   as a legacy compatibility transport
 - treat chained Agent quick prompt methods as AgentExecution-local configuration
-  for one request/execution surface:
-  `agent.input(...).output(...).run_skills_task(...)` maps the execution prompt
-  snapshot to the Skill task and maps `output` / `output_format` to the Skills
-  execution `output` / `output_format` contract; Agent-level persistent prompt
-  must be explicit through `agent.define(...)`, `always=True`,
-  `set_agent_prompt(...)`, or stable setup APIs. For multi-statement execution setup, use
+  for one request/execution surface. For multi-statement execution setup, use
   `execution = agent.create_execution()` and mutate the execution, not the
   shared Agent pending prompt. `semantic_outputs=` is only a deprecated
   compatibility alias for direct Skills execution, while Dynamic Task still
   uses `semantic_outputs` inside TaskDAG specs
 - for framework-side Skills execution, keep standard `SKILL.md` as the only
   capability definition; selected Skills default to a `single_shot`
-  compatibility route that lowers to a handler-backed `model_request` block,
-  while staged/react/custom labels lower to handler-backed `flow_segment`
-  blocks and should compose TriggerFlow and ActionFlow/ActionRuntime rather than
-  adding a Skills-local executor
+  compatibility label that lowers to handler-backed model-request execution,
+  while staged/react/custom labels lower to handler-backed execution segments and
+  should compose TriggerFlow and ActionFlow/ActionRuntime rather than adding a
+  Skills-local executor
 - for Skills `react` tool use, delegate model-owned action planning and
   execution to the Agent ActionRuntime so action/MCP kwargs schemas, policy,
   approvals, concurrency, and managed resources stay on the Action layer
@@ -363,14 +352,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   tools, synthesize backends, mount MCP, or choose Skills execution strategy by
   itself
 - for Agently auto-orchestration work, treat
-  `agent.use_skills(...).input(...).get_result()` as route-candidate
+  `agent.use_skills(...).input(...).get_result()` as capability-candidate
   registration when the caller needs reusable data/text/meta/stream readers;
-  this is owned by the Agent route planner, not prompt-only Skills guidance
+  this is owned by the AgentExecution planner, not prompt-only Skills guidance
   injection by default
-- for ambiguous optional route candidates, keep submitted Dynamic Task and
+- for ambiguous optional capability candidates, keep submitted Dynamic Task and
   required Skills deterministic, but let the model choose among optional auto
   Dynamic Task, model-decision Skills, and ordinary Action-backed model request
-  routes
+  Tasks
 - for framework-side Skills, treat standard `SKILL.md` as the only capability
   definition; Agently install metadata and decision cards are descriptive
   runtime aids, not authoring formats or availability gates
@@ -380,7 +369,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   interrupts instead of Skills snapshots
 - keep Agent auto-orchestration behind the `AgentOrchestrator` plugin protocol:
   core owns the public `agent.create_execution()` entrypoint, while the active
-  plugin owns route planning, execution, and stream bridging
+  plugin owns Task planning, execution lowering, and stream bridging
 - for unified Agent execution/result work, prefer a response-style
   `agent.create_execution()` object with data/text/meta/stream consumption; use
   TriggerFlow runtime stream plus ModelRequest `instant` checkpoints for process
@@ -403,15 +392,16 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - inspect AgentExecution runtime facts through AgentExecutionResult or the
   execution facade: `result = execution.get_result()`, `result.get_text()`,
   `result.get_data()`, `result.get_meta()`, `execution.get_async_generator()`,
-  and `await execution.async_get_meta()`. `meta["route"]` records the selected
-  route/options, and `meta["logs"]` exposes model response ids, ActionRuntime
-  action logs, task refs, and artifact refs when available; use those
+  and `await execution.async_get_meta()`. `meta["task_frame"]`,
+  `meta["task_graph"]`, and `meta["execution_blocks"]` record the selected Task
+  structure and concrete execution lowering, while `meta["logs"]` exposes model
+  response ids, ActionRuntime action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
   to copy raw action stdout into final text
-- when AgentExecution route planning selects direct `model_request`, treat
+- when AgentExecution planning selects direct `model_request`, treat
   Action and Observation as skipped business stages and consume the model result
   as passthrough. If Action or Skill candidates are available but the selected
-  route remains `model_request`, they are only route-available capabilities, not
+  Task remains direct `model_request`, they are only available capabilities, not
   a planned Action/Skill task. Only actual action/tool records become
   side-effect evidence for verification, Workspace persistence, or replan.
 - bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
@@ -443,7 +433,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   public delta frequency for stall detection
 - for temporary development debugging, attach an EventCenter observation hook or
   call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
-  inspect route selection, model requests, ActionRuntime, and Workspace writes;
+  inspect Task planning, execution blocks, model requests, ActionRuntime, and Workspace writes;
   remove debug hooks/settings from examples and production snippets after the
   issue is diagnosed
 
@@ -460,8 +450,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` fits
 - do not make DevTools the source of truth for workflow structure
 - do not present prompt-only Skills disclosure as the default execution meaning
-  of `agent.start()` once the 4.1.3 route planner owns Skills candidates
-- do not put route-owned Skills, Dynamic Task, or stream-composition logic
+  of `agent.start()` once the 4.1.3 AgentExecution planner owns Skills candidates
+- do not put TaskGraph/ExecutionBlock-owned Skills, Dynamic Task, or stream-composition logic
   directly in core when a plugin protocol can own the replaceable behavior
 
 ## Read Next
