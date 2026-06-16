@@ -36,7 +36,7 @@ single-responsibility capabilities where splitting would be over-design.
 Landed examples include `core/Action`, `core/TriggerFlow`,
 `core/TaskDAGExecutor`, `core/Workspace`,
 `builtins/plugins/ExecutionResourceProvider`, and
-`builtins/plugins/SkillsExecutor`.
+`builtins/plugins/SkillsManager`.
 
 ## Model Output Test Rules
 

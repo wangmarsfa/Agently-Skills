@@ -145,7 +145,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `lambda data: async_task_handler(data, task)` to `flow.to(...)`; that registers
   a sync lambda whose return coroutine may not be awaited. Use a normal factory
   that returns `async def handler(data): ...` and register that handler
-- when a TriggerFlow + SkillsExecutor example relies on a trusted local Skill
+- when a TriggerFlow + SkillsManager example relies on a trusted local Skill
   bundle to provide declared helper capabilities, pass selector-level
   `auto_allow=True`; explicit host `configure_skill_capabilities(...)` policy
   still wins and Skill metadata alone is not a capability grant

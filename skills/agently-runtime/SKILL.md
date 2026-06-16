@@ -232,6 +232,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   for explicit required Skill activation; remote selectors may use git URLs,
   GitHub shorthand such as
   `anthropics/skills`, and `subpath=` when selecting one Skill from a pack
+- `Agently.skills_executor` and `agent.run_skills_task(...)` are pre-4.2
+  compatibility facades only. They still lower direct Skills execution through
+  the current Blocks runtime, but new examples and app guidance should use
+  `Agently.skills_manager` and AgentExecution Skills selection instead.
 - when a custom planner, Dynamic Task, or TaskDAG node needs full Skill context
   without forcing Skill activation execution, use
   `agent.build_skills_context_pack(...)`,
