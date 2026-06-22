@@ -49,6 +49,14 @@ Recommended environment split:
 Keep this wiring in the app or observability layer, not inside prompt helpers or chunk handlers.
 `ObservationBridge` uploads through a background queue and coalesces high-frequency events such as `model.streaming`; call `await bridge.flush()` before a short-lived script exits when full delivery matters.
 
+Model request RuntimeEvents may include `payload.model_request_telemetry` on
+`model.request_started`, `model.requesting`, `model.completed`, `model.meta`,
+`model.request_failed`, and `model.requester.error`. Treat it as compact
+diagnostic material for DevTools or local logs: response id, attempt index, run
+ids, provider/model, request URL, duration, usage, side-channel, and normalized
+error facts. Do not feed telemetry back into route selection, retries, verifier
+judgment, quality scoring, planner context, or prompts.
+
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
 
