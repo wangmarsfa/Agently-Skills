@@ -134,10 +134,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `ActionResult.diagnostics`; direct host calls keep existing behavior
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
-- treat `model_digest`, `artifact_refs`, and Workspace record refs as the normal
-  loop memory for instruction-heavy Actions; full raw payloads should be read
-  explicitly from the Action artifact store or Workspace when needed; use
-  `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
+- treat `model_digest`, bounded previews, `artifact_refs`, `file_refs`, and
+  Workspace record refs as the normal loop memory for instruction-heavy or
+  large Actions; previews are not complete evidence, so full raw payloads should
+  be read explicitly from the Action artifact store or Workspace when needed;
+  use `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
   only for durable execution facts, not as a replacement for TriggerFlow
   pause/resume or approval/exchange policy
 - keep the permission profile explicit: search-only, local-files-only, network-read, install-capable shell, or trusted broad executor

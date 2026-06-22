@@ -185,7 +185,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   verdicts; judgment belongs to the AgentTask verifier or an independent
   Agently model-judge request
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
-- for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
+- for instruction-heavy or large Actions, expect later model rounds to see compact execution digests, bounded previews, artifact refs, and file refs; previews are not complete evidence, so use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat model-planned Action inputs as untrusted: ActionDispatcher filters
   `structured_plan` and `native_tool_calls` kwargs to registered
   `ActionSpec.kwargs`, records stripped keys in `ActionResult.diagnostics`, and
