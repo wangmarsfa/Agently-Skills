@@ -186,6 +186,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Agently model-judge request
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
 - for instruction-heavy Actions, expect later model rounds to see compact execution digests and artifact refs; use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
+- treat model-planned Action inputs as untrusted: ActionDispatcher filters
+  `structured_plan` and `native_tool_calls` kwargs to registered
+  `ActionSpec.kwargs`, records stripped keys in `ActionResult.diagnostics`, and
+  leaves direct host calls compatible
 - `agent.action.get_action_info()` and `get_action_list()` return visible
   metadata with execution environment `env` values redacted; raw env values are
   only for the execution provider path

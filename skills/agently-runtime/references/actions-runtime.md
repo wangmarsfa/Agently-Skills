@@ -128,6 +128,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   agent-scoped Actions, MCP tools, and `enable_*` helpers are included by
   default, while explicit tags narrow the list; execution environment `env`
   values are redacted in this visible metadata while env keys remain visible
+- model-planned Action commands are untrusted at the Action boundary:
+  `structured_plan` and `native_tool_calls` inputs are filtered to registered
+  `ActionSpec.kwargs` before executor invocation, and stripped keys appear in
+  `ActionResult.diagnostics`; direct host calls keep existing behavior
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - treat `model_digest`, `artifact_refs`, and Workspace record refs as the normal
