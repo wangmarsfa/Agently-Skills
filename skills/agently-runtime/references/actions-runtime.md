@@ -103,6 +103,24 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `agent.enable_workspace_file_actions(...)`, `agent.enable_shell(...)`, and
   `agent.enable_nodejs(...)` inherit `agent.workspace.files_root` unless an
   explicit `root=` or `cwd=` is passed
+- Workspace file reads, writes, and exports go through registered
+  `WorkspaceFileIOHandler` implementations. Workspace owns path containment,
+  deterministic file info, `sha256`, file refs, and structured diagnostics;
+  handlers own plain text IO, optional PDF/Office extraction, image/VLM
+  attachment preparation, and export rendering. Do not implement format parsing
+  in ActionRuntime, SkillsExecutor, or AgentExecution strategy code.
+- `agent.enable_workspace_file_actions(...)` exposes list/search/read/write over
+  the Workspace file root. It registers `export_file` only when `export=True`
+  and `write=True`, delegates to the bound Workspace when roots match, and must
+  not overwrite user-defined Actions.
+- Workspace file writes and reads return structured file evidence from the
+  Workspace boundary itself: `path`, `bytes`, `sha256`, write `mode`, bounded
+  read `content` / `truncated`, diagnostics, and file refs. Unsupported binary
+  or missing optional dependencies return structured diagnostics such as
+  `readable=False` or `exported=False`; outside-root, missing-path, and
+  permission failures remain execution errors. Downstream artifact or readback
+  checks should consume those fields instead of relying on model prose or stdout
+  path guesses.
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases

@@ -51,6 +51,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   local file actions, use `agent.enable_workspace_file_actions(...)`, which
   exposes the current Workspace file working tree and inherits
   `agent.workspace.files_root`
+- Workspace file IO is handler-backed: `workspace.read_file(...)`,
+  `workspace.write_file(...)`, and `workspace.export_file(...)` use registered
+  `WorkspaceFileIOHandler` implementations. Workspace owns path containment,
+  file info, digests, refs, and diagnostics; handlers own format parsing,
+  optional dependencies, image preparation, and export rendering. Use
+  `agent.enable_workspace_file_actions(write=True, export=True)` only when the
+  model should receive an `export_file` Action.
 - use `workspace.build_context(...)` for Workspace-backed context building;
   advanced model-assisted planners, vector retrieval, rerankers, and
   compressors should plug into ContextPlanner, WorkspaceContextRetriever, or
@@ -335,7 +342,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `action.failed` execution failures
 - Workspace owns file-action roots and path boundaries; expose file access
   through Workspace-scoped file actions, and treat ActionRuntime as the callable
-  surface rather than the owner of Workspace semantics
+  surface rather than the owner of Workspace semantics, file type parsing, or
+  export rendering
 - Skills capability `approval` is resolved through Agently's global
   PolicyApproval handler, not a SkillsManager-local handler:
   `input_timeout_fail` by default, `auto_approve` for tests/trusted local
