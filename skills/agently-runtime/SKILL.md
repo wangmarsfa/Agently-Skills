@@ -439,9 +439,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   and stream-idle waits should surface as `RuntimeStageStallError` with
   `stage="response_first_event"` or `stage="response_stream"`; transient
   disconnects use same-request `<Requester>.request_retry`; OpenAICompatible
-  keeps after-output replay opt-in through `request_retry.after_output=True`,
-  which requires consumers to process `$status` or clear plain-delta text on
-  the `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas;
+  replays after partial output by default, which requires streaming consumers
+  to process `$status` or clear plain-delta text on the
+  `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas;
   explicit response stream errors should propagate from response getters with the
   original provider or ActionFlow reason before materialization timeout is used
   as a fallback

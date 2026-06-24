@@ -34,8 +34,8 @@ Use this skill for provider wiring and transport setup before request logic is d
   Agently does not try another key. The built-in requester plugins still retry
   transient transport disconnects with the same model, prompt, and output
   format according to `<Requester>.request_retry`. OpenAICompatible defaults to
-  retrying only before output; `request_retry.after_output=True` is opt-in and
-  requires consumers to process `$status` or clear plain-delta text on the
+  replaying after partial output; streaming consumers must process `$status` or
+  clear plain-delta text on the
   `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas.
   Failover handlers can inspect the provider error object and return `"try_next"`,
   `"retry_same"`, `"raise"`, a key id, a key entry dict, or a wrapper such as
