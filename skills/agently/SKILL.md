@@ -118,7 +118,8 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `result = execution.get_result()` and `result.get_data()` /
   `await result.async_get_data()`, or use `execution.get_async_generator()` and
   `await execution.async_get_meta()` when the app needs streams or process
-  facts. Direct low-level ModelRequest calls still return ModelResponseResult.
+  facts. Direct low-level ModelRequest calls return ModelRequestResult;
+  ModelResponseResult is a compatibility alias only.
 - when the host owns a developer loop and needs one bounded Agent step, choose
   `agent.create_execution(lineage=..., limits=...)` plus explicit
   `execution.async_record_workspace(...)` observation/checkpoint writes before
@@ -159,7 +160,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   deferral, and only then conclude whether the feature is complete
 - for release acceptance that touches or claims a Foundation-layer capability,
   add a Foundation example effect gate after pyright/pytest: treat Foundation as
-  framework substrate such as ModelRequest/ModelResponse, TriggerFlow, Dynamic
+  framework substrate such as ModelRequest/ModelRequestResult, TriggerFlow, Dynamic
   Task/TaskDAG, ActionRuntime, ExecutionResource, Workspace/ContextBuilder,
   RuntimeEvent/EventCenter, and provider protocols, not application-level
   AgentExecution or Skills use cases by themselves; identify the affected

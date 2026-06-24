@@ -19,6 +19,14 @@ absent, dispatch and retry timing keep the legacy immediate behavior.
 - default to async-first response APIs in services, streaming paths, TriggerFlow steps, and any integration that may overlap work
 - treat sync getters and generators as convenience wrappers for scripts, REPL use, or compatibility bridges
 - use `delta`, `instant`, `specific`, or `all` instead of custom stream splitting logic
+- when `OpenAICompatible.request_retry.after_output=True` is explicitly enabled,
+  treat `StreamingData(path="$status", value=...)` as a framework control record:
+  `failed` plus `retry=True` invalidates provisional output and requires the UI
+  or SSE consumer to clear it before replacement deltas arrive. Plain `delta`
+  streams emit the standalone `"<$retry>{reason}</$retry>"` marker at that
+  same boundary; clear the local text buffer when it arrives. Use `instant`,
+  `specific="status"`, or `all` when lineage or collision-free structured
+  facts matter
 - annotate common stream consumers from `agently`: `StreamingData` for
   `instant` / `streaming_parse`, `AgentlySpecificResultMessage` for
   `specific`, and `AgentlyModelResultMessage` for `all`; use

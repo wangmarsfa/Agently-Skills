@@ -50,12 +50,22 @@ Keep this wiring in the app or observability layer, not inside prompt helpers or
 `ObservationBridge` uploads through a background queue and coalesces high-frequency events such as `model.streaming`; call `await bridge.flush()` before a short-lived script exits when full delivery matters.
 
 Model request RuntimeEvents may include `payload.model_request_telemetry` on
-`model.request_started`, `model.requesting`, `model.completed`, `model.meta`,
+`model.request_started`, `model.requesting`, `model.status`, `model.completed`, `model.meta`,
 `model.request_failed`, and `model.requester.error`. Treat it as compact
 diagnostic material for DevTools or local logs: response id, attempt index, run
 ids, provider/model, request URL, duration, usage, side-channel, and normalized
 error facts. Do not feed telemetry back into route selection, retries, verifier
 judgment, quality scoring, planner context, or prompts.
+
+`model.status` is a compact attempt-outcome observation. A `failed` payload
+with `retry=True` means partial stream output was replaced; `cancelled` is
+distinct from a provider failure. DevTools may display these facts but must not
+drive retry or execution control flow.
+
+Plain `delta` consumers receive a standalone `"<$retry>{reason}</$retry>"`
+chunk at the same replay boundary. DevTools observes the structured
+`model.status` RuntimeEvent instead, so it should clear reconstructed partial
+text from that event and not depend on the text-stream marker.
 
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
