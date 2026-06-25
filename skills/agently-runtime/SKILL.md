@@ -193,11 +193,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   (`accepted=False`, `artifact_status="partial"`); when semantic content quality
   matters, combine deterministic smoke checks with an Agently model-judge
   request and do not use counts or keyword hits as the primary acceptance signal
-- when an AgentTask bounded step or TaskBoard card returns `artifact_markdown`
-  or a sectioned `artifact_manifest`, the framework writes the deliverable
-  through the bound Workspace and reads it back for `path`, `bytes`, `sha256`,
-  preview, and trusted `file_refs`; model-declared `file_refs` are diagnostics
-  only until that readback exists
+- when an AgentTask bounded step or TaskBoard card returns a short
+  `artifact_markdown` body or a sectioned `artifact_manifest`, the framework
+  writes the deliverable through the bound Workspace and reads it back for
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`; long reports,
+  exam papers, and multi-section deliverables should use
+  `artifact_manifest.sections` so JSON stays a control plane, and
+  model-declared `file_refs` remain diagnostics until readback exists
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use
