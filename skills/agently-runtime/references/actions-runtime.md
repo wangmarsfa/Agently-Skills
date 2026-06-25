@@ -122,6 +122,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   permission failures remain execution errors. Downstream artifact or readback
   checks should consume those fields instead of relying on model prose or stdout
   path guesses.
+- AgentTask workspace artifacts are framework-delivered: when a bounded step or
+  TaskBoard card returns `artifact_markdown` or a sectioned
+  `artifact_manifest`, AgentTask writes it through Workspace and readbacks
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`. Model-declared
+  `file_refs` are diagnostics only until this write/readback evidence exists.
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
