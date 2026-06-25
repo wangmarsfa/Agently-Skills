@@ -170,8 +170,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   separate background model that summarizes only existing snapshots/task
   metadata without adding main-loop fields or latency; model-generated progress
   streams `progress_delta` items before the final `progress` item; set
+  `agent.language(...)` when final output, process text, progress text, and
+  Search/Browse locale hints should share a language policy; use
   `progress_language` per execution or `agent_task.progress.language` globally
-  when operator updates must be Chinese, English, or another fixed language;
+  only as progress-text compatibility controls when operator updates must be
+  Chinese, English, or another fixed language;
   progress model failures are side-channel diagnostics/warnings, not main task
   `model.request_failed` errors; progress model inputs should be operator-safe
   and omit low-level Workspace/SQLite fallback diagnostics that remain

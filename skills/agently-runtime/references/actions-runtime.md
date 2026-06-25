@@ -140,6 +140,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   as timeouts, connection resets, incomplete chunked reads, and proxy handshakes
   are retried once by default; a long-unavailable network is still an
   infrastructure failure.
+- when `agent.language(...)` is set, registered Search/Browse packages may use
+  the policy as default locale guidance: Search receives a default region such
+  as `cn-zh`, and Browse receives an `Accept-Language` header unless explicitly
+  configured. Treat this as recall/process guidance, not as a substitute for
+  task-specific source requirements.
 - treat registered Browse failures as Action failures with diagnostics. Direct
   `Browse.browse(url)` keeps legacy text-returning behavior, but the model-facing
   `browse` Action should not turn `"Can not browse ..."` into successful
