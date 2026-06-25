@@ -27,7 +27,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   and transient retry configuration belongs to the package/executor, not
   ExecutionResource. Registered Browse actions fail closed with structured
   diagnostics when all backends fail; direct `Browse.browse(...)` remains a
-  text-returning compatibility helper. Browse should try same-host protocol and
+  text-returning compatibility helper. Browse defaults to Playwright ->
+  restricted curl -> BS4, where curl is an internal normalized-URL fallback and
+  not model-visible shell execution. Browse should try same-host protocol and
   canonical candidates before giving up, and remote PDF/Office/image/download
   bytes should be materialized into the bound Workspace with file refs rather
   than copied into the model hot path.
