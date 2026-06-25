@@ -134,6 +134,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `ActionSpec.kwargs` before executor invocation, and stripped keys appear in
   `ActionResult.diagnostics`; direct host calls keep existing behavior
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
+- expose Agent Client Protocol (ACP) coding agents with `agent.use_acp(...)`
+  when the host has authorized local ACP endpoints. ACP is an Action capability
+  plus `ExecutionResource(kind="acp")`, not a new AgentExecution route. The
+  default `on_missing="skip"` should only record diagnostics when no
+  handshake-verified agent exists; use `on_missing="error"` when missing ACP
+  capability must fail closed.
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - configure Search/Browse proxy, timeout, backend/fallback, `max_attempts`, and
   `retry_backoff_seconds` on the package object. Short transport failures such
