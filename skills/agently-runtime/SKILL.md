@@ -23,7 +23,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
 
 - prefer `@agent.action_func` and `agent.use_actions(...)`; `tool_func`, `use_tool`, `use_tools`, and `agently.builtins.tools` are compatibility surfaces
 - use built-in web packages through `from agently.builtins.actions import Search, Browse` and mount with `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`
-- do not invent `enable_search(...)`; Search configuration belongs to the Search package/executor, not ExecutionResource
+- do not invent `enable_search(...)`; Search/Browse proxy, timeout, backend,
+  and transient retry configuration belongs to the package/executor, not
+  ExecutionResource. Registered Browse actions fail closed with structured
+  diagnostics when all backends fail; direct `Browse.browse(...)` remains a
+  text-returning compatibility helper. Browse should try same-host protocol and
+  canonical candidates before giving up, and remote PDF/Office/image/download
+  bytes should be materialized into the bound Workspace with file refs rather
+  than copied into the model hot path.
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
   bindings backed by the current session/script physical Workspace; Agent,
   execution, and task records are logical partitions, while file actions use
@@ -52,10 +59,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   exposes the current Workspace file working tree and inherits
   `agent.workspace.files_root`
 - Workspace file IO is handler-backed: `workspace.read_file(...)`,
-  `workspace.write_file(...)`, and `workspace.export_file(...)` use registered
-  `WorkspaceFileIOHandler` implementations. Workspace owns path containment,
-  file info, digests, refs, and diagnostics; handlers own format parsing,
-  optional dependencies, image preparation, and export rendering. Use
+  `workspace.write_file(...)`, `workspace.materialize_file(...)`, and
+  `workspace.export_file(...)` use registered `WorkspaceFileIOHandler`
+  implementations or Workspace-owned byte materialization. Workspace owns path
+  containment, file info, digests, refs, and diagnostics; handlers own format
+  parsing, optional dependencies, image preparation, and export rendering. Use
   `agent.enable_workspace_file_actions(write=True, export=True)` only when the
   model should receive an `export_file` Action.
 - use `workspace.build_context(...)` for Workspace-backed context building;

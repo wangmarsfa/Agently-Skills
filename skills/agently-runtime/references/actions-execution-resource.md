@@ -22,7 +22,13 @@ an Action or TriggerFlow execution can run.
 - Action owns what is callable and how one call is normalized into an `ActionResult`.
 - TriggerFlow `runtime_resources` remains the execution-local live handle surface. Managed resources can be injected there, but TriggerFlow does not create or release them.
 - Built-in MCP, Bash, Python, Node.js, Docker, Browser, and SQLite actions should declare or consume ExecutionResource resources rather than owning lifecycle inside the executor.
-- Search does not belong in ExecutionResource. Its proxy, timeout, backend, and region settings belong to the Search package/executor configuration.
+- Search does not belong in ExecutionResource. Its proxy, timeout, backend,
+  retry, and region settings belong to the Search package/executor
+  configuration. Browse follows the same package-owned proxy/timeout/retry
+  pattern unless it explicitly declares a managed browser resource. Browse may
+  consume the bound Workspace to materialize remote PDF/Office/image/download
+  bytes, but Workspace still owns the file boundary and file IO handlers own
+  parsing.
 - Skills Executor and artifact-producing workflows should repair missing local
   libraries, binaries, browser runtimes, or MCP packages through controlled
   install-capable Actions or ExecutionResource ensure steps. Do not silently
@@ -139,9 +145,10 @@ import os
 
 from agently.builtins.actions import Browse, Search
 
-search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15)
+search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15, max_attempts=2)
 browse = Browse(
     proxy=os.getenv("BROWSE_PROXY"),
+    max_attempts=2,
     enable_pyautogui=False,
     enable_playwright=True,
     enable_bs4=True,

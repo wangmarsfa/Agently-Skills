@@ -103,8 +103,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `agent.enable_workspace_file_actions(...)`, `agent.enable_shell(...)`, and
   `agent.enable_nodejs(...)` inherit `agent.workspace.files_root` unless an
   explicit `root=` or `cwd=` is passed
-- Workspace file reads, writes, and exports go through registered
-  `WorkspaceFileIOHandler` implementations. Workspace owns path containment,
+- Workspace file reads, writes, byte materialization, and exports go through
+  registered `WorkspaceFileIOHandler` implementations or Workspace-owned
+  `workspace.materialize_file(...)`. Workspace owns path containment,
   deterministic file info, `sha256`, file refs, and structured diagnostics;
   handlers own plain text IO, optional PDF/Office extraction, image/VLM
   attachment preparation, and export rendering. Do not implement format parsing
@@ -134,6 +135,21 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `ActionResult.diagnostics`; direct host calls keep existing behavior
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
+- configure Search/Browse proxy, timeout, backend/fallback, `max_attempts`, and
+  `retry_backoff_seconds` on the package object. Short transport failures such
+  as timeouts, connection resets, incomplete chunked reads, and proxy handshakes
+  are retried once by default; a long-unavailable network is still an
+  infrastructure failure.
+- treat registered Browse failures as Action failures with diagnostics. Direct
+  `Browse.browse(url)` keeps legacy text-returning behavior, but the model-facing
+  `browse` Action should not turn `"Can not browse ..."` into successful
+  evidence.
+- let Browse own basic URL recovery and remote-file handoff: same-host
+  `http`/`https` and canonical candidates are structured diagnostics, while
+  PDF/Office/image/download-like responses should be materialized into the bound
+  Workspace and returned as file refs plus bounded `read_file` previews. Browse
+  should not parse those documents itself and should fail closed when no
+  Workspace is bound.
 - treat `model_digest`, bounded previews, `artifact_refs`, `file_refs`, and
   Workspace record refs as the normal loop memory for instruction-heavy or
   large Actions; previews are not complete evidence, so full raw payloads should

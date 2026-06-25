@@ -70,10 +70,9 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   ambiguity, or complex returned structures.
 - use `get_result()` when the same result must be read multiple ways. Agent
   quick prompt chains return `AgentExecutionResult`; direct low-level
-  ModelRequest calls return `ModelRequestResult`. `ModelResponseResult` is a
-  compatibility alias only. `get_response()` remains a
-  compatibility alias where present, but new Agent examples should prefer
-  `get_result()`
+  ModelRequest calls return `ModelRequestResult`. `ModelResponseResult` is
+  retired. `get_response()` remains a compatibility alias where present, but
+  new Agent examples should prefer `get_result()`
 - keep Session memory separate from TriggerFlow execution state
 - use `workspace.build_context(...)` when ordinary multi-turn task work needs a
   ContextPackage from prior Workspace records; use low-level `workspace.search(...)`

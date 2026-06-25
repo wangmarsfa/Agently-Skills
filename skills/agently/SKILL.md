@@ -118,8 +118,8 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `result = execution.get_result()` and `result.get_data()` /
   `await result.async_get_data()`, or use `execution.get_async_generator()` and
   `await execution.async_get_meta()` when the app needs streams or process
-  facts. Direct low-level ModelRequest calls return ModelRequestResult;
-  ModelResponseResult is a compatibility alias only.
+  facts. Direct low-level ModelRequest calls return ModelRequestResult; do not
+  use the retired ModelResponseResult name.
 - when the host owns a developer loop and needs one bounded Agent step, choose
   `agent.create_execution(lineage=..., limits=...)` plus explicit
   `execution.async_record_workspace(...)` observation/checkpoint writes before
