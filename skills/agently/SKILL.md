@@ -103,17 +103,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `xml_field`, or `yaml_literal`); if a declared non-JSON format fails,
   Agently may recover through JSON parsing, but only dict-shaped parsed payloads
   satisfy structured control or final task output contracts.
-- treat `execution.step_plan` as `auto` by default. Use
-  `effort(..., execution={"step_plan": "direct" | "dag"})` only as explicit
-  strategy guidance for whether a Goal Pursuit iteration must stay one bounded
-  AgentExecution step or may prefer a bounded TaskDAG/DAG-shaped step. DAG
-  completion is only evidence for AgentTaskLoop verification; DynamicTask is a
-  compatibility/convenience facade over DAG planning and execution, not a
-  second public lifecycle. `step_plan="direct"` means model-proposed
-  DynamicTask/DAG candidates are rejected for that bounded step. In auto mode, a
-  failed DAG-shaped step should cause later replans to avoid the same DAG shape;
-  use explicit `step_plan="dag"` only when DAG remains the intended contract
-  after such a failure.
+- treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
+  longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
+  `dynamic_task` / `execution_dag` step proposals and
+  `effort(..., execution={"step_plan": "dag"})` degrade to one direct bounded
+  AgentExecution step with diagnostics. Use TaskDAG / DynamicTask separately
+  when the application or visual automation surface owns the submitted graph.
 - treat task `execution="auto"` as the default execution strategy. Auto uses one
   AgentTaskLoop-owned task-shape model request that first allows free natural
   language analysis and then returns a thin structured `execution_hint`; do not
@@ -152,9 +147,8 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   the long-task loop strategy is selected; it still returns an AgentExecution
   draft and should be consumed through the same result/stream/meta facade.
   Keep the first-slice boundary to one Agent owner, one task, 2-5 iterations,
-  and bounded steps that use only explicitly enabled Actions, Skills, or
-  execution-local or Agent-level DAG candidates; treat completion as
-  model verification plus conservative host evidence guards, read task refs
+  and bounded steps that use only explicitly enabled Actions or Skills; treat
+  completion as model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
 - when AgentTaskLoop completion depends on a particular capability, express it
