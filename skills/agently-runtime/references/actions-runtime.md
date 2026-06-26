@@ -155,7 +155,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   plus `ExecutionResource(kind="acp")`, not a new AgentExecution route. The
   default `on_missing="skip"` should only record diagnostics when no
   handshake-verified agent exists; use `on_missing="error"` when missing ACP
-  capability must fail closed.
+  capability must fail closed. Built-in local CLI adapters can detect common
+  Codex and Claude Code command locations in addition to `PATH`, but they use
+  fixed framework-owned argv templates and are still Action calls, not shell
+  exposure. `session_scope="execution"` reuses one framework session descriptor
+  per AgentExecution context, ACP agent id, and root; CLI adapters report
+  `acp_session.persistence="stateless_cli"` unless a real protocol session is
+  available.
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - configure Search/Browse proxy, timeout, backend/fallback, `max_attempts`, and
   `retry_backoff_seconds` on the package object. Short transport failures such
