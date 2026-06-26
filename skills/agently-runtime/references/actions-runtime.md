@@ -129,6 +129,15 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   exam papers, and multi-section deliverables should use
   `artifact_manifest.sections` so JSON stays a control plane. Model-declared
   `file_refs` are diagnostics only until this write/readback evidence exists.
+- AgentTask required deliverables are accepted only after Workspace readback:
+  when structured task input or output contracts require files such as
+  `final.md`, verifier prose is not enough. The framework guard must confirm
+  the file exists under the task Workspace and can be read back before the task
+  can be marked complete.
+- `agent_task.heartbeat` is a quiet-period status signal, not completion
+  evidence. It may be emitted while long model, action, or artifact stages are
+  waiting, but ordinary stream activity resets the heartbeat timer and
+  no-progress/request/task-deadline protections still own stall handling.
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases

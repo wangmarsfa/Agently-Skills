@@ -33,6 +33,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   canonical candidates before giving up, and remote PDF/Office/image/download
   bytes should be materialized into the bound Workspace with file refs rather
   than copied into the model hot path.
+- treat `agent_task.heartbeat` as observation only: AgentTask may emit it after
+  a quiet interval with no other stream items, but any normal progress,
+  snapshot, child-execution, delta, or phase event resets the quiet timer.
+  Heartbeats help consumers show liveness; they do not satisfy evidence,
+  hide stalls, or replace request/no-progress/task deadline timeouts.
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
   bindings backed by the current session/script physical Workspace; Agent,
   execution, and task records are logical partitions, while file actions use
