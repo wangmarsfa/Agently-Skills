@@ -138,6 +138,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   exam papers, and multi-section deliverables should use
   `artifact_manifest.sections` so JSON stays a control plane. Model-declared
   `file_refs` are diagnostics only until this write/readback evidence exists.
+  Write-success/readback-failure paths must report
+  `agent_task.workspace_artifact.readback_failed` or
+  `agent_task.workspace_artifact.readback_insufficient`; do not describe those
+  cases as generic iteration, retry, or budget exhaustion.
 - AgentTask required deliverables are accepted only after Workspace readback:
   when structured task input or output contracts require files such as
   `final.md`, verifier prose is not enough. The framework guard must confirm
@@ -164,10 +168,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   plus `ExecutionResource(kind="acp")`, not a new AgentExecution route. The
   default `on_missing="skip"` should only record diagnostics when no
   handshake-verified agent exists; use `on_missing="error"` when missing ACP
-  capability must fail closed. Built-in local CLI adapters can detect common
-  Codex and Claude Code command locations in addition to `PATH`, but they use
-  fixed framework-owned argv templates and are still Action calls, not shell
-  exposure. If `root` is omitted, `agent.use_acp()` uses the Agent's bound
+  capability must fail closed. `acp_list_agents` also returns non-binding
+  adapter-name hints for common ACP adapters such as `codex`,
+  `claude code` / `cc`, `openclaw`, `hermes` / `hermes agent`, and
+  `gemini`; these hints do not make an agent runnable. Built-in local CLI
+  adapters can detect common Codex and Claude Code command locations in
+  addition to `PATH`, but they use fixed framework-owned argv templates and are
+  still Action calls, not shell exposure. If `root` is omitted,
+  `agent.use_acp()` uses the Agent's bound
   Workspace `files_root` as the coding-agent project root; explicit `root=...`
   is an advanced host authorization override. ACP session reuse is internal
   AgentExecution resource policy, and CLI adapters report
