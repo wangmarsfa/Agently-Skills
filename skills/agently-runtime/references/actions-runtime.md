@@ -16,6 +16,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when a
   stable explicit root, read-only mode, direct backend, or registered provider
   is required
+- local Workspace materialization writes `AGENTLY_WORKSPACE.md` at the physical
+  root and scoped `files_root`; external coding agents and file Actions should
+  treat that guide as the boundary note for editable files versus Workspace
+  internals, and should not expect the guide to be named `README.md`
 - create shared task information scopes with `Workspace(...)` or
   `Agently.create_workspace(...)` and bind Agents, TriggerFlow executions, or
   service workers to that same instance when they must collaborate over an
@@ -158,8 +162,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   capability must fail closed. Built-in local CLI adapters can detect common
   Codex and Claude Code command locations in addition to `PATH`, but they use
   fixed framework-owned argv templates and are still Action calls, not shell
-  exposure. `session_scope="execution"` reuses one framework session descriptor
-  per AgentExecution context, ACP agent id, and root; CLI adapters report
+  exposure. If `root` is omitted, `agent.use_acp()` uses the Agent's bound
+  Workspace `files_root` as the coding-agent project root; explicit `root=...`
+  is an advanced host authorization override. ACP session reuse is internal
+  AgentExecution resource policy, and CLI adapters report
   `acp_session.persistence="stateless_cli"` unless a real protocol session is
   available.
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
