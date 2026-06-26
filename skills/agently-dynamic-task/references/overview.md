@@ -36,16 +36,9 @@ Layer ownership:
 - `TaskDAGExecutor.compile_blocks(...)` and `async_run_blocks(...)` keep
   TaskDAG validation and semantic-output ownership in TaskDAG, then lower the
   validated segment through Blocks to TriggerFlow-backed execution and evidence.
-- `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
-  the app-facing facade entrypoints.
-- In Agent mode, chained quick prompt methods create an AgentExecution-local
-  ModelRequest draft. `agent.create_dynamic_task()` consumes that execution prompt snapshot:
-  rendered prompt text becomes the DynamicTask target, the `output` slot becomes
-  `output_schema`, `output_format` becomes the default model-task format, and
-  the `input` slot remains structured graph input for `${INIT...}`
-  placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
-  preserved; multi-statement setup should capture
-  `execution = agent.create_execution()` instead of mutating the shared Agent
+- `Agently.create_dynamic_task(...)` is the app-facing facade entrypoint.
+  `agent.create_dynamic_task(...)` is retained as a compatibility facade for
+  legacy prompt-snapshot callers, not as default guidance.
   pending prompt. Explicit facade arguments override prompt-derived defaults.
 
 Use TaskDAG modules when the graph is submitted as data and must be planned,
@@ -108,25 +101,23 @@ references, and keep larger transformations in handlers or model tasks.
 Use the same slot naming style as Prompt references: uppercase slot names in
 examples (`INIT`, `DEPS`, `STATE`, `TRIGGER`), with path access after the dot.
 
-When a submitted DAG runs behind `agent.use_dynamic_task(...).create_execution()`,
-`${INIT...}` reads graph input from `use_dynamic_task(graph_input=...)` when it
-is provided. If omitted, it reads the execution prompt snapshot `input` slot
-captured by `create_execution()`, then falls back to `{"target": task_target}`.
-Use the explicit `graph_input` argument only when the DAG input should differ
-from the Agent prompt input or when the precedence should be visible in code.
+When a submitted DAG runs through `create_dynamic_task(...)` or
+`TaskDAGExecutor`, `${INIT...}` reads the submitted graph input owned by that
+facade/executor. Use explicit graph input on the owning Dynamic Task or
+TaskDAGExecutor path when it should differ from the task target or application
+prompt context. Do not teach the old AgentExecution-local DynamicTask hook as
+the current integration path; ordinary AgentExecution work is planned through
+TaskGraph and ExecutionGraph.
 
-When Dynamic Task runs behind `agent.create_execution()`, the Agent execution
-stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
-the Agent stream must terminate and surface the original error to the consumer;
-do not add external timeout workarounds or swallow failing chunks in examples.
-For developer-owned loops, wrap the Agent execution as
-`create_execution(lineage=..., limits=...)` so Dynamic Task model planning/tasks
-share the AgentExecution model-request budget and stream items carry execution
-lineage metadata.
+When Dynamic Task needs streaming, consume the owning TriggerFlow runtime stream
+from the compiled DynamicTask or TaskDAGExecutor execution. If a later
+AgentExecution must consume the DAG result, pass the snapshot or Workspace
+record as evidence; its stream and budget belong to that later AgentExecution
+only.
 
 Recommended API boundaries:
 
-- app code: `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)`
+- app code: `Agently.create_dynamic_task(...)`
 - planner control: `AgentlyTaskDAGPlanner`
 - graph validation: `TaskDAGValidator`
 - handler lookup: `DynamicTaskResolver`

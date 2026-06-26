@@ -164,7 +164,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for AgentTaskLoop applications, enable only the bounded capabilities the task
   may use, such as `agent.enable_shell(...)`,
   `agent.enable_workspace_file_actions(...)`, `agent.use_actions(...)`,
-  `agent.use_skills(...)`, or `agent.use_dynamic_task(...)`, then create the
+  or `agent.use_skills(...)`, then create the
   task-strategy AgentExecution draft with `agent.create_task(...)` or the more
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
