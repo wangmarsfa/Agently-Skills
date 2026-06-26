@@ -263,7 +263,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   run lineage kind for one bounded Agent execution. The old turn-named runtime
   namespace is removed from the current development-line contract.
   `attempt_index` is model-request retry metadata and must not be treated as an
-  AgentExecution counter.
+  AgentExecution counter. AgentExecution process streams are observed as
+  `agent_execution.stream` RuntimeEvents for flat and TaskBoard execution
+  progress; DevTools may display those facts but must not own task strategy
+  selection.
 - for framework-side Skills Manager work, prefer the `Agently.skills_manager`
   facade backed by the builtin `SkillsManager` plugin; Agently 4.1.2.5 did not
   ship `Agently.skills` as a compatibility alias

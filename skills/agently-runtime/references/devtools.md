@@ -67,6 +67,13 @@ chunk at the same replay boundary. DevTools observes the structured
 `model.status` RuntimeEvent instead, so it should clear reconstructed partial
 text from that event and not depend on the text-stream marker.
 
+AgentExecution projects process stream items to `agent_execution.stream`
+RuntimeEvents. Flat AgentTaskLoop iterations and TaskBoard card/tick progress
+remain AgentExecution-owned execution facts; DevTools should ingest, store,
+query, and display them through run lineage and payload fields such as
+`execution_id`, `path`, `task_id`, `execution_strategy`, and
+`effective_execution_strategy`, without becoming the task strategy owner.
+
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
 
