@@ -50,7 +50,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - local Workspace materialization writes `AGENTLY_WORKSPACE.md` at the physical
   root and scoped `files_root`; external coding agents and file Actions should
   treat that guide as the boundary note for editable files versus Workspace
-  internals, and should not expect the guide to be named `README.md`
+  internals, and should not expect the guide to be named `README.md`. Standard
+  editable file areas are `downloads/` for materialized remote files,
+  `artifacts/` for supporting generated evidence or non-primary deliverables,
+  and `reports/` for user-facing readable deliverables. Use
+  `workspace.file_area_path(...)` instead of hand-building those roots when
+  application or framework code needs a contained path.
 - create application-owned shared Workspace instances with
   `Workspace(...)` or `Agently.create_workspace(...)` and bind each participant
   with `agent.use_workspace(shared_workspace)` or

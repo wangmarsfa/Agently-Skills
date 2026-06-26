@@ -19,7 +19,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - local Workspace materialization writes `AGENTLY_WORKSPACE.md` at the physical
   root and scoped `files_root`; external coding agents and file Actions should
   treat that guide as the boundary note for editable files versus Workspace
-  internals, and should not expect the guide to be named `README.md`
+  internals, and should not expect the guide to be named `README.md`. Standard
+  editable file areas are `downloads/` for materialized remote files,
+  `artifacts/` for supporting generated evidence or non-primary deliverables,
+  and `reports/` for user-facing readable deliverables. Use
+  `workspace.file_area_path(...)` when code needs a contained path in one of
+  those areas.
 - create shared task information scopes with `Workspace(...)` or
   `Agently.create_workspace(...)` and bind Agents, TriggerFlow executions, or
   service workers to that same instance when they must collaborate over an
