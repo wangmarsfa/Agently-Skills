@@ -173,6 +173,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   AgentExecution resource policy, and CLI adapters report
   `acp_session.persistence="stateless_cli"` unless a real protocol session is
   available.
+- AgentTaskLoop may use ACP as an opt-in recovery fallback after bounded-step or
+  TaskBoard-card failure and retry exhaustion, but the fallback must still call
+  the registered `acp_run_task` Action and use `ExecutionResource(kind="acp")`.
+  Do not model ACP as an AgentExecution route or import ACP dependencies when
+  `agent.use_acp(...)` has not registered the capability.
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
 - configure Search/Browse proxy, timeout, backend/fallback, `max_attempts`, and
   `retry_backoff_seconds` on the package object. Short transport failures such

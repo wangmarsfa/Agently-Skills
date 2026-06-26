@@ -85,13 +85,24 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   When the app needs explicit resource strategy, keep the same method and pass
   sections such as `budget`, `planning`, `execution`, `verification`, `replan`,
   and `progress`; do not introduce raw iteration-count builders or treat effort
-  as permission, data visibility, or completion acceptance.
+  as permission, data visibility, or completion acceptance. In AgentTaskLoop,
+  effort also controls reflection density: low means final reflection plus only
+  planner-marked important process nodes, medium means each major node or
+  TaskBoard card/tick, and high means every framework-observable bounded step,
+  Action/ACP call, TaskBoard card, and final reflection. Reflection is evidence
+  for replan/verifier input, not completion evidence by itself.
 - in Goal Pursuit / AgentTaskLoop examples, caller facts and the requested
   structured output contract may live on the same `AgentExecution` draft through
   `.input(...)` and `.output(...)`; AgentTaskLoop treats that execution prompt
   snapshot as task context during planning, bounded step execution, and
   verification. Do not duplicate those facts into framework hardcode only to
   make the task loop see them.
+- for every intermediate process with a strong structured contract, use
+  Agently `.output(..., format=...)` on the owning request/execution. Choose the
+  format that fits the payload (`json`, `hybrid`, `flat_markdown`,
+  `xml_field`, or `yaml_literal`); if a declared non-JSON format fails,
+  Agently may recover through JSON parsing, but only dict-shaped parsed payloads
+  satisfy structured control or final task output contracts.
 - treat `execution.step_plan` as `auto` by default. Use
   `effort(..., execution={"step_plan": "direct" | "dag"})` only as explicit
   strategy guidance for whether a Goal Pursuit iteration must stay one bounded
@@ -103,6 +114,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   failed DAG-shaped step should cause later replans to avoid the same DAG shape;
   use explicit `step_plan="dag"` only when DAG remains the intended contract
   after such a failure.
+- treat task `execution="auto"` as the default execution strategy. Auto uses one
+  AgentTaskLoop-owned task-shape model request that first allows free natural
+  language analysis and then returns a thin structured `execution_hint`; do not
+  route with keywords, regex, or local scorecards, and do not treat the hint as
+  completion evidence. Use `execution="flat"` / `.strategy("flat")` to force the
+  linear loop and `execution="taskboard"` / `.strategy("taskboard")` only when
+  the host explicitly wants TaskBoard. Nested AgentExecution instances inherit
+  the parent strategy context unless the child explicitly overrides it.
 - treat Blocks as the internal lowering bridge from AgentTaskLoop
   `ExecutionPlan` / `PlanBlock` instances and validated TaskDAG nodes to
   TriggerFlow-backed `ExecutionBlockGraph`, not as a public task lifecycle.
