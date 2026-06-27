@@ -218,8 +218,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   Workspace is bound.
 - treat `model_digest`, bounded previews, `artifact_refs`, `file_refs`, and
   Workspace record refs as the normal loop memory for instruction-heavy or
-  large Actions; previews are not complete evidence, so full raw payloads should
-  be read explicitly from the Action artifact store or Workspace when needed;
+  large Actions; if a digest is still too large for planning or reply hot paths,
+  ActionRuntime may replace duplicate data/model_digest fields with
+  same_as=result pointers and omit artifact preview bodies from hot-path refs;
+  previews are not complete evidence, so full raw payloads should be read
+  explicitly from the Action artifact store or Workspace when needed;
   use `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
   only for durable execution facts, not as a replacement for TriggerFlow
   pause/resume or approval/exchange policy
