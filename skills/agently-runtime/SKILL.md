@@ -232,7 +232,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   refs/previews, and these refs are execution evidence rather than final
   deliverable proof. If Action artifact readback exposes Workspace `file_refs`
   for a materialized download, TaskBoard readback promotes those nested refs to
-  card-level `file_refs` for later Workspace readback
+  card-level `file_refs` for later Workspace readback. If a non-final TaskBoard
+  card proposes a required final path such as `final.md`, AgentTask relocates it
+  to a working evidence path and reserves the final path for final synthesis
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
