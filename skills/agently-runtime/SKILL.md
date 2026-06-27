@@ -245,6 +245,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   or ref, the control card should return structured `target_refs` with
   `next_board_action=readback`; prose-only gaps are diagnostics, not executable
   targets
+- completed and sufficient TaskBoard control outputs may still disclose
+  non-fatal `gaps`; those gaps do not block Workspace artifact materialization,
+  while `remaining_work`, blocked status, repair, or readback intent still do.
+  Materializing an artifact creates readback/verification evidence and is not
+  final task acceptance
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use

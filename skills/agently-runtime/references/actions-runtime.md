@@ -169,6 +169,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   path, or ref, the control card should return structured `target_refs` with
   `next_board_action=readback`; URLs or paths mentioned only inside prose gaps
   are diagnostics, not executable targets.
+- Completed and sufficient TaskBoard control outputs may still disclose
+  non-fatal `gaps`; those gaps do not block Workspace artifact materialization.
+  `remaining_work`, blocked status, repair, or readback intent still prevent
+  artifact delivery. Materializing an artifact creates readback/verification
+  evidence and does not mean final task acceptance.
 - AgentTask required deliverables are accepted only after Workspace readback:
   when structured task input or output contracts require files such as
   `final.md`, verifier prose is not enough. The framework guard must confirm
