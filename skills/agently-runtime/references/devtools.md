@@ -53,9 +53,12 @@ Model request RuntimeEvents may include `payload.model_request_telemetry` on
 `model.request_started`, `model.requesting`, `model.status`, `model.completed`, `model.meta`,
 `model.request_failed`, and `model.requester.error`. Treat it as compact
 diagnostic material for DevTools or local logs: response id, attempt index, run
-ids, provider/model, request URL, duration, usage, side-channel, and normalized
-error facts. Do not feed telemetry back into route selection, retries, verifier
-judgment, quality scoring, planner context, or prompts.
+ids, provider/model, request URL, duration, raw usage, normalized/estimated
+`usage_summary`, side-channel, and normalized error facts. When provider usage
+is unavailable, display token counts as unknown and use estimated input/output
+character lengths only as diagnostics. Do not feed telemetry back into route
+selection, retries, verifier judgment, quality scoring, planner context, or
+prompts.
 
 `model.status` is a compact attempt-outcome observation. A `failed` payload
 with `retry=True` means partial stream output was replaced; `cancelled` is

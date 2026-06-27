@@ -132,9 +132,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   id, actor id, lease owner id, snapshot refs, and artifact refs
 - for ModelRequest observability, read `payload.model_request_telemetry` from
   existing `model.*` RuntimeEvents when present; it is a compact diagnostic
-  payload for provider/model, attempt, run lineage, duration, usage, request
-  URL, side-channel, and error facts, not an input to route, retry, verifier,
-  quality, planner, or prompt logic
+  payload for provider/model, attempt, run lineage, duration, raw usage,
+  normalized/estimated `usage_summary`, request URL, side-channel, and error
+  facts, not an input to route, retry, verifier, quality, planner, or prompt
+  logic
 - for webhook, approval, or external callback resume flows, pass a stable
   `resume_request_id` and actor to `execution.async_continue_with(...)`; the
   TriggerFlow resume ledger records accepted, dispatched, and completed or
