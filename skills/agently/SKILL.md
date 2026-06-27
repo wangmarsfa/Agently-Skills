@@ -123,7 +123,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   TaskBoard control card needs a new concrete URL, path, or ref materialized
   before continuing, return structured `target_refs` with
   `next_board_action=readback`; do not rely on URLs hidden inside `gaps` prose
-  as executable targets.
+  as executable targets. Intermediate TaskBoard artifacts should stay on
+  working/evidence paths; framework-marked final repair or continuation cards
+  may write the required final deliverable path when that path is part of the
+  task output contract.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and
