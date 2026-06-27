@@ -226,6 +226,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `agent_task.workspace_artifact.readback_failed` or
   `agent_task.workspace_artifact.readback_insufficient` diagnostics rather than
   a generic budget or iteration failure
+- intermediate downloads, webpage snapshots, generated code, search notes, and
+  large extracted text may be persisted as Workspace/Action artifact refs and
+  opened later through bounded cold readback; hot prompts should carry compact
+  refs/previews, and these refs are execution evidence rather than final
+  deliverable proof
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

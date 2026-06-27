@@ -148,6 +148,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `agent_task.workspace_artifact.readback_failed` or
   `agent_task.workspace_artifact.readback_insufficient`; do not describe those
   cases as generic iteration, retry, or budget exhaustion.
+- Intermediate downloads, webpage snapshots, generated code, search notes, and
+  large extracted text may also be persisted as Workspace or Action artifact
+  refs. Pass compact refs/previews through hot prompts and open scoped snippets
+  later with bounded Workspace or artifact readback. These refs are execution
+  evidence, not final deliverable proof.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
