@@ -82,10 +82,16 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   an AgentExecution draft; do not teach shared Agent
   pending prompt mutation as the default setup pattern.
 - use `agent.effort("low" | "medium" | "high")` for ordinary strategy depth.
-  When the app needs explicit resource strategy, keep the same method and pass
+  When the app needs explicit strategy posture, keep the same method and pass
   sections such as `budget`, `planning`, `execution`, `verification`, `replan`,
-  and `progress`; do not introduce raw iteration-count builders or treat effort
-  as permission, data visibility, or completion acceptance. In AgentTaskLoop,
+  and `progress`; treat `budget` values as soft planning, reflection, repair,
+  and evidence-depth hints rather than silent hard limits. Use explicit
+  `limits={...}` or task options when the host needs hard resource controls.
+  Framework defaults should not impose model-request, iteration, TaskBoard tick,
+  Action round, node-count, or tool-call quotas; no-progress and idle timeouts
+  are liveness guards for stuck executions, not strategy evidence.
+  Do not introduce raw iteration-count builders or treat effort as permission,
+  data visibility, resource gating, or completion acceptance. In AgentTaskLoop,
   effort also controls reflection density: low means final reflection plus only
   planner-marked important process nodes, medium means each major node or
   TaskBoard card/tick, and high means every framework-observable bounded step,
@@ -103,6 +109,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `xml_field`, or `yaml_literal`); if a declared non-JSON format fails,
   Agently may recover through JSON parsing, but only dict-shaped parsed payloads
   satisfy structured control or final task output contracts.
+- for long or prose-heavy deliverables whose main value is the natural-language
+  body, do not force the body through `.output()` only to carry text. Let the
+  body generate as natural text, then use a compact structured judge/readback
+  contract for status, evidence, quality, and artifact refs. For trusted file
+  deliverables, use Workspace artifact write/readback plus a compact manifest.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and

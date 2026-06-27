@@ -202,8 +202,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   should buffer/bucket high-frequency deltas or use smooth incremental rendering
   to avoid render pressure and visible screen jitter
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
-  (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
-  leave useful Workspace files, but those are partial artifacts
+  (`accepted=True`, `artifact_status="accepted"`); explicitly configured
+  `max_iterations` can still leave useful Workspace files, but those are partial artifacts
   (`accepted=False`, `artifact_status="partial"`); when semantic content quality
   matters, combine deterministic smoke checks with current docs/spec/source
   references or an Agently model-judge request, and do not use counts, keyword
@@ -211,9 +211,15 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - when an AgentTask bounded step or TaskBoard card returns a short
   `artifact_markdown` body or a sectioned `artifact_manifest`, the framework
   writes the deliverable through the bound Workspace and reads it back for
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`; long reports,
-  exam papers, and multi-section deliverables should use
-  `artifact_manifest.sections` so JSON stays a control plane, and
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`; for long,
+  sectioned, or prose-heavy deliverables, choose the content carrier
+  deliberately: draft a single freeform document as natural Markdown/plain text
+  without `.output()`, or use Agently `.output(..., format=...)` with
+  `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
+  are required instead of forcing the body into compact JSON fields; keep
+  status, evidence, and verification in separate compact judgment/readback
+  contracts; use `artifact_manifest.sections` plus Workspace readback when
+  AgentTask must deliver a trusted file artifact;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
@@ -467,8 +473,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Task remains direct `model_request`, they are only available capabilities, not
   a planned Action/Skill task. Only actual action/tool records become
   side-effect evidence for verification, Workspace persistence, or replan.
-- bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
-  "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
+- set `limits={"max_seconds": ..., "max_no_progress_seconds": ...}` only when
+  the host explicitly needs hard wall-clock or no-progress controls while
+  diagnosing or building host-owned loops; framework defaults should not impose
+  model-request, iteration, TaskBoard tick, Action round, node-count, or
+  tool-call quotas, while no-progress and idle timeouts remain liveness guards;
   catch `RuntimeStageStallError` from the root `agently.core` export or
   `agently.core.application.AgentExecution` and inspect
   `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`

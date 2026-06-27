@@ -134,10 +134,16 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - AgentTask workspace artifacts are framework-delivered: when a bounded step or
   TaskBoard card returns a short `artifact_markdown` body or a sectioned
   `artifact_manifest`, AgentTask writes it through Workspace and readbacks
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`. Long reports,
-  exam papers, and multi-section deliverables should use
-  `artifact_manifest.sections` so JSON stays a control plane. Model-declared
-  `file_refs` are diagnostics only until this write/readback evidence exists.
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`. For long,
+  sectioned, or prose-heavy deliverables, choose the content carrier
+  deliberately: draft a single freeform document as natural Markdown/plain text
+  without `.output()`, or use Agently `.output(..., format=...)` with
+  `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
+  are required instead of forcing the body into compact JSON fields. Keep
+  status, evidence, and verification in separate compact judgment/readback
+  contracts. Use `artifact_manifest.sections` plus Workspace readback when
+  AgentTask must deliver a trusted file artifact.
+  Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or
   `agent_task.workspace_artifact.readback_insufficient`; do not describe those
