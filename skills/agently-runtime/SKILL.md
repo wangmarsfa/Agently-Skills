@@ -230,7 +230,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   large extracted text may be persisted as Workspace/Action artifact refs and
   opened later through bounded cold readback; hot prompts should carry compact
   refs/previews, and these refs are execution evidence rather than final
-  deliverable proof
+  deliverable proof. If Action artifact readback exposes Workspace `file_refs`
+  for a materialized download, TaskBoard readback promotes those nested refs to
+  card-level `file_refs` for later Workspace readback
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

@@ -152,7 +152,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   large extracted text may also be persisted as Workspace or Action artifact
   refs. Pass compact refs/previews through hot prompts and open scoped snippets
   later with bounded Workspace or artifact readback. These refs are execution
-  evidence, not final deliverable proof.
+  evidence, not final deliverable proof. If Action artifact readback exposes
+  Workspace `file_refs` for a materialized download, TaskBoard readback promotes
+  those nested refs to card-level `file_refs` so later work can use Workspace
+  readback instead of relying on a buried JSON preview.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
