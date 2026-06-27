@@ -149,10 +149,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `agent_task.workspace_artifact.readback_insufficient`; do not describe those
   cases as generic iteration, retry, or budget exhaustion.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
-  Workspace file refs through bounded cold readbacks. Generated continuation
-  cards should propose different executable work or stay blocked with
-  diagnostics when the same evidence is still insufficient, rather than asking
-  for another identical readback/continuation chain.
+  Workspace file refs through bounded cold readbacks. Framework-generated
+  readback cards scope evidence to direct dependencies plus upstream evidence
+  cards, so a control-card readback can still inspect Action refs produced by
+  earlier evidence-gathering cards. Generated continuation cards should propose
+  different executable work or stay blocked with diagnostics when the same
+  evidence is still insufficient, rather than asking for another identical
+  readback/continuation chain.
 - AgentTask required deliverables are accepted only after Workspace readback:
   when structured task input or output contracts require files such as
   `final.md`, verifier prose is not enough. The framework guard must confirm

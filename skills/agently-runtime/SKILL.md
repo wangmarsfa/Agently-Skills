@@ -227,9 +227,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `agent_task.workspace_artifact.readback_insufficient` diagnostics rather than
   a generic budget or iteration failure
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
-  Workspace file refs through bounded cold readbacks; generated continuation
-  cards should not recursively request another identical readback chain when the
-  same evidence remains insufficient
+  Workspace file refs through bounded cold readbacks. Framework-generated
+  readback cards scope evidence to direct dependencies plus upstream evidence
+  cards, so a control-card readback can still inspect Action refs produced by
+  earlier evidence-gathering cards; generated continuation cards should not
+  recursively request another identical readback chain when the same evidence
+  remains insufficient
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use
