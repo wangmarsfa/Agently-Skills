@@ -241,7 +241,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   cards, so a control-card readback can still inspect Action refs produced by
   earlier evidence-gathering cards; generated continuation cards should not
   recursively request another identical readback chain when the same evidence
-  remains insufficient
+  remains insufficient. When the missing evidence is a new concrete URL, path,
+  or ref, the control card should return structured `target_refs` with
+  `next_board_action=readback`; prose-only gaps are diagnostics, not executable
+  targets
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use

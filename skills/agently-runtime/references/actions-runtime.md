@@ -165,7 +165,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   earlier evidence-gathering cards. Generated continuation cards should propose
   different executable work or stay blocked with diagnostics when the same
   evidence is still insufficient, rather than asking for another identical
-  readback/continuation chain.
+  readback/continuation chain. When the missing evidence is a new concrete URL,
+  path, or ref, the control card should return structured `target_refs` with
+  `next_board_action=readback`; URLs or paths mentioned only inside prose gaps
+  are diagnostics, not executable targets.
 - AgentTask required deliverables are accepted only after Workspace readback:
   when structured task input or output contracts require files such as
   `final.md`, verifier prose is not enough. The framework guard must confirm
