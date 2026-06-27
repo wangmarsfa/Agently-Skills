@@ -117,10 +117,13 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   Intermediate downloads, webpage snapshots, generated code, search notes, and
   large extracted text may also be persisted as Workspace/Action refs and opened
   later through bounded readback; these refs are execution evidence, not proof
-  that the final deliverable exists. When a TaskBoard control card needs a new
-  concrete URL, path, or ref materialized before continuing, return structured
-  `target_refs` with `next_board_action=readback`; do not rely on URLs hidden
-  inside `gaps` prose as executable targets.
+  that the final deliverable exists. A discovered URL, path, download, or
+  snapshot ref is also not evidence that its content has been read; treat it as
+  `ref_only` until a bounded readback/content preview is available. When a
+  TaskBoard control card needs a new concrete URL, path, or ref materialized
+  before continuing, return structured `target_refs` with
+  `next_board_action=readback`; do not rely on URLs hidden inside `gaps` prose
+  as executable targets.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and
