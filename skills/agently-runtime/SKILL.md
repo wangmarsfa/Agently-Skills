@@ -215,7 +215,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   writes the deliverable through the bound Workspace and reads it back for
   `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold
   evidence; model-hot verifier input uses path/ref handles, bounded content or
-  preview, and truncation status rather than SHA/byte/MIME integrity metadata; for long,
+  preview, truncation status, and readback path handles rather than
+  SHA/byte/MIME integrity metadata; for long,
   sectioned, or prose-heavy deliverables, choose the content carrier
   deliberately: draft a single freeform document as natural Markdown/plain text
   without `.output()`, or use Agently `.output(..., format=...)` with
