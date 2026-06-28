@@ -175,11 +175,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_files`, `query` is content text,
   `path` is the directory/file scope, and `pattern` is a file glob such as
-  `*.md` or `*`. Blocks `workspace_operation.search` uses Workspace SQLite/FTS
-  and bounded Workspace file search, while `workspace_operation.read_bounded`
-  reads refs/paths under bounds. Both return `locator_ref` and/or
-  `evidence_snippet` facts only; the downstream model judges usefulness and next
-  action.
+  `*.md` or `*`. Blocks return a small bounded context around file matches by
+  default. Blocks `workspace_operation.search` uses Workspace SQLite/FTS and
+  bounded Workspace file search, while `workspace_operation.read_bounded` reads
+  refs/paths under bounds. Both return `locator_ref` and/or `evidence_snippet`
+  facts only; the downstream model judges usefulness and next action.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
