@@ -124,7 +124,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   and `write=True`, delegates to the bound Workspace when roots match, and must
   not overwrite user-defined Actions. `search_files` keeps compatible
   `path`/`line`/`text` results and adds scoped retrieval metadata:
-  `role="evidence_snippet"`, bounded snippet counts, and a nested
+  `role="evidence_snippet"`, bounded snippet counts, `truncated`, and a nested
   `locator_ref` with `content_state="ref_only"`. `pattern="**"` is treated as
   recursive file search under the scoped path.
 - Workspace search and Blocks `workspace_operation.search` accept structural
@@ -182,8 +182,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   file matches by default. Blocks `workspace_operation.search` uses Workspace
   SQLite/FTS and bounded Workspace file search, while
   `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
-  `locator_ref` and/or `evidence_snippet` facts only; the downstream model
-  judges usefulness and next action.
+  `locator_ref` and/or `evidence_snippet` facts only, including whether bounded
+  snippets were `truncated`; the downstream model judges usefulness and next
+  action. If a TaskBoard scoped-retrieval card reports blocked/insufficient
+  output without an explicit next action, AgentTask synthesizes an expanded
+  evidence card plus a continuation card instead of relying on a terminal
+  verifier to repair intermediate evidence.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

@@ -254,7 +254,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   file search, not another content keyword. Local Workspace file search uses
   `rg` as a grep-style search engine when available and falls back to bounded
   file scanning. Blocks return a small bounded context around file matches by
-  default, so nearby facts can be inspected without reading the whole file.
+  default, so nearby facts can be inspected without reading the whole file, and
+  snippet facts expose whether bounded context was `truncated`.
   Ordinary intermediate Flat work units can return
   `ready_for_final_verification=false` with `remaining_work` so the next Flat
   iteration consumes the new evidence instead of triggering an immediate
@@ -265,9 +266,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   audit, contradictions, or high-risk review.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
-  planning/verification decides whether snippets are useful. Do not turn local
-  grep/SQLite hits into semantic relevance gates, quality checks, or completion
-  evidence
+  planning/verification decides whether snippets are useful. If a TaskBoard
+  scoped-retrieval card reports blocked/insufficient output without an explicit
+  next action, AgentTask synthesizes an expanded evidence card plus a
+  continuation card so the downstream consumer can decide whether the new
+  evidence is enough. Do not turn local grep/SQLite hits into semantic
+  relevance gates, quality checks, or completion evidence
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
