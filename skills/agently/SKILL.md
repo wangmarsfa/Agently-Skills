@@ -114,9 +114,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   body generate as natural text, then use a compact structured judge/readback
   contract for status, evidence, quality, and artifact refs. For trusted file
   deliverables, use Workspace artifact write/readback plus a compact manifest.
-  Intermediate downloads, webpage snapshots, generated code, search notes, and
-  large extracted text may also be persisted as Workspace/Action refs and opened
-  later through bounded readback; these refs are execution evidence, not proof
+  Intermediate downloads, webpage snapshots, generated code, search notes,
+  memory-like task notes, and large extracted text may also be persisted as
+  Workspace/Action refs and opened later through bounded readback; these refs are execution evidence, not proof
   that the final deliverable exists. A discovered URL, path, download, or
   snapshot ref is also not evidence that its content has been read; treat it as
   `ref_only` until a bounded readback/content preview is available. When a
