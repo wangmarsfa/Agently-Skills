@@ -142,8 +142,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
 - AgentTask observation projects normalized `agent_task.action.started`,
   `agent_task.action.completed`, and `agent_task.action.failed` stream events
   from Action records. Treat them as factual observability for UI, DevTools, and
-  experiment logs; do not use them as a local quality, relevance, route, or
-  completion judgment.
+  experiment logs; recovered `success` or `partial_success` Action records
+  project as completed observations, while failed observations are reserved for
+  failed, blocked, timed-out, or unrecovered error records. Do not use them as a
+  local quality, relevance, route, or completion judgment.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and

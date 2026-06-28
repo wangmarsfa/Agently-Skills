@@ -83,8 +83,11 @@ query, and display them through run lineage and payload fields such as
 AgentTask action observations may appear as `agent_task.action.started`,
 `agent_task.action.completed`, and `agent_task.action.failed`. DevTools should
 render them as factual action timeline records grouped by iteration when
-metadata is present. They are not route decisions, verifier results, quality
-scores, semantic relevance judgments, budget gates, or completion acceptance.
+metadata is present. Recovered `success` or `partial_success` Action records
+project as completed observations; failed observations are reserved for failed,
+blocked, timed-out, or unrecovered error records. They are not route decisions,
+verifier results, quality scores, semantic relevance judgments, budget gates,
+or completion acceptance.
 
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
