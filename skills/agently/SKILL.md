@@ -127,6 +127,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   working/evidence paths; framework-marked final repair or continuation cards
   may write the required final deliverable path when that path is part of the
   task output contract.
+- AgentTaskLoop work units receive an internal task context contract with
+  run-date/currentness facts and intermediate-resource ref/readback policy. For
+  current, latest, recent, or as-of tasks, use that date boundary unless the
+  caller supplied a more specific date. This contract is not a model-call,
+  tool-call, node-count, iteration, or wall-clock cap.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and
