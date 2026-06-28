@@ -174,7 +174,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   reconstructable provenance such as SHA, byte counts, backend/search-engine
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
-  uses the same retrieval contract through its card carrier. Query groups may set
+  uses the same retrieval contract through its card carrier. TaskBoard
+  Workspace-operation prompt views and intermediate readback previews use the
+  same hot/cold split: content/path, range, truncation, and compact handles stay
+  hot, while SHA, bytes, handler/media, backend/search-engine facts, and full
+  refs stay in cold evidence or final artifact readback metadata. Query groups may set
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_index`, record collections belong
   in `filters.collection` and exact record kinds may use `filters.kind`; for
@@ -192,7 +196,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   evidence card plus a continuation card instead of relying on a terminal
   verifier to repair intermediate evidence.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
-  Workspace file refs through bounded cold readbacks. Framework-generated
+  Workspace file/content refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
   cards, so a control-card readback can still inspect Action refs produced by
   earlier evidence-gathering cards. Generated continuation cards should propose
@@ -200,8 +204,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   evidence is still insufficient, rather than asking for another identical
   readback/continuation chain. When the missing evidence is a new concrete URL,
   path, or ref, the control card should return structured `target_refs` with
-  `next_board_action=readback`; URLs or paths mentioned only inside prose gaps
-  are diagnostics, not executable targets.
+  `next_board_action=readback`; external HTTP/HTTPS refs become Action evidence
+  work, while Workspace/content paths and retained-note refs become bounded
+  Workspace readback cards. URLs or paths mentioned only inside prose gaps are
+  diagnostics, not executable targets.
 - Completed and sufficient TaskBoard control outputs may still disclose
   non-fatal `gaps`; those gaps do not block Workspace artifact materialization.
   `remaining_work`, blocked status, repair, or readback intent still prevent

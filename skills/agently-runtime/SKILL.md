@@ -245,7 +245,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   exposes the same work-unit carrier contract and can inject retrieval facts
-  into card execution. Query groups may
+  into card execution. TaskBoard Workspace-operation prompt views and
+  intermediate readback previews use the same hot/cold split: content/path,
+  range, truncation, and compact handles stay hot, while SHA, bytes,
+  handler/media, backend/search-engine facts, and full refs stay in cold
+  evidence or final artifact readback metadata. Query groups may
   set `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; record collections belong in
   `filters.collection`, exact record kinds may use `filters.kind`, and file
@@ -276,15 +280,16 @@ here for Actions, ExecutionResource, service, or DevTools details.
   evidence is enough. Do not turn local grep/SQLite hits into semantic
   relevance gates, quality checks, or completion evidence
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
-  Workspace file refs through bounded cold readbacks. Framework-generated
+  Workspace file/content refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
   cards, so a control-card readback can still inspect Action refs produced by
   earlier evidence-gathering cards; generated continuation cards should not
   recursively request another identical readback chain when the same evidence
   remains insufficient. When the missing evidence is a new concrete URL, path,
   or ref, the control card should return structured `target_refs` with
-  `next_board_action=readback`; prose-only gaps are diagnostics, not executable
-  targets
+  `next_board_action=readback`; external HTTP/HTTPS refs become Action evidence
+  work, while Workspace/content paths and retained-note refs become bounded
+  Workspace readback cards. Prose-only gaps are diagnostics, not executable targets
 - completed and sufficient TaskBoard control outputs may still disclose
   non-fatal `gaps`; those gaps do not block Workspace artifact materialization,
   while `remaining_work`, blocked status, repair, or readback intent still do.
