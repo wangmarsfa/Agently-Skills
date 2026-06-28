@@ -55,10 +55,12 @@ Model request RuntimeEvents may include `payload.model_request_telemetry` on
 diagnostic material for DevTools or local logs: response id, attempt index, run
 ids, provider/model, request URL, duration, raw usage, normalized/estimated
 `usage_summary`, side-channel, and normalized error facts. When provider usage
-is unavailable, display token counts as unknown and use estimated input/output
-character lengths only as diagnostics. Do not feed telemetry back into route
-selection, retries, verifier judgment, quality scoring, planner context, or
-prompts.
+is unavailable, display token counts as unknown (for example `NaN`) and use
+estimated input/output character lengths only as diagnostics. DevTools may show
+usage for a single model request and aggregate descendant model-request usage
+upward for the selected run branch. Do not feed telemetry back into route
+selection, retries, budget caps, verifier judgment, quality scoring, planner
+context, or prompts.
 
 `model.status` is a compact attempt-outcome observation. A `failed` payload
 with `retry=True` means partial stream output was replaced; `cancelled` is
@@ -76,6 +78,12 @@ remain AgentExecution-owned execution facts; DevTools should ingest, store,
 query, and display them through run lineage and payload fields such as
 `execution_id`, `path`, `task_id`, `execution_strategy`, and
 `effective_execution_strategy`, without becoming the task strategy owner.
+
+AgentTask action observations may appear as `agent_task.action.started`,
+`agent_task.action.completed`, and `agent_task.action.failed`. DevTools should
+render them as factual action timeline records grouped by iteration when
+metadata is present. They are not route decisions, verifier results, quality
+scores, semantic relevance judgments, budget gates, or completion acceptance.
 
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
