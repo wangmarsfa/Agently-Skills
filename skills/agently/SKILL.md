@@ -129,7 +129,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   task output contract. If a TaskBoard control card returns
   `next_board_action=patch` with a Workspace text patch proposal, AgentTask
   should materialize the patch into the bound Workspace file and expose the
-  resulting readback refs; the verifier still owns completion judgment.
+  resulting readback refs; the verifier still owns completion judgment. For
+  Flat repository/file tasks, clone or list manifest paths are `ref_only` until a
+  file read, artifact readback, or bounded content preview is visible; use them
+  as retrieval targets, not source-content evidence.
 - AgentTaskLoop work units receive an internal task context contract with
   run-date/currentness facts and intermediate-resource ref/readback policy. For
   current, latest, recent, or as-of tasks, use that date boundary unless the
