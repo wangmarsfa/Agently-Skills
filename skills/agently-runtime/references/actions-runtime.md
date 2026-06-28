@@ -169,8 +169,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
   not the runner or verifier. Flat steps may carry
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
-  pre-step Blocks `workspace_operation.search` facts and injects
-  `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard
+  pre-step Blocks `workspace_operation.search` facts and injects a compact
+  model-hot `scoped_retrieval_results` view into the bounded `agent_step`;
+  reconstructable provenance such as SHA, byte counts, backend/search-engine
+  details, execution block ids, and full file refs stays in raw
+  Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   uses the same retrieval contract through its card carrier. Query groups may set
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_index`, record collections belong

@@ -239,10 +239,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for large Workspace, repository, or file-backed evidence, AgentTaskLoop may
   carry scoped retrieval query groups before broad reads. Flat uses
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
-  pre-step Blocks `workspace_operation.search` facts and injects
-  `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard exposes
-  the same work-unit carrier contract and can inject retrieval facts into card
-  execution. Query groups may
+  pre-step Blocks `workspace_operation.search` facts and injects a compact
+  model-hot `scoped_retrieval_results` view into the bounded `agent_step`;
+  reconstructable provenance such as SHA, byte counts, backend/search-engine
+  details, execution block ids, and full file refs stays in raw
+  Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
+  exposes the same work-unit carrier contract and can inject retrieval facts
+  into card execution. Query groups may
   set `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; record collections belong in
   `filters.collection`, exact record kinds may use `filters.kind`, and file
