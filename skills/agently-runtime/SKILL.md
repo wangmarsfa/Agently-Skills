@@ -277,6 +277,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   decide whether evidence is enough. Independent verifier requests are for
   terminal acceptance, fan-in/control acceptance, evidence/artifact boundary
   audit, contradictions, or high-risk review.
+  When terminal verification fails, compact `repair_context` is carried into
+  the next Flat work unit and Workspace artifact draft request when present, so
+  the consumer that actually rewrites or reads the artifact receives the latest
+  `acceptance_delta`, repair constraints, next-step requirements, and exact
+  evidence anchors without reintroducing cold integrity provenance into hot
+  prompts.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. If a TaskBoard
