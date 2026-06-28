@@ -126,7 +126,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   as executable targets. Intermediate TaskBoard artifacts should stay on
   working/evidence paths; framework-marked final repair or continuation cards
   may write the required final deliverable path when that path is part of the
-  task output contract.
+  task output contract. If a TaskBoard control card returns
+  `next_board_action=patch` with a Workspace text patch proposal, AgentTask
+  should materialize the patch into the bound Workspace file and expose the
+  resulting readback refs; the verifier still owns completion judgment.
 - AgentTaskLoop work units receive an internal task context contract with
   run-date/currentness facts and intermediate-resource ref/readback policy. For
   current, latest, recent, or as-of tasks, use that date boundary unless the
