@@ -177,8 +177,8 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   uses the same retrieval contract through its card carrier. TaskBoard
-  Workspace-operation prompt views, available readback handles, Action artifact
-  readback previews, and intermediate Workspace readback previews use the same
+  Workspace-operation prompt views, available readback handles, readback work-unit
+  hot payloads, Action artifact readback previews, and intermediate Workspace readback previews use the same
   hot/cold split: content/path, range, truncation, and compact handles stay hot,
   while SHA, bytes, handler/media, backend/search-engine facts, execution block
   ids, and full refs stay in cold evidence, final artifact audit metadata,

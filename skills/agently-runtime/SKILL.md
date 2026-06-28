@@ -249,7 +249,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   exposes the same work-unit carrier contract and can inject retrieval facts
   into card execution. TaskBoard Workspace-operation prompt views and
-  available readback handles, Action artifact readback previews, and
+  available readback handles, readback work-unit hot payloads, Action artifact readback previews, and
   intermediate Workspace readback previews use the same hot/cold split:
   content/path, range, truncation, and compact handles stay hot, while SHA,
   bytes, handler/media, backend/search-engine facts, execution block ids, and
