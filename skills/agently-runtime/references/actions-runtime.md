@@ -142,7 +142,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - AgentTask workspace artifacts are framework-delivered: when a bounded step or
   TaskBoard card returns a short `artifact_markdown` body or a sectioned
   `artifact_manifest`, AgentTask writes it through Workspace and readbacks
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`. For long,
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold evidence.
+  Model-hot verifier input uses path/ref handles, bounded content or preview,
+  and truncation status rather than SHA/byte/MIME integrity metadata. For long,
   sectioned, or prose-heavy deliverables, choose the content carrier
   deliberately: draft a single freeform document as natural Markdown/plain text
   without `.output()`, or use Agently `.output(..., format=...)` with
@@ -175,10 +177,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   uses the same retrieval contract through its card carrier. TaskBoard
-  Workspace-operation prompt views and intermediate readback previews use the
-  same hot/cold split: content/path, range, truncation, and compact handles stay
-  hot, while SHA, bytes, handler/media, backend/search-engine facts, and full
-  refs stay in cold evidence or final artifact readback metadata. Query groups may set
+  Workspace-operation prompt views, available readback handles, Action artifact
+  readback previews, and intermediate Workspace readback previews use the same
+  hot/cold split: content/path, range, truncation, and compact handles stay hot,
+  while SHA, bytes, handler/media, backend/search-engine facts, execution block
+  ids, and full refs stay in cold evidence, final artifact audit metadata,
+  DevTools, or runner logs. SHA is integrity metadata, not source evidence. Query groups may set
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_index`, record collections belong
   in `filters.collection` and exact record kinds may use `filters.kind`; for

@@ -213,7 +213,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - when an AgentTask bounded step or TaskBoard card returns a short
   `artifact_markdown` body or a sectioned `artifact_manifest`, the framework
   writes the deliverable through the bound Workspace and reads it back for
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`; for long,
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold
+  evidence; model-hot verifier input uses path/ref handles, bounded content or
+  preview, and truncation status rather than SHA/byte/MIME integrity metadata; for long,
   sectioned, or prose-heavy deliverables, choose the content carrier
   deliberately: draft a single freeform document as natural Markdown/plain text
   without `.output()`, or use Agently `.output(..., format=...)` with
@@ -246,10 +248,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
   exposes the same work-unit carrier contract and can inject retrieval facts
   into card execution. TaskBoard Workspace-operation prompt views and
-  intermediate readback previews use the same hot/cold split: content/path,
-  range, truncation, and compact handles stay hot, while SHA, bytes,
-  handler/media, backend/search-engine facts, and full refs stay in cold
-  evidence or final artifact readback metadata. Query groups may
+  available readback handles, Action artifact readback previews, and
+  intermediate Workspace readback previews use the same hot/cold split:
+  content/path, range, truncation, and compact handles stay hot, while SHA,
+  bytes, handler/media, backend/search-engine facts, execution block ids, and
+  full refs stay in cold evidence, final artifact audit metadata, DevTools, or
+  runner logs. SHA is integrity metadata, not source evidence. Query groups may
   set `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; record collections belong in
   `filters.collection`, exact record kinds may use `filters.kind`, and file
