@@ -241,17 +241,24 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
   pre-step Blocks `workspace_operation.search` facts and injects
   `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard exposes
-  the same policy through `source_ref_policy.scoped_retrieval_policy`, but its
-  default strategy use still needs real-run effect evidence. Query groups may
+  the same work-unit carrier contract and can inject retrieval facts into card
+  execution. Query groups may
   set `search_surface` to `workspace_index`, `workspace_files`, or
-  `workspace_index_and_files`, and may carry structural `collection`, `kind`,
-  `id`, `path`, `scope`, and `meta` filters so retained Workspace records and
-  files can stay out of hot context until bounded search/readback needs them.
+  `workspace_index_and_files`; record collections belong in
+  `filters.collection`, exact record kinds may use `filters.kind`, and file
+  scopes use `path`/`pattern`. Singleton record filter lists are normalized to
+  scalar values before execution so retained Workspace records and files can
+  stay out of hot context until bounded search/readback needs them.
   For `workspace_files`, `query` is content text, `path` is the directory/file
   scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
-  file search, not another content keyword. Blocks return a small bounded
-  context around file matches by default, so nearby facts can be inspected
-  without reading the whole file.
+  file search, not another content keyword. Local Workspace file search uses
+  `rg` as a grep-style search engine when available and falls back to bounded
+  file scanning. Blocks return a small bounded context around file matches by
+  default, so nearby facts can be inspected without reading the whole file.
+  Ordinary intermediate TaskBoard cards should let downstream consumer cards
+  decide whether evidence is enough; independent verifier requests are for
+  terminal acceptance, evidence/artifact boundary audit, contradictions, or
+  high-risk review.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. Do not turn local

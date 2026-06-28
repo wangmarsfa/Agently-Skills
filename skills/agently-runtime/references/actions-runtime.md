@@ -171,14 +171,16 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
   pre-step Blocks `workspace_operation.search` facts and injects
   `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard
-  source-ref policy exposes the same retrieval contract, but TaskBoard strategy
-  use still needs real-run effect evidence. Query groups may set
+  uses the same retrieval contract through its card carrier. Query groups may set
   `search_surface` to `workspace_index`, `workspace_files`, or
-  `workspace_index_and_files`; for `workspace_files`, `query` is content text,
-  `path` is the directory/file scope, and `pattern` is a file glob such as
-  `*.md`, `*`, or `**` for recursive file search. Blocks return a small bounded
-  context around file matches by default. Blocks `workspace_operation.search`
-  uses Workspace SQLite/FTS and bounded Workspace file search, while
+  `workspace_index_and_files`; for `workspace_index`, record collections belong
+  in `filters.collection` and exact record kinds may use `filters.kind`; for
+  `workspace_files`, `query` is content text, `path` is the directory/file
+  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
+  file search. Local Workspace file search uses `rg` when available and falls
+  back to bounded file scanning. Blocks return a small bounded context around
+  file matches by default. Blocks `workspace_operation.search` uses Workspace
+  SQLite/FTS and bounded Workspace file search, while
   `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
   `locator_ref` and/or `evidence_snippet` facts only; the downstream model
   judges usefulness and next action.
