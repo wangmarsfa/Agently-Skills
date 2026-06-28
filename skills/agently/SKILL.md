@@ -139,6 +139,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   For current, latest, recent, or as-of tasks, use that time context unless the
   caller supplied a more specific date. This contract is model-decision context,
   not a model-call, tool-call, node-count, iteration, or wall-clock cap.
+- AgentTask observation projects normalized `agent_task.action.started`,
+  `agent_task.action.completed`, and `agent_task.action.failed` stream events
+  from Action records. Treat them as factual observability for UI, DevTools, and
+  experiment logs; do not use them as a local quality, relevance, route, or
+  completion judgment.
 - treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and
