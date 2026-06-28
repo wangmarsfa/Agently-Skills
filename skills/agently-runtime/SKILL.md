@@ -255,10 +255,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `rg` as a grep-style search engine when available and falls back to bounded
   file scanning. Blocks return a small bounded context around file matches by
   default, so nearby facts can be inspected without reading the whole file.
+  Ordinary intermediate Flat work units can return
+  `ready_for_final_verification=false` with `remaining_work` so the next Flat
+  iteration consumes the new evidence instead of triggering an immediate
+  independent verifier.
   Ordinary intermediate TaskBoard cards should let downstream consumer cards
-  decide whether evidence is enough; independent verifier requests are for
-  terminal acceptance, evidence/artifact boundary audit, contradictions, or
-  high-risk review.
+  decide whether evidence is enough. Independent verifier requests are for
+  terminal acceptance, fan-in/control acceptance, evidence/artifact boundary
+  audit, contradictions, or high-risk review.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. Do not turn local
