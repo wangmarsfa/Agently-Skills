@@ -58,9 +58,10 @@ ids, provider/model, request URL, duration, raw usage, normalized/estimated
 is unavailable, display token counts as unknown (for example `NaN`) and use
 estimated input/output character lengths only as diagnostics. DevTools may show
 usage for a single model request and aggregate descendant model-request usage
-upward for the selected run branch. Do not feed telemetry back into route
-selection, retries, budget caps, verifier judgment, quality scoring, planner
-context, or prompts.
+upward for the selected run branch. Terminal `model.status` events may carry
+estimated input/output character lengths without exposing the raw request
+payload. Do not feed telemetry back into route selection, retries, budget caps,
+verifier judgment, quality scoring, planner context, or prompts.
 
 `model.status` is a compact attempt-outcome observation. A `failed` payload
 with `retry=True` means partial stream output was replaced; `cancelled` is

@@ -125,7 +125,8 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   not overwrite user-defined Actions. `search_files` keeps compatible
   `path`/`line`/`text` results and adds scoped retrieval metadata:
   `role="evidence_snippet"`, bounded snippet counts, and a nested
-  `locator_ref` with `content_state="ref_only"`.
+  `locator_ref` with `content_state="ref_only"`. `pattern="**"` is treated as
+  recursive file search under the scoped path.
 - Workspace search and Blocks `workspace_operation.search` accept structural
   `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
   filters when planner context already identifies the retained record family or
@@ -175,11 +176,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_files`, `query` is content text,
   `path` is the directory/file scope, and `pattern` is a file glob such as
-  `*.md` or `*`. Blocks return a small bounded context around file matches by
-  default. Blocks `workspace_operation.search` uses Workspace SQLite/FTS and
-  bounded Workspace file search, while `workspace_operation.read_bounded` reads
-  refs/paths under bounds. Both return `locator_ref` and/or `evidence_snippet`
-  facts only; the downstream model judges usefulness and next action.
+  `*.md`, `*`, or `**` for recursive file search. Blocks return a small bounded
+  context around file matches by default. Blocks `workspace_operation.search`
+  uses Workspace SQLite/FTS and bounded Workspace file search, while
+  `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
+  `locator_ref` and/or `evidence_snippet` facts only; the downstream model
+  judges usefulness and next action.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

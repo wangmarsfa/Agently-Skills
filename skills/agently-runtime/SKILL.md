@@ -134,8 +134,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   existing `model.*` RuntimeEvents when present; it is a compact diagnostic
   payload for provider/model, attempt, run lineage, duration, raw usage,
   normalized/estimated `usage_summary`, request URL, side-channel, and error
-  facts, not an input to route, retry, verifier, quality, planner, or prompt
-  logic
+  facts; terminal `model.status` may carry estimated input/output character
+  lengths without exposing raw request payload. It is not an input to route,
+  retry, verifier, quality, planner, or prompt logic
 - for webhook, approval, or external callback resume flows, pass a stable
   `resume_request_id` and actor to `execution.async_continue_with(...)`; the
   TriggerFlow resume ledger records accepted, dispatched, and completed or
@@ -247,9 +248,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `id`, `path`, `scope`, and `meta` filters so retained Workspace records and
   files can stay out of hot context until bounded search/readback needs them.
   For `workspace_files`, `query` is content text, `path` is the directory/file
-  scope, and `pattern` is a file glob such as `*.md` or `*`, not another content
-  keyword. Blocks return a small bounded context around file matches by default,
-  so nearby facts can be inspected without reading the whole file.
+  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
+  file search, not another content keyword. Blocks return a small bounded
+  context around file matches by default, so nearby facts can be inspected
+  without reading the whole file.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. Do not turn local
