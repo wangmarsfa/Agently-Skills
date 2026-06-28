@@ -171,10 +171,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   pre-step Blocks `workspace_operation.search` facts and injects
   `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard
   source-ref policy exposes the same retrieval contract, but TaskBoard strategy
-  use still needs real-run effect evidence. Blocks `workspace_operation.search`
-  uses Workspace SQLite/FTS and `workspace_operation.read_bounded` reads
-  refs/paths under bounds. Both return `locator_ref` and/or `evidence_snippet`
-  facts only; the downstream model judges usefulness and next action.
+  use still needs real-run effect evidence. Query groups may set
+  `search_surface` to `workspace_index`, `workspace_files`, or
+  `workspace_index_and_files`. Blocks `workspace_operation.search` uses
+  Workspace SQLite/FTS and bounded Workspace file search, while
+  `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
+  `locator_ref` and/or `evidence_snippet` facts only; the downstream model
+  judges usefulness and next action.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

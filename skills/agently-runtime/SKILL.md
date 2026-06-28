@@ -242,11 +242,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard exposes
   the same policy through `source_ref_policy.scoped_retrieval_policy`, but its
   default strategy use still needs real-run effect evidence. Query groups may
-  carry structural `collection`, `kind`, `id`, `path`, `scope`, and `meta`
-  filters so retained Workspace records can stay out of hot context until
-  bounded search/readback needs them. `search_files` and Blocks
-  `workspace_operation.search/read_bounded` return factual `locator_ref` and
-  `evidence_snippet` records; model-owned
+  set `search_surface` to `workspace_index`, `workspace_files`, or
+  `workspace_index_and_files`, and may carry structural `collection`, `kind`,
+  `id`, `path`, `scope`, and `meta` filters so retained Workspace records and
+  files can stay out of hot context until bounded search/readback needs them.
+  `search_files` and Blocks `workspace_operation.search/read_bounded` return
+  factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. Do not turn local
   grep/SQLite hits into semantic relevance gates, quality checks, or completion
   evidence
