@@ -122,7 +122,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - `agent.enable_workspace_file_actions(...)` exposes list/search/read/write over
   the Workspace file root. It registers `export_file` only when `export=True`
   and `write=True`, delegates to the bound Workspace when roots match, and must
-  not overwrite user-defined Actions.
+  not overwrite user-defined Actions. `search_files` keeps compatible
+  `path`/`line`/`text` results and adds scoped retrieval metadata:
+  `role="evidence_snippet"`, bounded snippet counts, and a nested
+  `locator_ref` with `content_state="ref_only"`.
 - Workspace file writes and reads return structured file evidence from the
   Workspace boundary itself: `path`, `bytes`, `sha256`, write `mode`, bounded
   read `content` / `truncated`, diagnostics, and file refs. Unsupported binary
@@ -158,6 +161,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   readback instead of relying on a buried JSON preview. If a non-final TaskBoard
   card proposes a required final path such as `final.md`, AgentTask relocates it
   to a working evidence path and reserves the final path for final synthesis.
+- Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
+  not the runner or verifier. Flat steps may carry
+  `scoped_retrieval.query_groups`; TaskBoard source-ref policy exposes the same
+  retrieval contract. Blocks `workspace_operation.search` uses Workspace
+  SQLite/FTS and `workspace_operation.read_bounded` reads refs/paths under
+  bounds. Both return `locator_ref` and/or `evidence_snippet` facts only; the
+  downstream model judges usefulness and next action.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
