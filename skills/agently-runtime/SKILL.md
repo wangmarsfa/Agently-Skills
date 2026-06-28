@@ -246,6 +246,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `workspace_index_and_files`, and may carry structural `collection`, `kind`,
   `id`, `path`, `scope`, and `meta` filters so retained Workspace records and
   files can stay out of hot context until bounded search/readback needs them.
+  For `workspace_files`, `query` is content text, `path` is the directory/file
+  scope, and `pattern` is a file glob such as `*.md` or `*`, not another content
+  keyword.
   `search_files` and Blocks `workspace_operation.search/read_bounded` return
   factual `locator_ref` and `evidence_snippet` records; model-owned
   planning/verification decides whether snippets are useful. Do not turn local
