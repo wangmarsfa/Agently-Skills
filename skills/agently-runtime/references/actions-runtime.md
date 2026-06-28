@@ -126,6 +126,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `path`/`line`/`text` results and adds scoped retrieval metadata:
   `role="evidence_snippet"`, bounded snippet counts, and a nested
   `locator_ref` with `content_state="ref_only"`.
+- Workspace search and Blocks `workspace_operation.search` accept structural
+  `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
+  filters when planner context already identifies the retained record family or
+  target ref; do not treat the filtered hit itself as semantic acceptance.
 - Workspace file writes and reads return structured file evidence from the
   Workspace boundary itself: `path`, `bytes`, `sha256`, write `mode`, bounded
   read `content` / `truncated`, diagnostics, and file refs. Unsupported binary
@@ -163,11 +167,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   to a working evidence path and reserves the final path for final synthesis.
 - Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
   not the runner or verifier. Flat steps may carry
-  `scoped_retrieval.query_groups`; TaskBoard source-ref policy exposes the same
-  retrieval contract. Blocks `workspace_operation.search` uses Workspace
-  SQLite/FTS and `workspace_operation.read_bounded` reads refs/paths under
-  bounds. Both return `locator_ref` and/or `evidence_snippet` facts only; the
-  downstream model judges usefulness and next action.
+  `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
+  pre-step Blocks `workspace_operation.search` facts and injects
+  `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard
+  source-ref policy exposes the same retrieval contract, but TaskBoard strategy
+  use still needs real-run effect evidence. Blocks `workspace_operation.search`
+  uses Workspace SQLite/FTS and `workspace_operation.read_bounded` reads
+  refs/paths under bounds. Both return `locator_ref` and/or `evidence_snippet`
+  facts only; the downstream model judges usefulness and next action.
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence

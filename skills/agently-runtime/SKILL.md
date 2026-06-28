@@ -237,12 +237,19 @@ here for Actions, ExecutionResource, service, or DevTools details.
   to a working evidence path and reserves the final path for final synthesis
 - for large Workspace, repository, or file-backed evidence, AgentTaskLoop may
   carry scoped retrieval query groups before broad reads. Flat uses
-  `scoped_retrieval.query_groups`; TaskBoard exposes the same policy through
-  `source_ref_policy.scoped_retrieval_policy`. `search_files` and Blocks
+  `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
+  pre-step Blocks `workspace_operation.search` facts and injects
+  `scoped_retrieval_results` into the bounded `agent_step`. TaskBoard exposes
+  the same policy through `source_ref_policy.scoped_retrieval_policy`, but its
+  default strategy use still needs real-run effect evidence. Query groups may
+  carry structural `collection`, `kind`, `id`, `path`, `scope`, and `meta`
+  filters so retained Workspace records can stay out of hot context until
+  bounded search/readback needs them. `search_files` and Blocks
   `workspace_operation.search/read_bounded` return factual `locator_ref` and
-  `evidence_snippet` records; model-owned planning/verification decides whether
-  snippets are useful. Do not turn local grep/SQLite hits into semantic
-  relevance gates, quality checks, or completion evidence
+  `evidence_snippet` records; model-owned
+  planning/verification decides whether snippets are useful. Do not turn local
+  grep/SQLite hits into semantic relevance gates, quality checks, or completion
+  evidence
 - TaskBoard readback cards may inspect both Action artifact refs and trusted
   Workspace file refs through bounded cold readbacks. Framework-generated
   readback cards scope evidence to direct dependencies plus upstream evidence
