@@ -267,10 +267,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   file scanning. Blocks return a small bounded context around file matches by
   default, so nearby facts can be inspected without reading the whole file, and
   snippet facts expose whether bounded context was `truncated`.
-  Ordinary intermediate Flat work units can return
-  `ready_for_final_verification=false` with `remaining_work` so the next Flat
-  iteration consumes the new evidence instead of triggering an immediate
-  independent verifier.
+  Ordinary intermediate Flat work units use non-empty `remaining_work` to make
+  the next Flat iteration consume the new evidence by default instead of
+  triggering an immediate independent verifier. They may also return
+  `ready_for_final_verification=false` to make that intent explicit, while
+  explicit `ready_for_final_verification=true` is reserved for terminal,
+  blocking, or risk verification now.
   Ordinary intermediate TaskBoard cards should let downstream consumer cards
   decide whether evidence is enough. Independent verifier requests are for
   terminal acceptance, fan-in/control acceptance, evidence/artifact boundary
