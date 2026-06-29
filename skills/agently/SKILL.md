@@ -135,7 +135,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   Workspace/Action refs and opened later through bounded readback; these refs are execution evidence, not proof
   that the final deliverable exists. A discovered URL, path, download, or
   snapshot ref is also not evidence that its content has been read; treat it as
-  `ref_only` until a bounded readback/content preview is available. When a
+  `ref_only` until a bounded readback/content preview is available. Explicit
+  `content`, `excerpt`, or `snippet` fields are bounded previews only for the
+  visible excerpt, not proof that the whole file was read. When a
   TaskBoard control card needs a new concrete URL, path, or ref materialized
   before continuing, return structured `target_refs` with
   `next_board_action=readback`; do not rely on URLs hidden inside `gaps` prose
@@ -149,6 +151,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   Flat repository/file tasks, clone or list manifest paths are `ref_only` until a
   file read, artifact readback, or bounded content preview is visible; use them
   as retrieval targets, not source-content evidence.
+  TaskBoard final verification receives board-level source refs with preserved
+  `content_state` boundaries, so final synthesis must not upgrade discovered
+  paths into source-content evidence without bounded preview/readback.
 - AgentTaskLoop work units receive an internal task context contract with
   compact `current_time` facts (`utc`, plus `local` and `timezone` when the
   local timezone is recognizable) and intermediate-resource ref/readback policy.
