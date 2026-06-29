@@ -26,7 +26,9 @@ absent, dispatch and retry timing keep the legacy immediate behavior.
   streams emit the standalone `"<$retry>{reason}</$retry>"` marker at that
   same boundary; clear the local text buffer when it arrives. Use `instant`,
   `specific="status"`, or `all` when lineage or collision-free structured
-  facts matter
+  facts matter. Do not force a freeform document body through `.output()` only
+  to obtain instant fields; handle replay boundaries at the consumer when
+  plain delta is the right body stream
 - annotate common stream consumers from `agently`: `StreamingData` for
   `instant` / `streaming_parse`, `AgentlySpecificResultMessage` for
   `specific`, and `AgentlyModelResultMessage` for `all`; use

@@ -223,7 +223,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
   are required instead of forcing the body into compact JSON fields; keep
   status, evidence, and verification in separate compact judgment/readback
-  contracts; use `artifact_manifest.sections` plus Workspace readback when
+  contracts; do not add `.output()` solely to trigger instant fields for the
+  body stream; use `artifact_manifest.sections` plus Workspace readback when
   AgentTask must deliver a trusted file artifact;
   AgentTask artifact writers consume AgentExecution stream facts: natural body
   text comes from raw delta items, and retry boundaries come from `$status` when

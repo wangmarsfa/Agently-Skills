@@ -71,7 +71,10 @@ drive retry or execution control flow.
 Plain `delta` consumers receive a standalone `"<$retry>{reason}</$retry>"`
 chunk at the same replay boundary. DevTools observes the structured
 `model.status` RuntimeEvent instead, so it should clear reconstructed partial
-text from that event and not depend on the text-stream marker.
+text from that event and not depend on the text-stream marker. Artifact or UI
+consumers that intentionally choose plain delta for freeform document bodies
+must handle the marker at the consumption boundary instead of forcing those
+bodies through `.output()` only to obtain instant fields.
 
 AgentExecution projects process stream items to `agent_execution.stream`
 RuntimeEvents. Flat AgentTaskLoop iterations and TaskBoard card/tick progress

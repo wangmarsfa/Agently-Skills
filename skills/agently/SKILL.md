@@ -114,6 +114,9 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   body generate as natural text, then use a compact structured judge/readback
   contract for status, evidence, quality, and artifact refs. For trusted file
   deliverables, use Workspace artifact write/readback plus a compact manifest.
+  Do not add `.output()` solely to trigger instant fields for the body stream;
+  plain public delta remains a valid body source when the consumer handles
+  replay boundaries.
   Internal artifact writers should consume AgentExecution stream facts: natural
   body text comes from raw delta items, and retry boundaries come from `$status`
   when the provider reports it. If the public `"<$retry>...</$retry>"` delta
