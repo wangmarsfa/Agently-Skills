@@ -225,6 +225,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   status, evidence, and verification in separate compact judgment/readback
   contracts; use `artifact_manifest.sections` plus Workspace readback when
   AgentTask must deliver a trusted file artifact;
+  AgentTask artifact writers consume structured AgentExecution stream items for
+  raw text deltas and `$status` retry facts, not the public `type="delta"`
+  replay marker;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
@@ -576,6 +579,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   replays after partial output by default, which requires streaming consumers
   to process `$status` or clear plain-delta text on the
   `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas;
+  the marker belongs to public delta replay and must not be treated as internal
+  artifact content;
   explicit response stream errors should propagate from response getters with the
   original provider or ActionFlow reason before materialization timeout is used
   as a fallback
