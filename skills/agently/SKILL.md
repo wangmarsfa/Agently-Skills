@@ -114,10 +114,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   body generate as natural text, then use a compact structured judge/readback
   contract for status, evidence, quality, and artifact refs. For trusted file
   deliverables, use Workspace artifact write/readback plus a compact manifest.
-  Internal artifact writers should consume structured AgentExecution stream
-  items for text deltas and `$status` retry facts; the public
-  `"<$retry>...</$retry>"` delta replay marker is not deliverable body and
-  should not be parsed, stripped, or transported as artifact content.
+  Internal artifact writers should consume AgentExecution stream facts: natural
+  body text comes from raw delta items, and retry boundaries come from `$status`
+  when the provider reports it. If the public `"<$retry>...</$retry>"` delta
+  replay marker reaches the artifact consumer, treat that exact marker as a
+  retry control event; never write, clean into, or transport it as artifact
+  content.
+  TaskBoard finalization should keep file-backed deliverable bodies in
+  Workspace and return only a concise summary or path/ref pointer as
+  `final_result`, not a second copy of the file body.
   Intermediate downloads, webpage snapshots, generated code, search notes,
   memory-like task notes, and large extracted text may also be persisted as
   Workspace/Action refs and opened later through bounded readback; these refs are execution evidence, not proof

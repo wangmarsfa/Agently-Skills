@@ -225,9 +225,15 @@ here for Actions, ExecutionResource, service, or DevTools details.
   status, evidence, and verification in separate compact judgment/readback
   contracts; use `artifact_manifest.sections` plus Workspace readback when
   AgentTask must deliver a trusted file artifact;
-  AgentTask artifact writers consume structured AgentExecution stream items for
-  raw text deltas and `$status` retry facts, not the public `type="delta"`
-  replay marker;
+  AgentTask artifact writers consume AgentExecution stream facts: natural body
+  text comes from raw delta items, and retry boundaries come from `$status` when
+  the provider reports it. If the public `type="delta"`
+  `"<$retry>...</$retry>"` replay marker reaches the artifact consumer, treat
+  that exact marker as a retry control event; never write, clean into, or
+  transport it as artifact content;
+  TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
+  returns only a concise summary or path/ref pointer as `final_result`, not a
+  second copy of the file body;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
