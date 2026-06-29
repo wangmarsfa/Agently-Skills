@@ -153,6 +153,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   status, evidence, and verification in separate compact judgment/readback
   contracts. Use `artifact_manifest.sections` plus Workspace readback when
   AgentTask must deliver a trusted file artifact.
+  If a complete Markdown artifact body appears inside structured `evidence`,
+  treat it as a deliverable body only when the evidence item is explicitly labeled
+  as artifact/body/deliverable/Markdown or tied to the manifest path; ordinary
+  source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
+  succeeds, terminal verification judges any stale artifact-write `remaining_work`
+  instead of forcing another write-only step.
   For long trusted Workspace artifacts, verifier-visible evidence may include
   bounded `targeted_readbacks` from declared output-contract sections and generic
   source/risk/reference/coverage anchors; treat those snippets as scoped

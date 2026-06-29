@@ -123,6 +123,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   replay marker reaches the artifact consumer, treat that exact marker as a
   retry control event; never write, clean into, or transport it as artifact
   content.
+  If a complete Markdown artifact body appears inside structured `evidence`,
+  treat it as a deliverable body only when the evidence item is explicitly labeled
+  as artifact/body/deliverable/Markdown or tied to the manifest path; ordinary
+  source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
+  succeeds, let terminal verification judge any stale artifact-write
+  `remaining_work` instead of planning another write-only step.
   For long trusted Workspace artifacts, verifier-visible evidence may include
   bounded `targeted_readbacks` from declared output-contract sections and generic
   source/risk/reference/coverage anchors; treat them as scoped evidence snippets,
