@@ -123,6 +123,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   replay marker reaches the artifact consumer, treat that exact marker as a
   retry control event; never write, clean into, or transport it as artifact
   content.
+  For long trusted Workspace artifacts, verifier-visible evidence may include
+  bounded `targeted_readbacks` from declared output-contract sections and generic
+  source/risk/reference/coverage anchors; treat them as scoped evidence snippets,
+  not completion judgments.
   TaskBoard finalization should keep file-backed deliverable bodies in
   Workspace and return only a concise summary or path/ref pointer as
   `final_result`, not a second copy of the file body.

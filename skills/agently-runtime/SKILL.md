@@ -232,6 +232,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `"<$retry>...</$retry>"` replay marker reaches the artifact consumer, treat
   that exact marker as a retry control event; never write, clean into, or
   transport it as artifact content;
+  verifier-visible long Workspace artifacts may include bounded
+  `targeted_readbacks` from declared output-contract sections and generic
+  source/risk/reference/coverage anchors; treat those as scoped evidence
+  snippets, not completion judgments;
   TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
   returns only a concise summary or path/ref pointer as `final_result`, not a
   second copy of the file body;

@@ -153,6 +153,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   status, evidence, and verification in separate compact judgment/readback
   contracts. Use `artifact_manifest.sections` plus Workspace readback when
   AgentTask must deliver a trusted file artifact.
+  For long trusted Workspace artifacts, verifier-visible evidence may include
+  bounded `targeted_readbacks` from declared output-contract sections and generic
+  source/risk/reference/coverage anchors; treat those snippets as scoped
+  evidence, not as local completion judgment.
   Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or
