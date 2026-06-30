@@ -132,9 +132,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   id, actor id, lease owner id, snapshot refs, and artifact refs
 - for ModelRequest observability, read `payload.model_request_telemetry` from
   existing `model.*` RuntimeEvents when present; it is a compact diagnostic
-  payload for provider/model, attempt, run lineage, duration, usage, request
-  URL, side-channel, and error facts, not an input to route, retry, verifier,
-  quality, planner, or prompt logic
+  payload for provider/model, attempt, run lineage, duration, raw usage,
+  normalized/estimated `usage_summary`, request URL, side-channel, and error
+  facts; terminal `model.status` may carry estimated input/output character
+  lengths without exposing raw request payload. It is not an input to route,
+  retry, verifier, quality, planner, or prompt logic
 - for webhook, approval, or external callback resume flows, pass a stable
   `resume_request_id` and actor to `execution.async_continue_with(...)`; the
   TriggerFlow resume ledger records accepted, dispatched, and completed or
@@ -202,8 +204,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   should buffer/bucket high-frequency deltas or use smooth incremental rendering
   to avoid render pressure and visible screen jitter
 - for AgentTaskLoop terminal results, treat `completed` as accepted output
-  (`accepted=True`, `artifact_status="accepted"`); `max_iterations` can still
-  leave useful Workspace files, but those are partial artifacts
+  (`accepted=True`, `artifact_status="accepted"`); explicitly configured
+  `max_iterations` can still leave useful Workspace files, but those are partial artifacts
   (`accepted=False`, `artifact_status="partial"`); when semantic content quality
   matters, combine deterministic smoke checks with current docs/spec/source
   references or an Agently model-judge request, and do not use counts, keyword
@@ -211,14 +213,129 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - when an AgentTask bounded step or TaskBoard card returns a short
   `artifact_markdown` body or a sectioned `artifact_manifest`, the framework
   writes the deliverable through the bound Workspace and reads it back for
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`; long reports,
-  exam papers, and multi-section deliverables should use
-  `artifact_manifest.sections` so JSON stays a control plane, and
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold
+  evidence; model-hot verifier input uses path/ref handles, bounded content or
+  preview, truncation status, and readback path handles rather than
+  SHA/byte/MIME integrity metadata; for long,
+  sectioned, or prose-heavy deliverables, choose the content carrier
+  deliberately: draft a single freeform document as natural Markdown/plain text
+  without `.output()`, or use Agently `.output(..., format=...)` with
+  `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
+  are required instead of forcing the body into compact JSON fields; keep
+  status, evidence, and verification in separate compact judgment/readback
+  contracts; do not add `.output()` solely to trigger instant fields for the
+  body stream; use `artifact_manifest.sections` plus Workspace readback when
+  AgentTask must deliver a trusted file artifact;
+  AgentTask artifact writers consume AgentExecution stream facts: natural body
+  text comes from raw delta items, and retry boundaries come from `$status` when
+  the provider reports it. If the public `type="delta"`
+  `"<$retry>...</$retry>"` replay marker reaches the artifact consumer, treat
+  that exact marker as a retry control event; never write, clean into, or
+  transport it as artifact content;
+  if a complete Markdown artifact body appears inside structured `evidence`,
+  treat it as a deliverable body only when the evidence item is explicitly labeled
+  as artifact/body/deliverable/Markdown or tied to the manifest path; ordinary
+  source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
+  succeeds, let terminal verification judge any stale artifact-write
+  `remaining_work` instead of planning another write-only step;
+  verifier-visible long Workspace artifacts may include bounded
+  `workspace_artifact.targeted_readback` ledger items from declared
+  output-contract sections and generic source/risk/reference/coverage anchors;
+  treat those as scoped evidence snippets, not completion judgments;
+  TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
+  returns only a concise summary or path/ref pointer as `final_result`, not a
+  second copy of the file body;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
   `agent_task.workspace_artifact.readback_insufficient` diagnostics rather than
   a generic budget or iteration failure
+- intermediate downloads, webpage snapshots, generated code, search notes, and
+  large extracted text may be persisted as Workspace/Action artifact refs and
+  opened later through bounded cold readback; hot prompts should carry compact
+  refs/previews, and these refs are execution evidence rather than final
+  deliverable proof. If Action artifact readback exposes Workspace `file_refs`
+  for a materialized download, TaskBoard readback promotes those nested refs to
+  card-level `file_refs` for later Workspace readback. If a non-final TaskBoard
+  card proposes a required final path such as `final.md`, AgentTask relocates it
+  to a working evidence path and reserves the final path for final synthesis
+- for large Workspace, repository, or file-backed evidence, AgentTaskLoop may
+  carry scoped retrieval query groups before broad reads. Flat uses
+  `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
+  pre-step Blocks `workspace_operation.search` facts and injects a compact
+  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
+  view into the bounded `agent_step`;
+  reconstructable provenance such as SHA, byte counts, backend/search-engine
+  details, execution block ids, and full file refs stays in raw
+  Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
+  exposes the same work-unit carrier contract and can inject ledger-backed retrieval facts
+  into card execution. TaskBoard Workspace-operation prompt views and
+  available readback handles, readback work-unit hot payloads, Action artifact readback previews, and
+  intermediate Workspace readback previews use the same hot/cold split:
+  content/path, range, truncation, and compact handles stay hot, while SHA,
+  bytes, handler/media, backend/search-engine facts, execution block ids, and
+  full refs stay in cold evidence, final artifact audit metadata, DevTools, or
+  runner logs. SHA is integrity metadata, not source evidence. Query groups may
+  set `search_surface` to `workspace_index`, `workspace_files`, or
+  `workspace_index_and_files`; record collections belong in
+  `filters.collection`, exact record kinds may use `filters.kind`, and file
+  scopes use `path`/`pattern`. Singleton record filter lists are normalized to
+  scalar values before execution so retained Workspace records and files can
+  stay out of hot context until bounded search/readback needs them.
+  For `workspace_files`, `query` is content text, `path` is the directory/file
+  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
+  file search, not another content keyword. Local Workspace file search uses
+  `rg` as a grep-style search engine when available and falls back to bounded
+  file scanning. Blocks return a small bounded context around file matches by
+  default, so nearby facts can be inspected without reading the whole file.
+  `EvidenceEnvelope.evidence_items` records search success, empty result,
+  failure, locator, snippet, and readback facts with stable ids, `status`,
+  `body_state`, and model-hot `cite_as` handles. Failed/empty items support
+  unavailable or missing-data claims only; `ref_only` items support only
+  discovery until readback exists; snippet facts expose whether bounded context
+  was `truncated`. Structured outputs may include `evidence_use` claim bindings
+  to `cite_as` or canonical ids; path/URL/record/artifact/action aliases are
+  canonicalized only when unambiguous.
+  Ordinary intermediate Flat work units use non-empty `remaining_work` to make
+  the next Flat iteration consume the new evidence by default instead of
+  triggering an immediate independent verifier. They may also return
+  `ready_for_final_verification=false` to make that intent explicit, while
+  explicit `ready_for_final_verification=true` is reserved for terminal,
+  blocking, or risk verification now.
+  Ordinary intermediate TaskBoard cards should let downstream consumer cards
+  decide whether evidence is enough. Independent verifier requests are for
+  terminal acceptance, fan-in/control acceptance, evidence/artifact boundary
+  audit, contradictions, or high-risk review.
+  When terminal verification fails, compact `repair_context` is carried into
+  the next Flat work unit and Workspace artifact draft request when present, so
+  the consumer that actually rewrites or reads the artifact receives the latest
+  `acceptance_delta`, repair constraints, next-step requirements, and exact
+  evidence anchors without reintroducing cold integrity provenance into hot
+  prompts.
+  `search_files` and Blocks `workspace_operation.search/read_bounded` return
+  factual `locator_ref` and `evidence_snippet` records; model-owned
+  planning/verification decides whether snippets are useful. If a TaskBoard
+  scoped-retrieval card reports blocked/insufficient output without an explicit
+  next action, AgentTask synthesizes an expanded evidence card plus a
+  continuation card so the downstream consumer can decide whether the new
+  evidence is enough. Do not turn local grep/SQLite hits into semantic
+  relevance gates, quality checks, or completion evidence
+- TaskBoard readback cards may inspect both Action artifact refs and trusted
+  Workspace file/content refs through bounded cold readbacks. Framework-generated
+  readback cards scope evidence to direct dependencies plus upstream evidence
+  cards, so a control-card readback can still inspect Action refs produced by
+  earlier evidence-gathering cards; generated continuation cards should not
+  recursively request another identical readback chain when the same evidence
+  remains insufficient. When the missing evidence is a new concrete URL, path,
+  or ref, the control card should return structured `target_refs` with
+  `next_board_action=readback`; external HTTP/HTTPS refs become Action evidence
+  work, while Workspace/content paths and retained-note refs become bounded
+  Workspace readback cards. Prose-only gaps are diagnostics, not executable targets
+- completed and sufficient TaskBoard control outputs may still disclose
+  non-fatal `gaps`; those gaps do not block Workspace artifact materialization,
+  while `remaining_work`, blocked status, repair, or readback intent still do.
+  Materializing an artifact creates readback/verification evidence and is not
+  final task acceptance
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use
@@ -229,7 +346,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   verdicts; judgment belongs to the AgentTask verifier or an independent
   Agently model-judge request
 - for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
-- for instruction-heavy or large Actions, expect later model rounds to see compact execution digests, bounded previews, artifact refs, and file refs; previews are not complete evidence, so use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
+- for instruction-heavy or large Actions, expect later model rounds to see compact execution digests, bounded previews, artifact refs, and file refs; if the digest is still too large for planning or reply hot paths, ActionRuntime may replace duplicate data/model_digest fields with same_as=result pointers and omit artifact preview bodies from hot-path refs; previews are not complete evidence, so use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat model-planned Action inputs as untrusted: ActionDispatcher filters
   `structured_plan` and `native_tool_calls` kwargs to registered
   `ActionSpec.kwargs`, records stripped keys in `ActionResult.diagnostics`, and
@@ -467,8 +584,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Task remains direct `model_request`, they are only available capabilities, not
   a planned Action/Skill task. Only actual action/tool records become
   side-effect evidence for verification, Workspace persistence, or replan.
-- bound long or nested AgentExecution steps with `limits={"max_seconds": ...,
-  "max_no_progress_seconds": ...}` when diagnosing or building host-owned loops;
+- set `limits={"max_seconds": ..., "max_no_progress_seconds": ...}` only when
+  the host explicitly needs hard wall-clock or no-progress controls while
+  diagnosing or building host-owned loops; framework defaults should not impose
+  model-request, iteration, TaskBoard tick, Action round, node-count, or
+  tool-call quotas, while no-progress and idle timeouts remain liveness guards;
   catch `RuntimeStageStallError` from the root `agently.core` export or
   `agently.core.application.AgentExecution` and inspect
   `meta["diagnostics"]["last_progress"]`, `["timeouts"]`, and `["stalls"]`
@@ -484,6 +604,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   replays after partial output by default, which requires streaming consumers
   to process `$status` or clear plain-delta text on the
   `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas;
+  the marker belongs to public delta replay and must not be treated as internal
+  artifact content;
   explicit response stream errors should propagate from response getters with the
   original provider or ActionFlow reason before materialization timeout is used
   as a fallback

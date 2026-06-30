@@ -122,7 +122,15 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - `agent.enable_workspace_file_actions(...)` exposes list/search/read/write over
   the Workspace file root. It registers `export_file` only when `export=True`
   and `write=True`, delegates to the bound Workspace when roots match, and must
-  not overwrite user-defined Actions.
+  not overwrite user-defined Actions. `search_files` keeps compatible
+  `path`/`line`/`text` results and adds scoped retrieval metadata:
+  `role="evidence_snippet"`, bounded snippet counts, `truncated`, and a nested
+  `locator_ref` with `content_state="ref_only"`. `pattern="**"` is treated as
+  recursive file search under the scoped path.
+- Workspace search and Blocks `workspace_operation.search` accept structural
+  `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
+  filters when planner context already identifies the retained record family or
+  target ref; do not treat the filtered hit itself as semantic acceptance.
 - Workspace file writes and reads return structured file evidence from the
   Workspace boundary itself: `path`, `bytes`, `sha256`, write `mode`, bounded
   read `content` / `truncated`, diagnostics, and file refs. Unsupported binary
@@ -134,14 +142,99 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - AgentTask workspace artifacts are framework-delivered: when a bounded step or
   TaskBoard card returns a short `artifact_markdown` body or a sectioned
   `artifact_manifest`, AgentTask writes it through Workspace and readbacks
-  `path`, `bytes`, `sha256`, preview, and trusted `file_refs`. Long reports,
-  exam papers, and multi-section deliverables should use
-  `artifact_manifest.sections` so JSON stays a control plane. Model-declared
-  `file_refs` are diagnostics only until this write/readback evidence exists.
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold evidence.
+  Model-hot verifier input uses path/ref handles, bounded content or preview,
+  and truncation status rather than SHA/byte/MIME integrity metadata. For long,
+  sectioned, or prose-heavy deliverables, choose the content carrier
+  deliberately: draft a single freeform document as natural Markdown/plain text
+  without `.output()`, or use Agently `.output(..., format=...)` with
+  `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
+  are required instead of forcing the body into compact JSON fields. Keep
+  status, evidence, and verification in separate compact judgment/readback
+  contracts. Use `artifact_manifest.sections` plus Workspace readback when
+  AgentTask must deliver a trusted file artifact.
+  If a complete Markdown artifact body appears inside structured `evidence`,
+  treat it as a deliverable body only when the evidence item is explicitly labeled
+  as artifact/body/deliverable/Markdown or tied to the manifest path; ordinary
+  source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
+  succeeds, terminal verification judges any stale artifact-write `remaining_work`
+  instead of forcing another write-only step.
+  For long trusted Workspace artifacts, verifier-visible evidence may include
+  bounded `workspace_artifact.targeted_readback` ledger items from declared
+  output-contract sections and generic source/risk/reference/coverage anchors;
+  treat those snippets as scoped evidence, not as local completion judgment.
+  Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or
   `agent_task.workspace_artifact.readback_insufficient`; do not describe those
   cases as generic iteration, retry, or budget exhaustion.
+- Intermediate downloads, webpage snapshots, generated code, search notes, and
+  large extracted text may also be persisted as Workspace or Action artifact
+  refs. Pass compact refs/previews through hot prompts and open scoped snippets
+  later with bounded Workspace or artifact readback. These refs are execution
+  evidence, not final deliverable proof. If Action artifact readback exposes
+  Workspace `file_refs` for a materialized download, TaskBoard readback promotes
+  those nested refs to card-level `file_refs` so later work can use Workspace
+  readback instead of relying on a buried JSON preview. If a non-final TaskBoard
+  card proposes a required final path such as `final.md`, AgentTask relocates it
+  to a working evidence path and reserves the final path for final synthesis.
+- Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
+  not the runner or verifier. Flat steps may carry
+  `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
+  pre-step Blocks `workspace_operation.search` facts and injects a compact
+  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
+  view into the bounded `agent_step`;
+  reconstructable provenance such as SHA, byte counts, backend/search-engine
+  details, execution block ids, and full file refs stays in raw
+  Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
+  uses the same retrieval contract through its card carrier, with ledger-backed
+  evidence ids available to card/final synthesis. TaskBoard
+  Workspace-operation prompt views, available readback handles, readback work-unit
+  hot payloads, Action artifact readback previews, and intermediate Workspace readback previews use the same
+  hot/cold split: content/path, range, truncation, and compact handles stay hot,
+  while SHA, bytes, handler/media, backend/search-engine facts, execution block
+  ids, and full refs stay in cold evidence, final artifact audit metadata,
+  DevTools, or runner logs. SHA is integrity metadata, not source evidence. Query groups may set
+  `search_surface` to `workspace_index`, `workspace_files`, or
+  `workspace_index_and_files`; for `workspace_index`, record collections belong
+  in `filters.collection` and exact record kinds may use `filters.kind`; for
+  all surfaces, `EvidenceEnvelope.evidence_items` is the grounding authority:
+  failed/empty items support unavailable or missing-data claims only,
+  `ref_only` locator items support only discovery/ref-pointer claims, and
+  bounded/truncated snippets support only the visible excerpt. Prefer `cite_as`
+  or canonical ids in `evidence_use`; path/URL/record/artifact/action aliases
+  are canonicalized only when unambiguous.
+  `workspace_files`, `query` is content text, `path` is the directory/file
+  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
+  file search. Local Workspace file search uses `rg` when available and falls
+  back to bounded file scanning. Blocks return a small bounded context around
+  file matches by default. Blocks `workspace_operation.search` uses Workspace
+  SQLite/FTS and bounded Workspace file search, while
+  `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
+  `locator_ref` and/or `evidence_snippet` facts only, including whether bounded
+  snippets were `truncated`; the downstream model judges usefulness and next
+  action. If a TaskBoard scoped-retrieval card reports blocked/insufficient
+  output without an explicit next action, AgentTask synthesizes an expanded
+  evidence card plus a continuation card instead of relying on a terminal
+  verifier to repair intermediate evidence.
+- TaskBoard readback cards may inspect both Action artifact refs and trusted
+  Workspace file/content refs through bounded cold readbacks. Framework-generated
+  readback cards scope evidence to direct dependencies plus upstream evidence
+  cards, so a control-card readback can still inspect Action refs produced by
+  earlier evidence-gathering cards. Generated continuation cards should propose
+  different executable work or stay blocked with diagnostics when the same
+  evidence is still insufficient, rather than asking for another identical
+  readback/continuation chain. When the missing evidence is a new concrete URL,
+  path, or ref, the control card should return structured `target_refs` with
+  `next_board_action=readback`; external HTTP/HTTPS refs become Action evidence
+  work, while Workspace/content paths and retained-note refs become bounded
+  Workspace readback cards. URLs or paths mentioned only inside prose gaps are
+  diagnostics, not executable targets.
+- Completed and sufficient TaskBoard control outputs may still disclose
+  non-fatal `gaps`; those gaps do not block Workspace artifact materialization.
+  `remaining_work`, blocked status, repair, or readback intent still prevent
+  artifact delivery. Materializing an artifact creates readback/verification
+  evidence and does not mean final task acceptance.
 - AgentTask required deliverables are accepted only after Workspace readback:
   when structured task input or output contracts require files such as
   `final.md`, verifier prose is not enough. The framework guard must confirm
@@ -212,8 +305,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   Workspace is bound.
 - treat `model_digest`, bounded previews, `artifact_refs`, `file_refs`, and
   Workspace record refs as the normal loop memory for instruction-heavy or
-  large Actions; previews are not complete evidence, so full raw payloads should
-  be read explicitly from the Action artifact store or Workspace when needed;
+  large Actions; if a digest is still too large for planning or reply hot paths,
+  ActionRuntime may replace duplicate data/model_digest fields with
+  same_as=result pointers and omit artifact preview bodies from hot-path refs;
+  previews are not complete evidence, so full raw payloads should be read
+  explicitly from the Action artifact store or Workspace when needed;
   use `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
   only for durable execution facts, not as a replacement for TriggerFlow
   pause/resume or approval/exchange policy

@@ -53,9 +53,15 @@ Model request RuntimeEvents may include `payload.model_request_telemetry` on
 `model.request_started`, `model.requesting`, `model.status`, `model.completed`, `model.meta`,
 `model.request_failed`, and `model.requester.error`. Treat it as compact
 diagnostic material for DevTools or local logs: response id, attempt index, run
-ids, provider/model, request URL, duration, usage, side-channel, and normalized
-error facts. Do not feed telemetry back into route selection, retries, verifier
-judgment, quality scoring, planner context, or prompts.
+ids, provider/model, request URL, duration, raw usage, normalized/estimated
+`usage_summary`, side-channel, and normalized error facts. When provider usage
+is unavailable, display token counts as unknown (for example `NaN`) and use
+estimated input/output character lengths only as diagnostics. DevTools may show
+usage for a single model request and aggregate descendant model-request usage
+upward for the selected run branch. Terminal `model.status` events may carry
+estimated input/output character lengths without exposing the raw request
+payload. Do not feed telemetry back into route selection, retries, budget caps,
+verifier judgment, quality scoring, planner context, or prompts.
 
 `model.status` is a compact attempt-outcome observation. A `failed` payload
 with `retry=True` means partial stream output was replaced; `cancelled` is
@@ -65,7 +71,10 @@ drive retry or execution control flow.
 Plain `delta` consumers receive a standalone `"<$retry>{reason}</$retry>"`
 chunk at the same replay boundary. DevTools observes the structured
 `model.status` RuntimeEvent instead, so it should clear reconstructed partial
-text from that event and not depend on the text-stream marker.
+text from that event and not depend on the text-stream marker. Artifact or UI
+consumers that intentionally choose plain delta for freeform document bodies
+must handle the marker at the consumption boundary instead of forcing those
+bodies through `.output()` only to obtain instant fields.
 
 AgentExecution projects process stream items to `agent_execution.stream`
 RuntimeEvents. Flat AgentTaskLoop iterations and TaskBoard card/tick progress
@@ -73,6 +82,15 @@ remain AgentExecution-owned execution facts; DevTools should ingest, store,
 query, and display them through run lineage and payload fields such as
 `execution_id`, `path`, `task_id`, `execution_strategy`, and
 `effective_execution_strategy`, without becoming the task strategy owner.
+
+AgentTask action observations may appear as `agent_task.action.started`,
+`agent_task.action.completed`, and `agent_task.action.failed`. DevTools should
+render them as factual action timeline records grouped by iteration when
+metadata is present. Recovered `success` or `partial_success` Action records
+project as completed observations; failed observations are reserved for failed,
+blocked, timed-out, or unrecovered error records. They are not route decisions,
+verifier results, quality scores, semantic relevance judgments, budget gates,
+or completion acceptance.
 
 Agently also provides a LazyImport facade when the app wants to keep the
 `agently-devtools` import behind Agently:
