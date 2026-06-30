@@ -105,9 +105,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   single-node development/restart recovery, but it is not a production
   cross-worker backend
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
-  `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and
+  `agent.enable_workspace_file_actions(...)`,
+  `agent.enable_coding_agent_actions(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,
-  Node.js, and SQLite access
+  coding-agent file work, Node.js, and SQLite access
 - when both are configured, filesystem-like helpers such as
   `agent.enable_workspace_file_actions(...)`, `agent.enable_shell(...)`, and
   `agent.enable_nodejs(...)` inherit `agent.workspace.files_root` unless an
@@ -127,6 +128,17 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `role="evidence_snippet"`, bounded snippet counts, `truncated`, and a nested
   `locator_ref` with `content_state="ref_only"`. `pattern="**"` is treated as
   recursive file search under the scoped path.
+- `agent.enable_coding_agent_actions(...)` exposes Workspace-owned `read_file`,
+  `glob_files`, `grep_files`, `edit_file`, `apply_patch`, and guarded
+  `write_file` actions for coding-agent style local file work. `edit_file`
+  supports `expected_sha256`, `apply_patch` applies unified diffs inside the
+  Workspace root and can require `expected_files`, and `write_file` in
+  coding-agent mode requires prior read state or an expected hash unless the
+  host disables that guard. Prefer these actions for file IO instead of shell.
+- `agent.enable_shell(...)` defaults to a small safe shell profile when
+  `commands` is omitted. Treat shell as a test/build/git/read-only diagnostics
+  capability; stdout/stderr are bounded by `max_output_chars`, and oversized
+  streams are written under `artifacts/shell/` when a Workspace root is bound.
 - Workspace search and Blocks `workspace_operation.search` accept structural
   `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
   filters when planner context already identifies the retained record family or

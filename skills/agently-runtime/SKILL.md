@@ -73,7 +73,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   explicitly configure it with `agent.use_workspace(...)`; for model-callable
   local file actions, use `agent.enable_workspace_file_actions(...)`, which
   exposes the current Workspace file working tree and inherits
-  `agent.workspace.files_root`
+  `agent.workspace.files_root`; for coding-agent style file work, use
+  `agent.enable_coding_agent_actions(...)` so reads, glob/grep search,
+  targeted edits, unified-diff patches, and full-file writes stay under
+  Workspace path, readback, and stale-guard semantics
 - Workspace file IO is handler-backed: `workspace.read_file(...)`,
   `workspace.write_file(...)`, `workspace.materialize_file(...)`, and
   `workspace.export_file(...)` use registered `WorkspaceFileIOHandler`
@@ -165,8 +168,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   operational guarantees exist
 - for AgentTaskLoop applications, enable only the bounded capabilities the task
   may use, such as `agent.enable_shell(...)`,
-  `agent.enable_workspace_file_actions(...)`, `agent.use_actions(...)`,
-  or `agent.use_skills(...)`, then create the
+  `agent.enable_workspace_file_actions(...)`,
+  `agent.enable_coding_agent_actions(...)`, `agent.use_actions(...)`, or
+  `agent.use_skills(...)`, then create the
   task-strategy AgentExecution draft with `agent.create_task(...)` or the more
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
@@ -339,13 +343,17 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - AgentTaskLoop strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use
-  `workspace.link_evidence(...)`
+  `workspace.link_evidence(...)`. TaskBoard checkpoint payloads may also carry
+  bounded acceptance-index and handoff projections for resume orientation; they
+  point back to TaskBoard revision, EvidenceEnvelope, artifact, and checkpoint
+  refs, and must not be treated as a second evidence ledger or completion
+  verdict
 - for AgentTaskLoop business-system examples, mocks may provide facts, source
   records, policies, missing data, or conflicting inputs, but must not provide
   hidden expected answers, pass/fail fields, or deterministic business-quality
   verdicts; judgment belongs to the AgentTask verifier or an independent
   Agently model-judge request
-- for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs
+- for app developers, prefer `agent.enable_python(...)`, `agent.enable_shell(...)`, `agent.enable_workspace_file_actions(...)`, `agent.enable_coding_agent_actions(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)` before direct manager/provider APIs; shell is for tests, builds, git inspection, and read-only diagnostics, while Workspace file actions own file read/search/edit/write semantics
 - for instruction-heavy or large Actions, expect later model rounds to see compact execution digests, bounded previews, artifact refs, and file refs; if the digest is still too large for planning or reply hot paths, ActionRuntime may replace duplicate data/model_digest fields with same_as=result pointers and omit artifact preview bodies from hot-path refs; previews are not complete evidence, so use `agent.action.read_action_artifact(...)` only when full raw code, command output, SQL results, page content, or logs are needed
 - treat model-planned Action inputs as untrusted: ActionDispatcher filters
   `structured_plan` and `native_tool_calls` kwargs to registered
