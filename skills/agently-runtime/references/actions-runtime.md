@@ -160,9 +160,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   succeeds, terminal verification judges any stale artifact-write `remaining_work`
   instead of forcing another write-only step.
   For long trusted Workspace artifacts, verifier-visible evidence may include
-  bounded `targeted_readbacks` from declared output-contract sections and generic
-  source/risk/reference/coverage anchors; treat those snippets as scoped
-  evidence, not as local completion judgment.
+  bounded `workspace_artifact.targeted_readback` ledger items from declared
+  output-contract sections and generic source/risk/reference/coverage anchors;
+  treat those snippets as scoped evidence, not as local completion judgment.
   Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or
@@ -182,11 +182,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   not the runner or verifier. Flat steps may carry
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
   pre-step Blocks `workspace_operation.search` facts and injects a compact
-  model-hot `scoped_retrieval_results` view into the bounded `agent_step`;
+  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
+  view into the bounded `agent_step`;
   reconstructable provenance such as SHA, byte counts, backend/search-engine
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
-  uses the same retrieval contract through its card carrier. TaskBoard
+  uses the same retrieval contract through its card carrier, with ledger-backed
+  evidence ids available to card/final synthesis. TaskBoard
   Workspace-operation prompt views, available readback handles, readback work-unit
   hot payloads, Action artifact readback previews, and intermediate Workspace readback previews use the same
   hot/cold split: content/path, range, truncation, and compact handles stay hot,
@@ -196,6 +198,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; for `workspace_index`, record collections belong
   in `filters.collection` and exact record kinds may use `filters.kind`; for
+  all surfaces, `EvidenceEnvelope.evidence_items` is the grounding authority:
+  failed/empty items support unavailable or missing-data claims only,
+  `ref_only` locator items support only discovery/ref-pointer claims, and
+  bounded/truncated snippets support only the visible excerpt. Prefer `cite_as`
+  or canonical ids in `evidence_use`; path/URL/record/artifact/action aliases
+  are canonicalized only when unambiguous.
   `workspace_files`, `query` is content text, `path` is the directory/file
   scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
   file search. Local Workspace file search uses `rg` when available and falls

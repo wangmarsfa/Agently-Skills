@@ -239,9 +239,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   succeeds, let terminal verification judge any stale artifact-write
   `remaining_work` instead of planning another write-only step;
   verifier-visible long Workspace artifacts may include bounded
-  `targeted_readbacks` from declared output-contract sections and generic
-  source/risk/reference/coverage anchors; treat those as scoped evidence
-  snippets, not completion judgments;
+  `workspace_artifact.targeted_readback` ledger items from declared
+  output-contract sections and generic source/risk/reference/coverage anchors;
+  treat those as scoped evidence snippets, not completion judgments;
   TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
   returns only a concise summary or path/ref pointer as `final_result`, not a
   second copy of the file body;
@@ -263,11 +263,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   carry scoped retrieval query groups before broad reads. Flat uses
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
   pre-step Blocks `workspace_operation.search` facts and injects a compact
-  model-hot `scoped_retrieval_results` view into the bounded `agent_step`;
+  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
+  view into the bounded `agent_step`;
   reconstructable provenance such as SHA, byte counts, backend/search-engine
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
-  exposes the same work-unit carrier contract and can inject retrieval facts
+  exposes the same work-unit carrier contract and can inject ledger-backed retrieval facts
   into card execution. TaskBoard Workspace-operation prompt views and
   available readback handles, readback work-unit hot payloads, Action artifact readback previews, and
   intermediate Workspace readback previews use the same hot/cold split:
@@ -286,8 +287,15 @@ here for Actions, ExecutionResource, service, or DevTools details.
   file search, not another content keyword. Local Workspace file search uses
   `rg` as a grep-style search engine when available and falls back to bounded
   file scanning. Blocks return a small bounded context around file matches by
-  default, so nearby facts can be inspected without reading the whole file, and
-  snippet facts expose whether bounded context was `truncated`.
+  default, so nearby facts can be inspected without reading the whole file.
+  `EvidenceEnvelope.evidence_items` records search success, empty result,
+  failure, locator, snippet, and readback facts with stable ids, `status`,
+  `body_state`, and model-hot `cite_as` handles. Failed/empty items support
+  unavailable or missing-data claims only; `ref_only` items support only
+  discovery until readback exists; snippet facts expose whether bounded context
+  was `truncated`. Structured outputs may include `evidence_use` claim bindings
+  to `cite_as` or canonical ids; path/URL/record/artifact/action aliases are
+  canonicalized only when unambiguous.
   Ordinary intermediate Flat work units use non-empty `remaining_work` to make
   the next Flat iteration consume the new evidence by default instead of
   triggering an immediate independent verifier. They may also return

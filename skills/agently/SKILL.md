@@ -109,6 +109,13 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `xml_field`, or `yaml_literal`); if a declared non-JSON format fails,
   Agently may recover through JSON parsing, but only dict-shaped parsed payloads
   satisfy structured control or final task output contracts.
+  AgentTask internals may add short process fields only where the framework has
+  a concrete consumer: intent or decision-basis fields before route/plan/control
+  decisions, and compact self-check, summary, verification, repair, or
+  progress-message fields after main result fields. These are bounded
+  `process_summary` facts for next-step clarity and observation, not raw
+  chain-of-thought, not EvidenceEnvelope evidence, not completion evidence, and
+  not a public runtime mode.
 - for long or prose-heavy deliverables whose main value is the natural-language
   body, do not force the body through `.output()` only to carry text. Let the
   body generate as natural text, then use a compact structured judge/readback
@@ -117,6 +124,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   Do not add `.output()` solely to trigger instant fields for the body stream;
   plain public delta remains a valid body source when the consumer handles
   replay boundaries.
+  For AgentTask-backed AgentExecution, public `delta` may also project
+  framework-owned progress, action observation, heartbeat, phase, retry, and
+  terminal-result facts as short paragraphs separated by blank lines, while
+  `instant` remains the structured stream for UI state and diagnostics.
   Internal artifact writers should consume AgentExecution stream facts: natural
   body text comes from raw delta items, and retry boundaries come from `$status`
   when the provider reports it. If the public `"<$retry>...</$retry>"` delta
@@ -129,13 +140,22 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
   succeeds, let terminal verification judge any stale artifact-write
   `remaining_work` instead of planning another write-only step.
-  For long trusted Workspace artifacts, verifier-visible evidence may include
-  bounded `targeted_readbacks` from declared output-contract sections and generic
-  source/risk/reference/coverage anchors; treat them as scoped evidence snippets,
-  not completion judgments.
+  For long trusted Workspace artifacts, artifact delivery should record
+  `workspace_artifact.acceptance_locator` ledger items after real Workspace
+  write/readback. Locators may use artifact-manifest sections, TaskBoard card
+  criteria, and optional model-returned `acceptance_points` intent, but line
+  ranges, offsets, headings, and fingerprints must come from the actual file.
+  Verifier-visible evidence may include bounded
+  `workspace_artifact.targeted_readback` ledger items read from those locators,
+  with declared output-contract sections and generic anchors only as fallback;
+  treat locators as readback pointers and targeted readbacks as scoped evidence
+  snippets, not completion judgments.
   TaskBoard finalization should keep file-backed deliverable bodies in
   Workspace and return only a concise summary or path/ref pointer as
   `final_result`, not a second copy of the file body.
+  TaskBoard planning card ids are optional model hints. The framework owns
+  canonical card ids, deduplication, and dependency remapping; ambiguous id
+  hints should fail closed rather than being guessed.
   Intermediate downloads, webpage snapshots, generated code, search notes,
   memory-like task notes, and large extracted text may also be persisted as
   Workspace/Action refs and opened later through bounded readback; these refs are execution evidence, not proof
@@ -160,6 +180,20 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   TaskBoard final verification receives board-level source refs with preserved
   `content_state` boundaries, so final synthesis must not upgrade discovered
   paths into source-content evidence without bounded preview/readback.
+  AgentTask grounding uses the canonical `EvidenceEnvelope.evidence_items`
+  ledger. Prefer visible `cite_as` handles or canonical ids in `evidence_use`;
+  path, URL, record, artifact, and action/ref aliases are producer-declared
+  structural compatibility affordances that host guards canonicalize only when
+  unambiguous. Guards must not rely on business-specific action-name rules.
+  Compatibility views such as `scoped_retrieval_results` and TaskBoard `source_refs` are projections.
+  Treat `status=failed|empty` as unavailable/missing-data evidence only, never
+  as support for positive facts. Treat `body_state=ref_only` as discovery/ref-
+  pointer evidence only. When structured output supports it, return
+  `evidence_use` bindings with `claim`, `evidence_ids`, and `support_type`.
+  File-backed task outputs may also return optional `acceptance_points` with a
+  criterion, expected heading or exact anchor, and supporting evidence ids so
+  the framework can build locator evidence after Workspace readback; do not
+  invent line numbers or byte offsets.
 - AgentTaskLoop work units receive an internal task context contract with
   compact `current_time` facts (`utc`, plus `local` and `timezone` when the
   local timezone is recognizable) and intermediate-resource ref/readback policy.
