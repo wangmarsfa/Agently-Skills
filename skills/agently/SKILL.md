@@ -180,6 +180,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   TaskBoard final verification receives board-level source refs with preserved
   `content_state` boundaries, so final synthesis must not upgrade discovered
   paths into source-content evidence without bounded preview/readback.
+  TaskBoard checkpoints may include a bounded acceptance-index projection and
+  handoff projection for long-running resume and inspection. Treat those
+  projections as orientation only: they summarize criteria/card status,
+  evidence refs, artifact refs, preflight facts, and explicit task-scoped dirty
+  or unresolved state facts, but they are not `EvidenceEnvelope` evidence and do
+  not accept the task. Preflight requirements must come from mounted Actions,
+  ExecutionResources, or existing Workspace refs; do not assume universal git,
+  browser, shell, or startup-script checks.
   AgentTask grounding uses the canonical `EvidenceEnvelope.evidence_items`
   ledger. Prefer visible `cite_as` handles or canonical ids in `evidence_use`;
   path, URL, record, artifact, and action/ref aliases are producer-declared
