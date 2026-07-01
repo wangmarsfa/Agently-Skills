@@ -193,7 +193,9 @@ here for Actions, ExecutionResource, service, or DevTools details.
   metadata without adding main-loop fields or latency; model-generated progress
   streams `progress_delta` items before the final `progress` item; set
   `agent.language(...)` when final output, process text, progress text, and
-  Search/Browse locale hints should share a language policy; use
+  Action package locale defaults should share a language policy; Search derives
+  provider-specific region codes inside the Search package, while Browse may use
+  `Accept-Language`; use
   `progress_language` per execution or `agent_task.progress.language` globally
   only as progress-text compatibility controls when operator updates must be
   Chinese, English, or another fixed language;

@@ -301,10 +301,11 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   internal to Browse and only receives normalized URL candidates; do not expose
   it as model-visible shell execution.
 - when `agent.language(...)` is set, registered Search/Browse packages may use
-  the policy as default locale guidance: Search receives a default region such
-  as `cn-zh`, and Browse receives an `Accept-Language` header unless explicitly
-  configured. Treat this as recall/process guidance, not as a substitute for
-  task-specific source requirements.
+  the policy as default locale guidance: Search derives any provider-specific
+  region code inside the Search package, and Browse receives an
+  `Accept-Language` header unless explicitly configured. Treat this as
+  recall/process guidance, not as a substitute for task-specific source
+  requirements.
 - treat registered Browse failures as Action failures with diagnostics. Direct
   `Browse.browse(url)` keeps legacy text-returning behavior, but the model-facing
   `browse` Action should not turn `"Can not browse ..."` into successful
