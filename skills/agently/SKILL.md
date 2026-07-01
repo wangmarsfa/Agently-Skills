@@ -188,6 +188,10 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   not accept the task. Preflight requirements must come from mounted Actions,
   ExecutionResources, or existing Workspace refs; do not assume universal git,
   browser, shell, or startup-script checks.
+  TaskBoard scheduling defaults to event-driven `frontier` mode: completed
+  cards can immediately unlock ready successors, while fan-in cards still wait
+  for all declared dependencies. Use `taskboard_scheduler="batch"` only for
+  historical tick-batch diagnostics or regression comparison.
   AgentTask grounding uses the canonical `EvidenceEnvelope.evidence_items`
   ledger. Prefer visible `cite_as` handles or canonical ids in `evidence_use`;
   path, URL, record, artifact, and action/ref aliases are producer-declared
