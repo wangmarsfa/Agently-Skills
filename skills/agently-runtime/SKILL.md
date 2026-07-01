@@ -604,6 +604,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for provider stream hangs, prefer framework settings such as
   `OpenAICompatible.stream_idle_timeout`,
   `OpenAIResponsesCompatible.stream_idle_timeout`, and
+  `AnthropicCompatible.stream_idle_timeout`, plus
   `response.materialization_idle_timeout`; use `None` for unlimited budgets and
   avoid permanent debug-only timeout wrappers in examples; provider first-event
   and stream-idle waits should surface as `RuntimeStageStallError` with
