@@ -77,7 +77,7 @@ must handle the marker at the consumption boundary instead of forcing those
 bodies through `.output()` only to obtain instant fields.
 
 AgentExecution projects process stream items to `agent_execution.stream`
-RuntimeEvents. Flat AgentTaskLoop iterations and TaskBoard card/tick progress
+RuntimeEvents. Flat AgentTask iterations and TaskBoard card/tick progress
 remain AgentExecution-owned execution facts; DevTools should ingest, store,
 query, and display them through run lineage and payload fields such as
 `execution_id`, `path`, `task_id`, `execution_strategy`, and

@@ -91,15 +91,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   Action round, node-count, or tool-call quotas; no-progress and idle timeouts
   are liveness guards for stuck executions, not strategy evidence.
   Do not introduce raw iteration-count builders or treat effort as permission,
-  data visibility, resource gating, or completion acceptance. In AgentTaskLoop,
+  data visibility, resource gating, or completion acceptance. In AgentTask,
   effort also controls reflection density: low means final reflection plus only
   planner-marked important process nodes, medium means each major node or
   TaskBoard card/tick, and high means every framework-observable bounded step,
   Action/ACP call, TaskBoard card, and final reflection. Reflection is evidence
   for replan/verifier input, not completion evidence by itself.
-- in Goal Pursuit / AgentTaskLoop examples, caller facts and the requested
+- in Goal Pursuit / AgentTask examples, caller facts and the requested
   structured output contract may live on the same `AgentExecution` draft through
-  `.input(...)` and `.output(...)`; AgentTaskLoop treats that execution prompt
+  `.input(...)` and `.output(...)`; AgentTask treats that execution prompt
   snapshot as task context during planning, bounded step execution, and
   verification. Do not duplicate those facts into framework hardcode only to
   make the task loop see them.
@@ -206,7 +206,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   criterion, expected heading or exact anchor, and supporting evidence ids so
   the framework can build locator evidence after Workspace readback; do not
   invent line numbers or byte offsets.
-- AgentTaskLoop work units receive an internal task context contract with
+- AgentTask work units receive an internal task context contract with
   compact `current_time` facts (`utc`, plus `local` and `timezone` when the
   local timezone is recognizable) and intermediate-resource ref/readback policy.
   For current, latest, recent, or as-of tasks, use that time context unless the
@@ -219,21 +219,21 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   project as completed observations, while failed observations are reserved for
   failed, blocked, timed-out, or unrecovered error records. Do not use them as a
   local quality, relevance, route, or completion judgment.
-- treat `execution.step_plan` as compatibility guidance only. AgentTaskLoop no
+- treat `execution.step_plan` as compatibility guidance only. AgentTask no
   longer uses TaskDAG / DynamicTask as an internal bounded-step strategy; legacy
   `dynamic_task` / `execution_dag` step proposals and
   `effort(..., execution={"step_plan": "dag"})` degrade to one direct bounded
   AgentExecution step with diagnostics. Use TaskDAG / DynamicTask separately
   when the application or visual automation surface owns the submitted graph.
 - treat task `execution="auto"` as the default execution strategy. Auto uses one
-  AgentTaskLoop-owned task-shape model request that first allows free natural
+  AgentTask-owned task-shape model request that first allows free natural
   language analysis and then returns a thin structured `execution_hint`; do not
   route with keywords, regex, or local scorecards, and do not treat the hint as
   completion evidence. Use `execution="flat"` / `.strategy("flat")` to force the
   linear loop and `execution="taskboard"` / `.strategy("taskboard")` only when
   the host explicitly wants TaskBoard. Nested AgentExecution instances inherit
   the parent strategy context unless the child explicitly overrides it.
-- treat Blocks as the internal lowering bridge from AgentTaskLoop
+- treat Blocks as the internal lowering bridge from AgentTask
   `ExecutionPlan` / `PlanBlock` instances and validated TaskDAG nodes to
   TriggerFlow-backed `ExecutionBlockGraph`, not as a public task lifecycle.
   PlanBlock selection is evidence of need, not permission; ExecutionBlocks
@@ -267,7 +267,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   completion as model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
-- when AgentTaskLoop completion depends on a particular capability, express it
+- when AgentTask completion depends on a particular capability, express it
   as framework contract rather than prompt force: expose capabilities through
   planner metadata, use structured `step_scope` for bounded action steps, and
   use `capability_evidence_requirements` for completion evidence. For side
@@ -276,7 +276,7 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   prior action evidence in Workspace context packs before bulky execution
   metadata so later Skills or Action steps can use the actual evidence, not only
   a summary saying evidence was collected.
-- when a checkpointed AgentTaskLoop must resume after a crash, use
+- when a checkpointed AgentTask must resume after a crash, use
   `agent.resume(task_id)` or `await agent.async_resume(task_id)` and consume the
   returned task-strategy `AgentExecution` through `.start()`/`.async_start()`,
   result, stream, and meta surfaces. Treat `resume_task(...)` as a compatibility

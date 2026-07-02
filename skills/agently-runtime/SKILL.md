@@ -166,7 +166,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `when(..., mode="and")` join progress, but public guidance must not imply
   production Redis, Postgres, or object-storage support until real adapters and
   operational guarantees exist
-- for AgentTaskLoop applications, enable only the bounded capabilities the task
+- for AgentTask applications, enable only the bounded capabilities the task
   may use, such as `agent.enable_shell(...)`,
   `agent.enable_workspace_file_actions(...)`,
   `agent.enable_coding_agent_actions(...)`, `agent.use_actions(...)`, or
@@ -175,14 +175,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
   browser access just because the task loop exists
-- when an AgentTaskLoop Skills step must perform side effects, grant the
+- when an AgentTask Skills step must perform side effects, grant the
   relevant ActionRuntime tools/actions explicitly through route or effort
   configuration, declare required side-effect actions when a Skills React loop
   should stop after they succeed, and pair the task with structured
   `action_succeeded` evidence requirements for those host Actions. A Skills
   response that says it wrote or read an artifact is not execution evidence by
   itself.
-- for AgentTaskLoop business examples, print or persist AgentExecution
+- for AgentTask business examples, print or persist AgentExecution
   stream/result/meta items: use `meta.stream_kind=="snapshot"` for intermediate
   state captures such as context readiness, plan, execution evidence summary,
   and verification gaps;
@@ -209,7 +209,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   visibility only, not for acceptance or verifier evidence; frontend consumers
   should buffer/bucket high-frequency deltas or use smooth incremental rendering
   to avoid render pressure and visible screen jitter
-- for AgentTaskLoop terminal results, treat `completed` as accepted output
+- for AgentTask terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); explicitly configured
   `max_iterations` can still leave useful Workspace files, but those are partial artifacts
   (`accepted=False`, `artifact_status="partial"`); when semantic content quality
@@ -265,7 +265,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   card-level `file_refs` for later Workspace readback. If a non-final TaskBoard
   card proposes a required final path such as `final.md`, AgentTask relocates it
   to a working evidence path and reserves the final path for final synthesis
-- for large Workspace, repository, or file-backed evidence, AgentTaskLoop may
+- for large Workspace, repository, or file-backed evidence, AgentTask may
   carry scoped retrieval query groups before broad reads. Flat uses
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
   pre-step Blocks `workspace_operation.search` facts and injects a compact
@@ -342,7 +342,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   while `remaining_work`, blocked status, repair, or readback intent still do.
   Materializing an artifact creates readback/verification evidence and is not
   final task acceptance
-- AgentTaskLoop strategy persistence writes planning, observation, verification,
+- AgentTask strategy persistence writes planning, observation, verification,
   checkpoint, and evidence-link records through the bound Workspace provider;
   checkpoints use the checkpoint-store port and task evidence relationships use
   `workspace.link_evidence(...)`. TaskBoard checkpoint payloads may also carry
@@ -350,7 +350,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   point back to TaskBoard revision, EvidenceEnvelope, artifact, and checkpoint
   refs, and must not be treated as a second evidence ledger or completion
   verdict
-- for AgentTaskLoop business-system examples, mocks may provide facts, source
+- for AgentTask business-system examples, mocks may provide facts, source
   records, policies, missing data, or conflicting inputs, but must not provide
   hidden expected answers, pass/fail fields, or deterministic business-quality
   verdicts; judgment belongs to the AgentTask verifier or an independent
@@ -484,7 +484,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - when Skills `react` delegates to ActionRuntime, keep the selected SKILL.md
   guidance/resource context in the ActionRuntime planning prompt. Delegation
   with only task text and observation history bypasses the Skill guidance.
-- when Skills `react`, AgentTaskLoop, or another higher-level runtime delegates
+- when Skills `react`, AgentTask, or another higher-level runtime delegates
   action planning to ActionRuntime, set `action.planning_model_key` to the
   intended `model_pool` business key so action planning uses the same model
   routing as the surrounding task
@@ -576,7 +576,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   which writes requested checkpoints through the Workspace checkpoint-store port
   and records an evidence link between the AgentExecution record and checkpoint;
   then call `workspace.build_context(...)` for the next step; ordinary one-turn
-  AgentExecution remains explicit, while AgentTaskLoop owns its strategy-level
+  AgentExecution remains explicit, while AgentTask owns its strategy-level
   persistence; do not make Workspace depend on AgentExecution-specific strategy
   semantics
 - inspect AgentExecution runtime facts through AgentExecutionResult or the

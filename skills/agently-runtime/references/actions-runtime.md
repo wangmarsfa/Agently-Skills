@@ -45,7 +45,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   requested checkpoints through the Workspace checkpoint-store port and records
   an evidence link between the AgentExecution record and checkpoint while
   leaving strategy decisions owned by AgentExecution
-- AgentTaskLoop is the current strategy-level persistence owner: it writes task
+- AgentTask is the current strategy-level persistence owner: it writes task
   decisions, observations, verification records, checkpoints, and evidence links
   through the bound Workspace provider without making Workspace choose task
   continuation
@@ -286,7 +286,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   AgentExecution resource policy, and CLI adapters report
   `acp_session.persistence="stateless_cli"` unless a real protocol session is
   available.
-- AgentTaskLoop may use ACP as an opt-in recovery fallback after bounded-step or
+- AgentTask may use ACP as an opt-in recovery fallback after bounded-step or
   TaskBoard-card failure and retry exhaustion, but the fallback must still call
   the registered `acp_run_task` Action and use `ExecutionResource(kind="acp")`.
   Do not model ACP as an AgentExecution route or import ACP dependencies when
