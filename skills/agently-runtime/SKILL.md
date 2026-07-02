@@ -587,7 +587,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   structure and concrete execution lowering, while `meta["logs"]` exposes model
   response ids, ActionRuntime action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
-  to copy raw action stdout into final text
+  to copy raw action stdout into final text. `type="delta"` remains the public
+  string stream; `type="instant"` yields original structured items and appends
+  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
+  text projection when a source item can be projected to natural language;
+  `type="all"` remains the raw audit stream and must not include synthetic
+  `$delta` items
 - when AgentExecution planning selects direct `model_request`, treat
   Action and Observation as skipped business stages and consume the model result
   as passthrough. If Action or Skill candidates are available but the selected
@@ -629,9 +634,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   for long-lived loops, but CLI/script shutdown still needs explicit flush for
   background outlets; rely on AgentExecution liveness diagnostics rather than
   public delta frequency for stall detection
-- for temporary development debugging, attach an EventCenter observation hook or
-  call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
-  inspect Task planning, execution blocks, model requests, ActionRuntime, and Workspace writes;
+- for temporary development debugging, attach an EventCenter observation hook,
+  call `.set_settings("debug", True)` for request/result and AgentTask process
+  summaries, or call `.set_settings("debug", "detail")` for full observation
+  detail including model delta output;
   remove debug hooks/settings from examples and production snippets after the
   issue is diagnosed
 
