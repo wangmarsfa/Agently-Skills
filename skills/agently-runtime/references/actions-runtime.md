@@ -5,18 +5,31 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 ## Native-First Rules
 
 - prefer the native Action Runtime, built-in action packages, legacy tool facades, and MCP surfaces before handwritten wrappers
-- keep extension choice explicit: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
-- treat `Agently.execution_environment` as an advanced framework/plugin surface, not the default app-development API
+- keep extension choice explicit: Action Runtime, ExecutionResource, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, or `agently-devtools`
+- treat `Agently.execution_resource` as an advanced framework/plugin surface, not the default app-development API
 - for application developers, prefer built-in Actions and `agent.enable_*` component helpers before exposing core manager/provider concepts
 - default Agents and TriggerFlow executions expose lazy Foundation Workspace
-  bindings; call `agent.use_workspace(...)` or
-  `flow.create_execution(workspace=...)` when a stable explicit root,
-  read-only mode, shared instance, direct backend, or registered provider is
-  required
+  bindings backed by the current session/script physical Workspace; Agent,
+  execution, and task records are logical partitions, while file actions use
+  lineage-scoped roots under
+  `files/lineage/<root-kind>/<root-id>/.../<leaf-kind>/<leaf-id>/files`; call
+  `agent.use_workspace(...)` or `flow.create_execution(workspace=...)` when a
+  stable explicit root, read-only mode, direct backend, or registered provider
+  is required
+- local Workspace materialization writes `AGENTLY_WORKSPACE.md` at the physical
+  root and scoped `files_root`; external coding agents and file Actions should
+  treat that guide as the boundary note for editable files versus Workspace
+  internals, and should not expect the guide to be named `README.md`. Standard
+  editable file areas are `downloads/` for materialized remote files,
+  `artifacts/` for supporting generated evidence or non-primary deliverables,
+  and `reports/` for user-facing readable deliverables. Use
+  `workspace.file_area_path(...)` when code needs a contained path in one of
+  those areas.
 - create shared task information scopes with `Workspace(...)` or
   `Agently.create_workspace(...)` and bind Agents, TriggerFlow executions, or
-  service workers to that same instance when they must collaborate over durable
-  facts; do not expect separate default Workspaces to communicate implicitly
+  service workers to that same instance when they must collaborate over an
+  explicitly selected durable information domain; do not expect separate
+  explicit Workspaces to communicate implicitly
 - move facts across separate Workspaces in application or TriggerFlow business
   logic with explicit search/read plus write/ingest/link operations; Workspace
   is not a cross-space messaging or replication protocol
@@ -24,14 +37,15 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   links, checkpoints, stable ref envelopes, bounded reads, RuntimeEvent records,
   evidence links, and retention anchors
 - use `workspace.build_context(...)` to package those records for later model
-  calls; ordinary application code should not hand-write recall filters when a
-  ContextPack through RecallPlanner/Retriever/ContextBuilder fits
+  calls; ordinary application code should not hand-write retrieval filters when
+  a ContextPackage through ContextPlanner, WorkspaceContextRetriever, and
+  ContextPackager fits
 - for AgentExecution evidence, keep persistence explicit with
   `execution.async_record_workspace(..., checkpoint=True)`; the helper writes
   requested checkpoints through the Workspace checkpoint-store port and records
   an evidence link between the AgentExecution record and checkpoint while
   leaving strategy decisions owned by AgentExecution
-- AgentTaskLoop is the current strategy-level persistence owner: it writes task
+- AgentTask is the current strategy-level persistence owner: it writes task
   decisions, observations, verification records, checkpoints, and evidence links
   through the bound Workspace provider without making Workspace choose task
   continuation
@@ -91,13 +105,157 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   single-node development/restart recovery, but it is not a production
   cross-worker backend
 - use `agent.enable_python(...)`, `agent.enable_shell(...)`,
-  `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`, and
+  `agent.enable_workspace_file_actions(...)`,
+  `agent.enable_coding_agent_actions(...)`, `agent.enable_nodejs(...)`, and
   `agent.enable_sqlite(...)` for common Python, shell, model-callable local file,
-  Node.js, and SQLite access
+  coding-agent file work, Node.js, and SQLite access
 - when both are configured, filesystem-like helpers such as
   `agent.enable_workspace_file_actions(...)`, `agent.enable_shell(...)`, and
   `agent.enable_nodejs(...)` inherit `agent.workspace.files_root` unless an
   explicit `root=` or `cwd=` is passed
+- Workspace file reads, writes, byte materialization, and exports go through
+  registered `WorkspaceFileIOHandler` implementations or Workspace-owned
+  `workspace.materialize_file(...)`. Workspace owns path containment,
+  deterministic file info, `sha256`, file refs, and structured diagnostics;
+  handlers own plain text IO, optional PDF/Office extraction, image/VLM
+  attachment preparation, and export rendering. Do not implement format parsing
+  in ActionRuntime, SkillsExecutor, or AgentExecution strategy code.
+- `agent.enable_workspace_file_actions(...)` exposes list/search/read/write over
+  the Workspace file root. It registers `export_file` only when `export=True`
+  and `write=True`, delegates to the bound Workspace when roots match, and must
+  not overwrite user-defined Actions. `search_files` keeps compatible
+  `path`/`line`/`text` results and adds scoped retrieval metadata:
+  `role="evidence_snippet"`, bounded snippet counts, `truncated`, and a nested
+  `locator_ref` with `content_state="ref_only"`. `pattern="**"` is treated as
+  recursive file search under the scoped path.
+- `agent.enable_coding_agent_actions(...)` exposes Workspace-owned `read_file`,
+  `glob_files`, `grep_files`, `edit_file`, `apply_patch`, and guarded
+  `write_file` actions for coding-agent style local file work. `edit_file`
+  supports `expected_sha256`, `apply_patch` applies unified diffs inside the
+  Workspace root and can require `expected_files`, and `write_file` in
+  coding-agent mode requires prior read state or an expected hash unless the
+  host disables that guard. Prefer these actions for file IO instead of shell.
+- `agent.enable_shell(...)` defaults to a small safe shell profile when
+  `commands` is omitted. Treat shell as a test/build/git/read-only diagnostics
+  capability; stdout/stderr are bounded by `max_output_chars`, and oversized
+  streams are written under `artifacts/shell/` when a Workspace root is bound.
+- Workspace search and Blocks `workspace_operation.search` accept structural
+  `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
+  filters when planner context already identifies the retained record family or
+  target ref; do not treat the filtered hit itself as semantic acceptance.
+- Workspace file writes and reads return structured file evidence from the
+  Workspace boundary itself: `path`, `bytes`, `sha256`, write `mode`, bounded
+  read `content` / `truncated`, diagnostics, and file refs. Unsupported binary
+  or missing optional dependencies return structured diagnostics such as
+  `readable=False` or `exported=False`; outside-root, missing-path, and
+  permission failures remain execution errors. Downstream artifact or readback
+  checks should consume those fields instead of relying on model prose or stdout
+  path guesses.
+- AgentTask workspace artifacts are framework-delivered: when a bounded step or
+  TaskBoard card returns a short `artifact_markdown` body or a sectioned
+  `artifact_manifest`, AgentTask writes it through Workspace and readbacks
+  `path`, `bytes`, `sha256`, preview, and trusted `file_refs` as cold evidence.
+  Model-hot verifier input uses path/ref handles, bounded content or preview,
+  and truncation status rather than SHA/byte/MIME integrity metadata. For long,
+  sectioned, or prose-heavy deliverables, choose the content carrier
+  deliberately: draft a single freeform document as natural Markdown/plain text
+  without `.output()`, or use Agently `.output(..., format=...)` with
+  `xml_field`, `hybrid`, or `yaml_literal` when separately addressable fields
+  are required instead of forcing the body into compact JSON fields. Keep
+  status, evidence, and verification in separate compact judgment/readback
+  contracts. Use `artifact_manifest.sections` plus Workspace readback when
+  AgentTask must deliver a trusted file artifact.
+  If a complete Markdown artifact body appears inside structured `evidence`,
+  treat it as a deliverable body only when the evidence item is explicitly labeled
+  as artifact/body/deliverable/Markdown or tied to the manifest path; ordinary
+  source content and source excerpts remain evidence snippets. After trusted Workspace write/readback
+  succeeds, terminal verification judges any stale artifact-write `remaining_work`
+  instead of forcing another write-only step.
+  For long trusted Workspace artifacts, verifier-visible evidence may include
+  bounded `workspace_artifact.targeted_readback` ledger items from declared
+  output-contract sections and generic source/risk/reference/coverage anchors;
+  treat those snippets as scoped evidence, not as local completion judgment.
+  Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
+  Write-success/readback-failure paths must report
+  `agent_task.workspace_artifact.readback_failed` or
+  `agent_task.workspace_artifact.readback_insufficient`; do not describe those
+  cases as generic iteration, retry, or budget exhaustion.
+- Intermediate downloads, webpage snapshots, generated code, search notes, and
+  large extracted text may also be persisted as Workspace or Action artifact
+  refs. Pass compact refs/previews through hot prompts and open scoped snippets
+  later with bounded Workspace or artifact readback. These refs are execution
+  evidence, not final deliverable proof. If Action artifact readback exposes
+  Workspace `file_refs` for a materialized download, TaskBoard readback promotes
+  those nested refs to card-level `file_refs` so later work can use Workspace
+  readback instead of relying on a buried JSON preview. If a non-final TaskBoard
+  card proposes a required final path such as `final.md`, AgentTask relocates it
+  to a working evidence path and reserves the final path for final synthesis.
+- Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
+  not the runner or verifier. Flat steps may carry
+  `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
+  pre-step Blocks `workspace_operation.search` facts and injects a compact
+  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
+  view into the bounded `agent_step`;
+  reconstructable provenance such as SHA, byte counts, backend/search-engine
+  details, execution block ids, and full file refs stays in raw
+  Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
+  uses the same retrieval contract through its card carrier, with ledger-backed
+  evidence ids available to card/final synthesis. TaskBoard
+  Workspace-operation prompt views, available readback handles, readback work-unit
+  hot payloads, Action artifact readback previews, and intermediate Workspace readback previews use the same
+  hot/cold split: content/path, range, truncation, and compact handles stay hot,
+  while SHA, bytes, handler/media, backend/search-engine facts, execution block
+  ids, and full refs stay in cold evidence, final artifact audit metadata,
+  DevTools, or runner logs. SHA is integrity metadata, not source evidence. Query groups may set
+  `search_surface` to `workspace_index`, `workspace_files`, or
+  `workspace_index_and_files`; for `workspace_index`, record collections belong
+  in `filters.collection` and exact record kinds may use `filters.kind`; for
+  all surfaces, `EvidenceEnvelope.evidence_items` is the grounding authority:
+  failed/empty items support unavailable or missing-data claims only,
+  `ref_only` locator items support only discovery/ref-pointer claims, and
+  bounded/truncated snippets support only the visible excerpt. Prefer `cite_as`
+  or canonical ids in `evidence_use`; path/URL/record/artifact/action aliases
+  are canonicalized only when unambiguous.
+  `workspace_files`, `query` is content text, `path` is the directory/file
+  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
+  file search. Local Workspace file search uses `rg` when available and falls
+  back to bounded file scanning. Blocks return a small bounded context around
+  file matches by default. Blocks `workspace_operation.search` uses Workspace
+  SQLite/FTS and bounded Workspace file search, while
+  `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
+  `locator_ref` and/or `evidence_snippet` facts only, including whether bounded
+  snippets were `truncated`; the downstream model judges usefulness and next
+  action. If a TaskBoard scoped-retrieval card reports blocked/insufficient
+  output without an explicit next action, AgentTask synthesizes an expanded
+  evidence card plus a continuation card instead of relying on a terminal
+  verifier to repair intermediate evidence.
+- TaskBoard readback cards may inspect both Action artifact refs and trusted
+  Workspace file/content refs through bounded cold readbacks. Framework-generated
+  readback cards scope evidence to direct dependencies plus upstream evidence
+  cards, so a control-card readback can still inspect Action refs produced by
+  earlier evidence-gathering cards. Generated continuation cards should propose
+  different executable work or stay blocked with diagnostics when the same
+  evidence is still insufficient, rather than asking for another identical
+  readback/continuation chain. When the missing evidence is a new concrete URL,
+  path, or ref, the control card should return structured `target_refs` with
+  `next_board_action=readback`; external HTTP/HTTPS refs become Action evidence
+  work, while Workspace/content paths and retained-note refs become bounded
+  Workspace readback cards. URLs or paths mentioned only inside prose gaps are
+  diagnostics, not executable targets.
+- Completed and sufficient TaskBoard control outputs may still disclose
+  non-fatal `gaps`; those gaps do not block Workspace artifact materialization.
+  `remaining_work`, blocked status, repair, or readback intent still prevent
+  artifact delivery. Materializing an artifact creates readback/verification
+  evidence and does not mean final task acceptance.
+- AgentTask required deliverables are accepted only after Workspace readback:
+  when structured task input or output contracts require files such as
+  `final.md`, verifier prose is not enough. The framework guard must confirm
+  the file exists under the task Workspace and can be read back before the task
+  can be marked complete.
+- `agent_task.heartbeat` is a quiet-period status signal, not completion
+  evidence. It may be emitted while long model, action, or artifact stages are
+  waiting, but ordinary stream activity resets the heartbeat timer and
+  no-progress/request/task-deadline protections still own stall handling.
 - treat `enable_*` helper `desc=` values as optional extra guidance by default; use `desc_mode="override"` only when the app intentionally replaces the default capability description
 - when changing public helper APIs, use explicit typing for IDE assistance; prefer `Literal` for finite options such as `desc_mode`
 - use `@agent.action_func` and `agent.use_actions(...)` as the primary action APIs; `tool_func` and `use_tool` remain compatibility aliases
@@ -105,12 +263,67 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   agent-scoped Actions, MCP tools, and `enable_*` helpers are included by
   default, while explicit tags narrow the list; execution environment `env`
   values are redacted in this visible metadata while env keys remain visible
+- model-planned Action commands are untrusted at the Action boundary:
+  `structured_plan` and `native_tool_calls` inputs are filtered to registered
+  `ActionSpec.kwargs` before executor invocation, and stripped keys appear in
+  `ActionResult.diagnostics`; direct host calls keep existing behavior
 - use built-in Search/Browse through `from agently.builtins.actions import Search, Browse` and `agent.use_actions(Search(...))` / `agent.use_actions(Browse(...))`; do not invent `enable_search(...)` or `ActionTools`
+- expose Agent Client Protocol (ACP) coding agents with `agent.use_acp(...)`
+  when the host has authorized local ACP endpoints. ACP is an Action capability
+  plus `ExecutionResource(kind="acp")`, not a new AgentExecution route. The
+  default `on_missing="skip"` should only record diagnostics when no
+  handshake-verified agent exists; use `on_missing="error"` when missing ACP
+  capability must fail closed. `acp_list_agents` also returns non-binding
+  adapter-name hints for common ACP adapters such as `codex`,
+  `claude code` / `cc`, `openclaw`, `hermes` / `hermes agent`, and
+  `gemini`; these hints do not make an agent runnable. Built-in local CLI
+  adapters can detect common Codex and Claude Code command locations in
+  addition to `PATH`, but they use fixed framework-owned argv templates and are
+  still Action calls, not shell exposure. If `root` is omitted,
+  `agent.use_acp()` uses the Agent's bound
+  Workspace `files_root` as the coding-agent project root; explicit `root=...`
+  is an advanced host authorization override. ACP session reuse is internal
+  AgentExecution resource policy, and CLI adapters report
+  `acp_session.persistence="stateless_cli"` unless a real protocol session is
+  available.
+- AgentTask may use ACP as an opt-in recovery fallback after bounded-step or
+  TaskBoard-card failure and retry exhaustion, but the fallback must still call
+  the registered `acp_run_task` Action and use `ExecutionResource(kind="acp")`.
+  Do not model ACP as an AgentExecution route or import ACP dependencies when
+  `agent.use_acp(...)` has not registered the capability.
 - keep built-in implementation on the retained path: `agently.builtins.actions` owns Search/Browse/Cmd behavior; `agently.builtins.tools` should stay a thin legacy facade
-- treat `model_digest`, `artifact_refs`, and Workspace record refs as the normal
-  loop memory for instruction-heavy Actions; full raw payloads should be read
-  explicitly from the Action artifact store or Workspace when needed; use
-  `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
+- configure Search/Browse proxy, timeout, backend/fallback, `max_attempts`, and
+  `retry_backoff_seconds` on the package object. Short transport failures such
+  as timeouts, connection resets, incomplete chunked reads, and proxy handshakes
+  are retried once by default; a long-unavailable network is still an
+  infrastructure failure.
+- Browse defaults to Playwright -> restricted curl -> BS4. The curl backend is
+  internal to Browse and only receives normalized URL candidates; do not expose
+  it as model-visible shell execution.
+- when `agent.language(...)` is set, registered Search/Browse packages may use
+  the policy as default locale guidance: Search derives any provider-specific
+  region code inside the Search package, and Browse receives an
+  `Accept-Language` header unless explicitly configured. Treat this as
+  recall/process guidance, not as a substitute for task-specific source
+  requirements.
+- treat registered Browse failures as Action failures with diagnostics. Direct
+  `Browse.browse(url)` keeps legacy text-returning behavior, but the model-facing
+  `browse` Action should not turn `"Can not browse ..."` into successful
+  evidence.
+- let Browse own basic URL recovery and remote-file handoff: same-host
+  `http`/`https` and canonical candidates are structured diagnostics, while
+  PDF/Office/image/download-like responses should be materialized into the bound
+  Workspace and returned as file refs plus bounded `read_file` previews. Browse
+  should not parse those documents itself and should fail closed when no
+  Workspace is bound.
+- treat `model_digest`, bounded previews, `artifact_refs`, `file_refs`, and
+  Workspace record refs as the normal loop memory for instruction-heavy or
+  large Actions; if a digest is still too large for planning or reply hot paths,
+  ActionRuntime may replace duplicate data/model_digest fields with
+  same_as=result pointers and omit artifact preview bodies from hot-path refs;
+  previews are not complete evidence, so full raw payloads should be read
+  explicitly from the Action artifact store or Workspace when needed;
+  use `workspace.append_runtime_event(...)` / `workspace.query_runtime_events(...)`
   only for durable execution facts, not as a replacement for TriggerFlow
   pause/resume or approval/exchange policy
 - keep the permission profile explicit: search-only, local-files-only, network-read, install-capable shell, or trusted broad executor
@@ -122,9 +335,9 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   return a blocked or approval-required result with a user-facing explanation.
 - for Skills Executor or artifact-producing workflows, missing local libraries
   are not a natural degraded-success path; plan a controlled install-capable
-  Action or ExecutionEnvironment ensure step, preserve the ActionResult, and
+  Action or ExecutionResource ensure step, preserve the ActionResult, and
   fail closed if policy denies or installation fails
-- treat MCP, Bash, Python sandbox, Node.js, Docker, SQLite, vector-store, browser, and remote-runner lifecycle as Execution Environment concerns when they need managed handles
+- treat MCP, Bash, Python sandbox, Node.js, Docker, SQLite, vector-store, browser, and remote-runner lifecycle as ExecutionResource concerns when they need managed handles
 - Action executors should declare or consume managed resources instead of hiding lifecycle ownership
 - treat `agently-devtools` as an optional companion package installed from PyPI, not as a required source checkout
 - keep observation or evaluation bridge wiring in the app layer through `Agently.event_center`
@@ -140,13 +353,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - when the surrounding runtime uses `model_pool`, set
   `action.planning_model_key` to the intended business key so ActionRuntime
   planning uses the same model routing
-- do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_environment` can own the dependency
+- do not hide MCP/sandbox/process lifecycle inside a custom ActionExecutor when `Agently.execution_resource` can own the dependency
 - do not recommend core manager/provider APIs to ordinary app developers when a built-in Action or Agent Component is the right surface
 - do not create a custom waiter or auto-function shim first
 - do not ask users to clone or editable-install DevTools when `pip install agently-devtools` is the supported public path
 - do not build a custom runtime upload bridge before checking `ObservationBridge`
 
-## Action Loop Recall
+## Action Loop Context Building
 
 For `run_bash`, `run_python`, `run_nodejs`, `query_sqlite`, `browse`, `search`,
 and similar explicit-instruction Actions, later model rounds should receive a
@@ -183,7 +396,7 @@ executed work.
 ## Example Guidance
 
 Current Action Runtime examples live under `examples/action_runtime/`,
-`examples/builtin_actions/`, and `examples/execution_environment/`. Recommended
+`examples/builtin_actions/`, and `examples/execution_resource/`. Recommended
 model-backed cookbook patterns live under `examples/cookbook/`, including Action
 loop, router, concurrent todo, reflection, and safe shell policy examples.
 Historical built-in tool examples live under `examples/archived/builtin_tools/`

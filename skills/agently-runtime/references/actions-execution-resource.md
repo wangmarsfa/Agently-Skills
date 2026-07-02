@@ -1,31 +1,37 @@
-# Overview
+# ExecutionResource Overview
 
-This skill owns Agently-native extension surfaces: Action Runtime, Execution Environment, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation/evaluation tooling.
+This skill owns Agently-native extension surfaces: Action Runtime, ExecutionResource, built-in capability Actions, Agent Components, tools, MCP, FastAPIHelper, `auto_func`, `KeyWaiter`, and optional `agently-devtools` observation/evaluation tooling.
 
 Use it when:
 
 - the user needs built-in actions or tools such as `Browse`, including `@agent.action_func`, `agent.use_actions(...)`, MCP, or sandbox-backed execution
 - the user wants MCP or FastAPIHelper without hand-rolled wrappers
-- the user needs managed MCP, Bash, Python, Node.js, Docker, Browser, or SQLite lifecycle through `Agently.execution_environment`
+- the user needs managed MCP, Bash, Python, Node.js, Docker, Browser, or SQLite lifecycle through the ExecutionResource compatibility surface
 - the user is deciding whether a capability belongs in core, a plugin/provider, a built-in Action, or an Agent Component
 - the user wants local observation, evaluation, playground, or logs support through `agently-devtools`
 - the app owner layer is already known and the work is about attaching tooling around that app instead of redesigning the workflow itself
 
 For the public DevTools integration path, read `references/devtools.md`.
 
-## Execution Environment Boundary
+## ExecutionResource Boundary
 
-Use Execution Environment when a capability needs a managed live dependency before
+Use ExecutionResource when a capability needs a managed live dependency before
 an Action or TriggerFlow execution can run.
 
-- `Agently.execution_environment` owns lifecycle, policy, approval, scope, health, and release for managed dependencies.
+- ExecutionResource owns lifecycle, policy, approval, scope, health, and release for managed dependencies.
 - Action owns what is callable and how one call is normalized into an `ActionResult`.
 - TriggerFlow `runtime_resources` remains the execution-local live handle surface. Managed resources can be injected there, but TriggerFlow does not create or release them.
-- Built-in MCP, Bash, Python, Node.js, Docker, Browser, and SQLite actions should declare or consume Execution Environment resources rather than owning lifecycle inside the executor.
-- Search does not belong in Execution Environment. Its proxy, timeout, backend, and region settings belong to the Search package/executor configuration.
+- Built-in MCP, Bash, Python, Node.js, Docker, Browser, and SQLite actions should declare or consume ExecutionResource resources rather than owning lifecycle inside the executor.
+- Search does not belong in ExecutionResource. Its proxy, timeout, backend,
+  retry, and region settings belong to the Search package/executor
+  configuration. Browse follows the same package-owned proxy/timeout/retry
+  pattern unless it explicitly declares a managed browser resource. Browse may
+  consume the bound Workspace to materialize remote PDF/Office/image/download
+  bytes, but Workspace still owns the file boundary and file IO handlers own
+  parsing.
 - Skills Executor and artifact-producing workflows should repair missing local
   libraries, binaries, browser runtimes, or MCP packages through controlled
-  install-capable Actions or ExecutionEnvironment ensure steps. Do not silently
+  install-capable Actions or ExecutionResource ensure steps. Do not silently
   downgrade the business result just because a local dependency is absent; if
   repair is blocked or fails, surface an explicit failed or approval-required
   execution state with the dependency ActionResult attached.
@@ -41,9 +47,9 @@ Audience split:
   needs durable multi-turn task records, artifacts, search, links, and compact
   checkpoints. Use built-in Actions and Agent Components such as
   `agent.enable_python(...)`, `agent.enable_shell(...)`,
-  `agent.enable_workspace_file_actions(...)`, `agent.enable_nodejs(...)`,
-  `agent.enable_sqlite(...)`, and future `agent.enable_coding_workspace(...)`
-  for model-callable execution capabilities.
+  `agent.enable_workspace_file_actions(...)`,
+  `agent.enable_coding_agent_actions(...)`, `agent.enable_nodejs(...)`, and
+  `agent.enable_sqlite(...)` for model-callable execution capabilities.
 - When a Foundation Workspace is configured, filesystem-like helpers inherit
   `agent.workspace.files_root`, the editable file working tree, by default.
   Pass explicit `root=` / `cwd=` when an action must use an independent
@@ -52,17 +58,22 @@ Audience split:
   and persist structured observations, decisions, links, and checkpoints in
   Workspace. Recover them through `workspace.get_data(...)`,
   `workspace.links(...)`, and checkpoint lookup APIs.
-- Action developers can use `register_action(..., execution_environments=[...])` when one action requires a managed dependency.
-- Plugin developers implement `ExecutionEnvironmentProvider` for environment kinds such as Bash, Python, Node.js, Docker, SQLite, vector store, browser, or remote runner.
+- For coding-agent style local file work, expose Workspace file actions through
+  `agent.enable_coding_agent_actions(...)` instead of broad shell. Keep shell
+  scoped to tests, builds, git status/diff/log inspection, and read-only
+  diagnostics; command outputs are bounded and oversized streams should remain
+  behind Workspace file/artifact refs.
+- Action developers can use the ExecutionResource requirement surface when one action requires a managed dependency.
+- Plugin developers implement `ExecutionResourceProvider` for resource kinds such as Bash, Python, Node.js, Docker, SQLite, vector store, browser, or remote runner.
 - Framework maintainers decide whether a feature belongs to core, provider, built-in capability, or Agent Component.
 - `enable_*` helper `desc=` parameters supplement default capability descriptions by default. Use `desc_mode="override"` only when replacing baseline usage and safety guidance is intentional.
 - Public helper APIs should use explicit typing for IDE assistance. Prefer `Literal` for finite option sets, including `desc_mode`.
 
 Do not design custom ActionExecutors that secretly start long-lived MCP servers,
 processes, or broad sandboxes when the environment can be declared and managed
-through Execution Environment.
+through ExecutionResource.
 
-For runnable main-repo examples, check `examples/execution_environment/`.
+For runnable main-repo examples, check the current execution-resource examples.
 Start with the local `agent.enable_python(...)` quickstart, then use the
 Ollama/DeepSeek examples for model-driven Action selection. The TriggerFlow
 example is for workflow or framework developers who need managed
@@ -72,7 +83,7 @@ For built-in Search/Browse package examples, check `examples/builtin_actions/`.
 Do not turn Skills into a parallel executor. Skill scripts should map to built-in
 Actions and component helpers such as `agent.enable_python(...)`,
 `agent.enable_shell(...)`, `agent.enable_nodejs(...)`, and `agent.enable_sqlite(...)`; MCP assets should map to
-MCP-backed Actions plus Execution Environment requirements; workflow templates
+MCP-backed Actions plus ExecutionResource requirements; workflow templates
 should map to TriggerFlow. Multi-step Skills strategies should reuse
 TriggerFlow for orchestration and ActionFlow/ActionRuntime for tool/action
 execution, including approval-required and blocked results.
@@ -139,9 +150,10 @@ import os
 
 from agently.builtins.actions import Browse, Search
 
-search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15)
+search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15, max_attempts=2)
 browse = Browse(
     proxy=os.getenv("BROWSE_PROXY"),
+    max_attempts=2,
     enable_pyautogui=False,
     enable_playwright=True,
     enable_bs4=True,

@@ -31,10 +31,13 @@ Use this skill for provider wiring and transport setup before request logic is d
   `api_key_pools.<pool>.selection` (`fixed`, `random`, `round_robin`,
   `least_used`; legacy top-level `strategy` remains accepted). Provider-error
   failover is opt-in through `api_key_pools.<pool>.failover`; without it,
-  Agently does not try another key. `OpenAICompatible` still retries transient
-  transport disconnects before output starts with the same model, prompt, and
-  output format according to `OpenAICompatible.request_retry`. Failover handlers
-  can inspect the provider error object and return `"try_next"`,
+  Agently does not try another key. The built-in requester plugins still retry
+  transient transport disconnects with the same model, prompt, and output
+  format according to `<Requester>.request_retry`. OpenAICompatible defaults to
+  replaying after partial output; streaming consumers must process `$status` or
+  clear plain-delta text on the
+  `"<$retry>{reason}</$retry>"` marker before accepting replacement deltas.
+  Failover handlers can inspect the provider error object and return `"try_next"`,
   `"retry_same"`, `"raise"`, a key id, a key entry dict, or a wrapper such as
   `{"key_id": "b"}` / `{"key_entry": context.keys[1]}`. Do not present
   `405` or `422` as universal credential failures; add them only when the
@@ -47,8 +50,10 @@ Use this skill for provider wiring and transport setup before request logic is d
   `build_request_handlers()` that returns Agently core `AttemptHandlers` for
   request execution; annotate attempt stream messages with
   `AttemptStreamMessage` / `AttemptStreamGenerator` from `agently.types.data`.
+  `broadcast_response(...)` must pass core-owned `("status", payload)` attempt
+  records through unchanged; they are not provider wire payloads or model data.
   Official runtime events such as `model.requester.error`
-  must be produced by core-owned coordinators such as ModelResponse and
+  must be produced by core-owned coordinators such as ModelRequestRunner and
   AttemptRunner, not by plugin-level imports of core emitter helpers.
   Plugin-owned EventCenter messages are private diagnostics only and should not
   reuse official Agently event types.

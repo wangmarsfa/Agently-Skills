@@ -13,18 +13,27 @@ TaskDAG is the Agently DAG foundation capability. Dynamic Task is the current
 compatibility and convenience facade over TaskDAG planning and execution, not a
 TriggerFlow sub-API and not the strategic Agent task lifecycle. TriggerFlow is
 the execution substrate under `TaskDAGExecutor`, while
-`Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` remain
-compact app-facing facade entrypoints.
+`Agently.create_dynamic_task(...)` is the current app-facing facade entrypoint;
+`agent.create_dynamic_task(...)` remains a compatibility facade for legacy
+prompt-snapshot callers, not the default guidance.
+
+When lower-level evidence or runtime visualization matters, use
+`TaskDAGExecutor.compile_blocks(...)` or `async_run_blocks(...)`: TaskDAG still
+owns graph validation, dependency semantics, and semantic outputs; Blocks only
+lowers the validated DAG segment into a TriggerFlow-backed
+`ExecutionBlockGraph` and maps EvidenceEnvelope/ResultAdapter output.
 
 ## Native-First Rules
 
-- use `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)` when ordinary app code wants the compact facade
-- when a DAG is only one bounded phase inside a broader business task,
-  keep `agent.create_task(...)` or `agent.create_task_loop(...)` as the outer
-  AgentExecution owner and expose the DAG as an explicitly enabled Agent
-  candidate; do not turn the Dynamic Task facade into the long-running AgentTask lifecycle
-  owner
+- use `Agently.create_dynamic_task(...)` when ordinary app code wants the compact facade
+- when a DAG is one phase inside a broader business task, run the DAG
+  independently and pass its snapshot to AgentExecution as evidence; do not
+  expose DynamicTask as an AgentExecution route candidate or turn the Dynamic
+  Task facade into the long-running AgentTask lifecycle owner
 - split into `AgentlyTaskDAGPlanner`, `TaskDAGValidator`, `DynamicTaskResolver`, and `TaskDAGExecutor` only when staged control is required
+- use `TaskDAGExecutor.compile_blocks(...)` or `async_run_blocks(...)` when the
+  caller needs the Blocks lifecycle evidence path; do not bypass
+  `TaskDAGValidator` or treat Blocks as the DAG owner
 - use `plan=<TaskDAG>` when the caller already owns the DAG and should skip model planning
 - use `TaskDAG.from_yaml(...)` or `TaskDAG.from_json(...)` when the submitted DAG is a reviewed config artifact
 - use submitted DAG `inputs` placeholders for small runtime wiring:
@@ -35,10 +44,11 @@ compact app-facing facade entrypoints.
   Whole-string placeholders preserve the original value type; embedded
   placeholders stringify into the surrounding text. Missing runtime paths fail
   closed during execution
-- when a submitted DAG runs through `agent.create_execution()`, let
-  `${INIT...}` read `use_dynamic_task(graph_input=...)` when explicit, otherwise
-  the frozen execution prompt `input` slot, then `{"target": task_target}`; do
-  not add a second `inputs.input` or task-local prompt mapping surface
+- when a submitted DAG runs through `create_dynamic_task(...)` or
+  `TaskDAGExecutor`, keep `${INIT...}` wired to the submitted graph input owned
+  by that facade/executor. Do not use the old AgentExecution-local DynamicTask
+  hook in new examples; AgentExecution plans ordinary work through TaskGraph and
+  ExecutionGraph.
 - use `planner=<agent-or-provider-settings>` when the model must generate the DAG
 - use `model=<agent-or-provider-settings>` for model task execution resources
 - use `handlers={"risk_check_handler": handler}` for local/custom tasks; handler names should be explicit and usually end in `_handler`
@@ -184,7 +194,8 @@ Layer ownership:
 - `TaskDAG` / `TaskDAGNode` data contracts and YAML/JSON graph config belong to `agently.types.data`
 - `TaskDAGExecutor`, `TaskDAGValidator`, and `DynamicTaskResolver` belong to core
 - `AgentlyTaskDAGPlanner` owns planner output schema, ensure keys, and planner instructions as a plugin concern
-- `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are the app-facing facade entrypoints
+- `Agently.create_dynamic_task(...)` is the app-facing facade entrypoint;
+  `agent.create_dynamic_task(...)` is compatibility-only guidance
 
 ## Anti-Patterns
 

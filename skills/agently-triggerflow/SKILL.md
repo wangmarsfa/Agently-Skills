@@ -33,6 +33,9 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `progress_model_key` for template progress with no model requests, or set
   `progress_model_key` to run a separate background model that summarizes only
   existing snapshots/task metadata without adding main-loop fields or latency;
+  model-generated progress streams `progress_delta` items before the final
+  `progress` item; use `progress_language` or the global
+  `agent_task.progress.language` setting when the host needs a fixed language;
   prove replan behavior from stream verification/replan events and snapshots
   rather than hiding the proof in a local Python loop; mocked business systems
   may supply defective facts or conflicting source data, but must not return
@@ -64,7 +67,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   distributed workflow engine. `execution.save()` is a versioned top-level
   execution snapshot with durable TriggerFlow progress, flow definition
   fingerprint validation, interrupt/resume ledgers, resource requirements,
-  lease metadata, and managed execution environment requirements. TriggerFlow
+  lease metadata, and managed execution resource requirements. TriggerFlow
   core is process-stateless between save/load; live `runtime_resources`,
   clients, callbacks, tasks, semaphores, stateful sessions, and Python
   coroutine frames are not serialized. `runtime_resources` is only the
@@ -79,7 +82,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   persist through a snapshot store that implements `put_snapshot(...)` while
   the production store owns atomic claim, lease enforcement, conflict handling,
   outbox ordering, and external side-effect idempotency. Fail-closed pending
-  resolvers or pending managed execution environments should be treated as
+  resolvers or pending managed execution resources should be treated as
   `status="pending_resources"` and `ready=False` until `async_load(...)`
   resolves and validates live resources. Late callbacks delivered to an
   expired execution-local lease fail fast before resume acceptance without
@@ -115,6 +118,14 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `build_flow(...)` helper only when the application genuinely needs multiple
   configured flow instances or test isolation, not as the default service shape
 - route model-generated or app-submitted DAG data to `agently-dynamic-task`; TaskDAG is the DAG foundation capability, Dynamic Task is the convenience facade over it, and TriggerFlow is the execution substrate rather than the facade API
+- when discussing the new Blocks lifecycle, describe it as the framework
+  lowering bridge from bounded ExecutionPlan / PlanBlock instances or
+  validated TaskDAG nodes into TriggerFlow-backed ExecutionBlockGraph. Do not
+  tell users to generate live Python TriggerFlow chunks from planner output for
+  the current run; trusted ExecutionBlocks, handlers, Workspace resources, and
+  PolicyApproval waits must be registered or provided by the host. Blocks
+  wait blocks record waiting evidence, while resume state remains in the
+  TriggerFlow interrupt/resume ledger
 - use `when(...)` + `emit_nowait(...)` as the native signal-driven pattern for fan-out, loops, side branches, and dependency joins; definition idempotence must not be confused with runtime signal deduplication
 - for a developer-owned Todo DAG or other dependency graph represented as
   stable Python flow code, express multi-dependency joins with
@@ -134,7 +145,7 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
   `lambda data: async_task_handler(data, task)` to `flow.to(...)`; that registers
   a sync lambda whose return coroutine may not be awaited. Use a normal factory
   that returns `async def handler(data): ...` and register that handler
-- when a TriggerFlow + SkillsExecutor example relies on a trusted local Skill
+- when a TriggerFlow + SkillsManager example relies on a trusted local Skill
   bundle to provide declared helper capabilities, pass selector-level
   `auto_allow=True`; explicit host `configure_skill_capabilities(...)` policy
   still wins and Skill metadata alone is not a capability grant
@@ -174,10 +185,13 @@ showing the API equivalence.
   `execution = flow.create_execution(auto_close=False)`,
   `await execution.async_start(input_value)` using a positional start value, and
   `snapshot = await execution.async_close()`
-- `flow.create_execution()` binds an execution-scoped lazy Workspace by default;
+- `flow.create_execution()` binds the current session/script default Workspace
+  by default and assigns the execution a scoped file root under
+  `files/lineage/<root-kind>/<root-id>/.../execution/<execution-id>/files`;
   pass `workspace=False` to opt out, or
   `flow.create_execution(workspace=shared_workspace)` when an application-owned
-  Workspace should be shared with Agents, service workers, or other executions
+  Workspace should be selected explicitly for Agents, service workers, or other
+  executions
 - do not call `execution.async_start(input_value=...)`; pass the start value
   positionally
 - do not assume `execution.async_start("start")` emits a custom `"start"` event.

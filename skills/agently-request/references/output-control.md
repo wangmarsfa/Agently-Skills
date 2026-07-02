@@ -50,7 +50,7 @@ The user does not need to say `.output(...)`, tuple `ensure`, `ensure_keys`, or 
     `xml_field`, `yaml_literal`, and `auto` after auto resolves to one of its
     structured formats
   - plain text / `text` has no structured instant paths; use `type="delta"` for
-    token streaming or `get_text()` after completion
+    text-increment streaming or `get_text()` after completion
   - treat instant events as provisional UI state; use final `get_data()` /
     `async_get_data()` for durable writes, validation, and business decisions
   - do not treat `instant` `.is_complete` as a global display-order barrier.

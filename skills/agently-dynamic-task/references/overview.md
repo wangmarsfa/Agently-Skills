@@ -4,7 +4,7 @@ TaskDAG is the Agently DAG foundation capability. It owns graph data,
 planning, validation, handler resolution, execution, dependency results,
 semantic outputs, and runtime placeholders. Dynamic Task is the current
 compatibility and convenience facade over that DAG substrate. It belongs above
-TriggerFlow conceptually:
+Blocks and TriggerFlow conceptually:
 
 ```text
 Agently.create_dynamic_task(...)
@@ -16,6 +16,9 @@ DynamicTask facade
         +-- TaskDAGValidator
         +-- DynamicTaskResolver
         +-- TaskDAGExecutor
+                |
+                v
+          Blocks ExecutionBlockGraph
                 |
                 v
           TriggerFlow execution substrate
@@ -30,16 +33,12 @@ Layer ownership:
   `ensure_keys`, model instructions, and retry validation wiring.
 - `TaskDAGValidator`, `TaskDAGResolver`, and `TaskDAGExecutor` are core
   runtime owners.
-- `Agently.create_dynamic_task(...)` and `agent.create_dynamic_task(...)` are
-  the app-facing facade entrypoints.
-- In Agent mode, chained quick prompt methods create an AgentExecution-local
-  ModelRequest draft. `agent.create_dynamic_task()` consumes that execution prompt snapshot:
-  rendered prompt text becomes the DynamicTask target, the `output` slot becomes
-  `output_schema`, `output_format` becomes the default model-task format, and
-  the `input` slot remains structured graph input for `${INIT...}`
-  placeholders. `set_agent_prompt(...)` / `always=True` values are inherited and
-  preserved; multi-statement setup should capture
-  `execution = agent.create_execution()` instead of mutating the shared Agent
+- `TaskDAGExecutor.compile_blocks(...)` and `async_run_blocks(...)` keep
+  TaskDAG validation and semantic-output ownership in TaskDAG, then lower the
+  validated segment through Blocks to TriggerFlow-backed execution and evidence.
+- `Agently.create_dynamic_task(...)` is the app-facing facade entrypoint.
+  `agent.create_dynamic_task(...)` is retained as a compatibility facade for
+  legacy prompt-snapshot callers, not as default guidance.
   pending prompt. Explicit facade arguments override prompt-derived defaults.
 
 Use TaskDAG modules when the graph is submitted as data and must be planned,
@@ -57,11 +56,18 @@ facade instead of introducing a separate public AgentTask handle.
 The executor does not require an Agent instance. Agent or model-provider access
 belongs to the facade, planner, model adapter, or resolver handler. That keeps
 the core executor reusable for submitted local DAGs, model DAGs, action DAGs,
-and Skills Executor context-pack integration.
+and Skills Manager context-pack integration.
 
-When a submitted DAG needs Skill guidance, use the Skills Executor resolver
+TaskDAG node fallback can express bounded retry with
+`fallback: {on_error: "retry", max_attempts: ..., backoff_base: ..., then: ...}`.
+Keep this as a node-level execution policy: retry exhaustion should continue to
+the terminal fallback such as `then: "skip"` or fail closed, and long-task
+verification must still consume the DAG result as evidence instead of treating a
+retried node as automatic task success.
+
+When a submitted DAG needs Skill guidance, use the Skills Manager resolver
 adapter instead of inventing a scheduler. Register
-`Agently.skills_executor.task_dag_resolver()` with `TaskDAGExecutor` and model
+`Agently.skills_manager.task_dag_resolver()` with `TaskDAGExecutor` and model
 that step as `kind: "skill"` with `inputs.skill_ids`, `inputs.task`,
 `inputs.intent`, and optional include flags. The node result is an
 `agently.skills.context_pack.v1` payload for downstream planner or model steps;
@@ -95,31 +101,31 @@ references, and keep larger transformations in handlers or model tasks.
 Use the same slot naming style as Prompt references: uppercase slot names in
 examples (`INIT`, `DEPS`, `STATE`, `TRIGGER`), with path access after the dot.
 
-When a submitted DAG runs behind `agent.use_dynamic_task(...).create_execution()`,
-`${INIT...}` reads graph input from `use_dynamic_task(graph_input=...)` when it
-is provided. If omitted, it reads the execution prompt snapshot `input` slot
-captured by `create_execution()`, then falls back to `{"target": task_target}`.
-Use the explicit `graph_input` argument only when the DAG input should differ
-from the Agent prompt input or when the precedence should be visible in code.
+When a submitted DAG runs through `create_dynamic_task(...)` or
+`TaskDAGExecutor`, `${INIT...}` reads the submitted graph input owned by that
+facade/executor. Use explicit graph input on the owning Dynamic Task or
+TaskDAGExecutor path when it should differ from the task target or application
+prompt context. Do not teach the old AgentExecution-local DynamicTask hook as
+the current integration path; ordinary AgentExecution work is planned through
+TaskGraph and ExecutionGraph.
 
-When Dynamic Task runs behind `agent.create_execution()`, the Agent execution
-stream bridges the underlying TriggerFlow runtime stream. If a DAG chunk fails,
-the Agent stream must terminate and surface the original error to the consumer;
-do not add external timeout workarounds or swallow failing chunks in examples.
-For developer-owned loops, wrap the Agent execution as
-`create_execution(lineage=..., limits=...)` so Dynamic Task model planning/tasks
-share the AgentExecution model-request budget and stream items carry execution
-lineage metadata.
+When Dynamic Task needs streaming, consume the owning TriggerFlow runtime stream
+from the compiled DynamicTask or TaskDAGExecutor execution. If a later
+AgentExecution must consume the DAG result, pass the snapshot or Workspace
+record as evidence; its stream and budget belong to that later AgentExecution
+only.
 
 Recommended API boundaries:
 
-- app code: `Agently.create_dynamic_task(...)` or `agent.create_dynamic_task(...)`
+- app code: `Agently.create_dynamic_task(...)`
 - planner control: `AgentlyTaskDAGPlanner`
 - graph validation: `TaskDAGValidator`
 - handler lookup: `DynamicTaskResolver`
 - execution integration: `TaskDAGExecutor`
+- Blocks lifecycle evidence: `TaskDAGExecutor.compile_blocks(...)` /
+  `TaskDAGExecutor.async_run_blocks(...)`
 
-For Skills Executor work, use Dynamic Task as the DAG substrate rather than
-placing Skills execution under TriggerFlow directly. Skills execution may
+For Skills Manager context work, use Dynamic Task as the DAG substrate rather than
+placing Skill context construction under TriggerFlow directly. Skills Manager may
 provide resolver handlers, context-pack adapters, or facade defaults, but the
 public concept remains Dynamic Task.
