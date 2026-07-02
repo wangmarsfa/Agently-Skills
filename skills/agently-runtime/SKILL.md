@@ -629,9 +629,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   for long-lived loops, but CLI/script shutdown still needs explicit flush for
   background outlets; rely on AgentExecution liveness diagnostics rather than
   public delta frequency for stall detection
-- for temporary development debugging, attach an EventCenter observation hook or
-  call `.set_settings("debug", True)` / `.set_settings("debug", "detail")` to
-  inspect Task planning, execution blocks, model requests, ActionRuntime, and Workspace writes;
+- for temporary development debugging, attach an EventCenter observation hook,
+  call `.set_settings("debug", True)` for request/result and AgentTask process
+  summaries, or call `.set_settings("debug", "detail")` for full observation
+  detail including model delta output;
   remove debug hooks/settings from examples and production snippets after the
   issue is diagnosed
 
