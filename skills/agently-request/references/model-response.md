@@ -19,6 +19,11 @@ absent, dispatch and retry timing keep the legacy immediate behavior.
 - default to async-first response APIs in services, streaming paths, TriggerFlow steps, and any integration that may overlap work
 - treat sync getters and generators as convenience wrappers for scripts, REPL use, or compatibility bridges
 - use `delta`, `instant`, `specific`, or `all` instead of custom stream splitting logic
+- for AgentExecution streams, `type="delta"` remains the public string stream;
+  `type="instant"` preserves source `AgentExecutionStreamData` items and appends
+  synthetic `path="$delta"` text-projection items only when a source item can be
+  projected to natural language; `type="all"` is for raw records/audits and must
+  not include synthetic `$delta` items
 - when OpenAICompatible replays a transient disconnect after partial output,
   treat `StreamingData(path="$status", value=...)` as a framework control record:
   `failed` plus `retry=True` invalidates provisional output and requires the UI

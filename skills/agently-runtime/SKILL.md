@@ -587,7 +587,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   structure and concrete execution lowering, while `meta["logs"]` exposes model
   response ids, ActionRuntime action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
-  to copy raw action stdout into final text
+  to copy raw action stdout into final text. `type="delta"` remains the public
+  string stream; `type="instant"` yields original structured items and appends
+  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
+  text projection when a source item can be projected to natural language;
+  `type="all"` remains the raw audit stream and must not include synthetic
+  `$delta` items
 - when AgentExecution planning selects direct `model_request`, treat
   Action and Observation as skipped business stages and consume the model result
   as passthrough. If Action or Skill candidates are available but the selected
