@@ -268,9 +268,15 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for large Workspace, repository, or file-backed evidence, AgentTask may
   carry scoped retrieval query groups before broad reads. Flat uses
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
-  pre-step Blocks `workspace_operation.search` facts and injects a compact
-  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
-  view into the bounded `agent_step`;
+  pre-step Blocks `workspace_operation.search` facts. The operation name is
+  compatibility-stable, while execution uses Workspace `retrieve(...)` for
+  record/file candidates, optional vector/hybrid mode, structure-gated rerank
+  over a bounded candidate-summary window, refill, and budget packaging before
+  injecting a body-light model-hot `evidence_ledger` index plus
+  compatibility `scoped_retrieval_results` view into the bounded `agent_step`;
+  selected structured records may appear as compact projections with
+  `projection`/`original_ref` metadata so later readback can recover the raw
+  Workspace record;
   reconstructable provenance such as SHA, byte counts, backend/search-engine
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
@@ -285,7 +291,8 @@ here for Actions, ExecutionResource, service, or DevTools details.
   set `search_surface` to `workspace_index`, `workspace_files`, or
   `workspace_index_and_files`; record collections belong in
   `filters.collection`, exact record kinds may use `filters.kind`, and file
-  scopes use `path`/`pattern`. Singleton record filter lists are normalized to
+  scopes use top-level `path`/`pattern`; that file `path` is not applied as a
+  record filter. Singleton record filter lists are normalized to
   scalar values before execution so retained Workspace records and files can
   stay out of hot context until bounded search/readback needs them.
   For `workspace_files`, `query` is content text, `path` is the directory/file
@@ -318,8 +325,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   `acceptance_delta`, repair constraints, next-step requirements, and exact
   evidence anchors without reintroducing cold integrity provenance into hot
   prompts.
-  `search_files` and Blocks `workspace_operation.search/read_bounded` return
-  factual `locator_ref` and `evidence_snippet` records; model-owned
+  Workspace `retrieve(...)` plus `grep_files`/`search_files`, and Blocks
+  `workspace_operation.search/read_bounded`, return factual `locator_ref` and
+  `evidence_snippet` records; selected structured record snippets may be
+  compact projections that preserve `projection`/`original_ref` metadata for
+  raw Workspace readback; model-owned
   planning/verification decides whether snippets are useful. If a TaskBoard
   scoped-retrieval card reports blocked/insufficient output without an explicit
   next action, AgentTask synthesizes an expanded evidence card plus a

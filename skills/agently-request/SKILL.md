@@ -24,8 +24,8 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   keyword/regex checks -> start from `agently` and read
   `skills/agently/references/model-quality-validation.md`
 - one result consumed as text/data/meta/stream without re-requesting -> `references/model-response.md`
-- conversation continuity, memo, chat history, or restore-after-restart -> `references/session-memory.md`
-- embeddings, Chroma collections, Workspace recall, retrieval, or KB-to-answer -> `references/knowledge-base.md`
+- conversation continuity, SessionMemory plugins, `AgentlyMemory`, memo, chat history, or restore-after-restart -> `references/session-memory.md`
+- embeddings, Chroma collections, Workspace `retrieve`/`grep`, Workspace recall, retrieval, or KB-to-answer -> `references/knowledge-base.md`
 
 ## Native-First Rules
 
@@ -73,10 +73,16 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   ModelRequest calls return `ModelRequestResult`. `ModelResponseResult` is
   retired. `get_response()` remains a compatibility alias where present, but
   new Agent examples should prefer `get_result()`
-- keep Session memory separate from TriggerFlow execution state
-- use `workspace.build_context(...)` when ordinary multi-turn task work needs a
-  ContextPackage from prior Workspace records; use low-level `workspace.search(...)`
-  for debugging or explicit filters
+- keep Session memory separate from TriggerFlow execution state; when durable
+  long-term memory is needed, use `session.use_memory(mode="AgentlyMemory",
+  workspace=...)` or bind it through an Agent session instead of inventing a
+  parallel memory manager
+- use `workspace.retrieve(...)` for shared intelligent retrieval over records
+  and files; use `workspace.build_context(...)` when ordinary multi-turn task
+  work specifically needs a ContextPackage from prior Workspace records; use
+  low-level `workspace.grep(...)` / `workspace.grep_files(...)` for debugging
+  or explicit deterministic filters. `workspace.search(...)` and
+  `workspace.search_files(...)` are compatibility aliases
 - when the next request should be produced by an Agent-owned task loop, let
   `agent.create_task(...)` build the ContextPackage between iterations and record
   observations, decisions, verification, and checkpoints; do not duplicate that

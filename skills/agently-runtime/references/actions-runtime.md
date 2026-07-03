@@ -139,7 +139,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `commands` is omitted. Treat shell as a test/build/git/read-only diagnostics
   capability; stdout/stderr are bounded by `max_output_chars`, and oversized
   streams are written under `artifacts/shell/` when a Workspace root is bound.
-- Workspace search and Blocks `workspace_operation.search` accept structural
+- Workspace `retrieve(...)` and Blocks `workspace_operation.search` accept structural
   `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
   filters when planner context already identifies the retained record family or
   target ref; do not treat the filtered hit itself as semantic acceptance.
@@ -193,9 +193,12 @@ Use this skill when the problem is agent-side extension rather than prompt shape
 - Scoped retrieval is a token/cost optimization owned by the work-unit carrier,
   not the runner or verifier. Flat steps may carry
   `scoped_retrieval.query_groups`; the Flat BlockCarrier lowers those groups to
-  pre-step Blocks `workspace_operation.search` facts and injects a compact
-  model-hot `evidence_ledger` plus compatibility `scoped_retrieval_results`
-  view into the bounded `agent_step`;
+  pre-step Blocks `workspace_operation.search` facts backed by Workspace
+  `retrieve(...)` and injects a body-light model-hot `evidence_ledger` index plus
+  compatibility `scoped_retrieval_results` view into the bounded `agent_step`;
+  selected structured records may appear as compact projections with
+  `projection`/`original_ref` metadata so later readback can recover the raw
+  Workspace record;
   reconstructable provenance such as SHA, byte counts, backend/search-engine
   details, execution block ids, and full file refs stays in raw
   Workspace/Blocks evidence for programmatic audit and readback. TaskBoard
@@ -216,15 +219,20 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   bounded/truncated snippets support only the visible excerpt. Prefer `cite_as`
   or canonical ids in `evidence_use`; path/URL/record/artifact/action aliases
   are canonicalized only when unambiguous.
-  `workspace_files`, `query` is content text, `path` is the directory/file
-  scope, and `pattern` is a file glob such as `*.md`, `*`, or `**` for recursive
-  file search. Local Workspace file search uses `rg` when available and falls
+  For `workspace_files` and `workspace_index_and_files`, top-level `query` is
+  content text, top-level `path` is the directory/file scope, and `pattern` is
+  a file glob such as `*.md`, `*`, or `**` for recursive file search. The file
+  `path` is not applied as a record filter. Local Workspace file search uses `rg` when available and falls
   back to bounded file scanning. Blocks return a small bounded context around
-  file matches by default. Blocks `workspace_operation.search` uses Workspace
-  SQLite/FTS and bounded Workspace file search, while
+  file matches by default. Blocks `workspace_operation.search` keeps its
+  compatibility name but uses Workspace `retrieve(...)` for record/file
+  candidates, optional vector/hybrid mode, structure-gated rerank over a bounded
+  candidate-summary window, refill, and budget packaging, while
   `workspace_operation.read_bounded` reads refs/paths under bounds. Both return
   `locator_ref` and/or `evidence_snippet` facts only, including whether bounded
-  snippets were `truncated`; the downstream model judges usefulness and next
+  snippets were `truncated`; selected structured record snippets may be compact
+  projections that preserve `projection`/`original_ref` metadata for raw
+  Workspace readback; the downstream model judges usefulness and next
   action. If a TaskBoard scoped-retrieval card reports blocked/insufficient
   output without an explicit next action, AgentTask synthesizes an expanded
   evidence card plus a continuation card instead of relying on a terminal
