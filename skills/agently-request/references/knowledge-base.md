@@ -7,20 +7,35 @@ capability surface.
 
 - prefer embedding-agent plus Chroma integration before custom vector plumbing
 - use `workspace.retrieve(...)` for shared intelligent retrieval over Workspace
-  records and files: keyword/tag candidates, optional vector mode,
+  records and files: keyword/tag candidates, `method="auto"` candidate-strategy
+  selection, optional vector/hybrid mode,
   structure-gated model rerank over a bounded candidate-summary window,
   dropped-candidate refill, length-budget or `top_n` packaging, and compact
-  selected-record projections with `projection`/`original_ref` metadata while
-  raw Workspace records remain available for readback
+  selected-record representation packaging with `projection`/`original_ref`
+  metadata. Default `record_representation="auto"` preserves short structured
+  records as compact structure, omits cold fields such as `audit`,
+  `source_system`, `tags`, and `noise` from the model-hot package, projects
+  long/noisy records, and leaves raw Workspace records available for readback
 - for multi-turn task information already stored in Workspace, prefer
   `workspace.build_context(goal=..., scope=..., budget=..., profile=...)` so
   ContextPlanner, Retriever, and ContextBuilder plugins own the retrieval path
 - use `workspace.grep(...)` and `workspace.grep_files(...)` for low-level
   deterministic debugging or explicit filters, not as the normal app-facing
-  recall API. `workspace.search(...)` and `workspace.search_files(...)` are
-  compatibility aliases
+  recall API. `workspace.search(...)` and `workspace.search_files(...)` keep
+  compatibility return shapes while automatically choosing deterministic grep
+  or retrieval packaging internally
+- keep candidate retrieval strategy and rerank separate. `method="auto"` chooses
+  keyword versus hybrid from Workspace retrieval policy; `rerank=None` uses the
+  structural rerank gate and does not become mandatory just because embeddings
+  are configured
 - if vector mode is requested and the backend only has `NoopVectorIndex`, expect
   deterministic fallback plus diagnostics rather than silent failure
+- the default local Workspace backend keeps `NoopVectorIndex`; provider-specific
+  embedding clients belong in business code, custom backends, or plugins that
+  install a backend `vector_index`. Workspace core does not own the embedding
+  provider. If callers install the built-in `LocalVectorIndex(embedder)`, the
+  default similarity formula is cosine; dot product and L2 are explicit
+  options. Custom vector indexes own their own distance formula
 - use `workspace.get_data(...)` for structured records/checkpoints and
   `workspace.links(...)` for decision/evidence lineage when retrieval feeds a
   later loop step

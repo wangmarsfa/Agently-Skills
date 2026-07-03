@@ -82,7 +82,8 @@ request clearly needs branching, waiting, resume, or durable orchestration, use
   work specifically needs a ContextPackage from prior Workspace records; use
   low-level `workspace.grep(...)` / `workspace.grep_files(...)` for debugging
   or explicit deterministic filters. `workspace.search(...)` and
-  `workspace.search_files(...)` are compatibility aliases
+  `workspace.search_files(...)` keep their compatibility return shapes, but may
+  automatically choose deterministic grep or retrieval packaging internally
 - when the next request should be produced by an Agent-owned task loop, let
   `agent.create_task(...)` build the ContextPackage between iterations and record
   observations, decisions, verification, and checkpoints; do not duplicate that
