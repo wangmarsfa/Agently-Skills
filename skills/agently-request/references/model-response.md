@@ -24,6 +24,13 @@ absent, dispatch and retry timing keep the legacy immediate behavior.
   synthetic `path="$delta"` text-projection items only when a source item can be
   projected to natural language; `type="all"` is for raw records/audits and must
   not include synthetic `$delta` items
+- treat `$delta` as the unified natural-language stream slot inside
+  `instant`, not as another source-addressed field delta. Consumers that need
+  both `$delta` and detailed paths should render them into separate surfaces:
+  append `$delta` to the visible text stream and use source-addressed deltas
+  such as `model.delta` or output field paths only to update structured UI state.
+  Internal bridges, recorders, and audits should consume `type="all"` so derived
+  `$delta` projection items do not become source facts.
 - when OpenAICompatible replays a transient disconnect after partial output,
   treat `StreamingData(path="$status", value=...)` as a framework control record:
   `failed` plus `retry=True` invalidates provisional output and requires the UI
