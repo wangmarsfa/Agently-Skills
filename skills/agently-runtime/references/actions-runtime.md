@@ -175,6 +175,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   bounded `workspace_artifact.targeted_readback` ledger items from declared
   output-contract sections and generic source/risk/reference/coverage anchors;
   treat those snippets as scoped evidence, not as local completion judgment.
+  Host file-producing Actions should return typed `file_refs` or
+  `artifact_refs` when the produced file must be consumed by AgentTask,
+  TaskBoard, a verifier, or an application UI. A path-only payload such as
+  `{filename, path, size}` remains bounded Action result evidence and an
+  external ref pointer; it becomes a trusted Workspace file only when the path
+  is Workspace-contained and `Workspace.read_file(...)` succeeds, or when the
+  host returns explicit framework refs.
   Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or

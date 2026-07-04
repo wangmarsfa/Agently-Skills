@@ -251,6 +251,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
   returns only a concise summary or path/ref pointer as `final_result`, not a
   second copy of the file body;
+  host file-producing Actions should return typed `file_refs` or
+  `artifact_refs` when later AgentTask, TaskBoard, verifier, or UI consumers
+  need the produced file. A path-only payload such as `{filename, path, size}`
+  remains bounded Action result evidence and an external ref pointer; it is not
+  a trusted Workspace file unless the path is Workspace-contained and real
+  `Workspace.read_file(...)` succeeds, or the host returns explicit framework
+  refs;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
