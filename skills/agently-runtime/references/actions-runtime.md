@@ -312,9 +312,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   as timeouts, connection resets, incomplete chunked reads, and proxy handshakes
   are retried once by default; a long-unavailable network is still an
   infrastructure failure.
-- Browse defaults to Playwright -> restricted curl -> BS4. The curl backend is
-  internal to Browse and only receives normalized URL candidates; do not expose
-  it as model-visible shell execution.
+- Browse defaults to Jina Reader -> Playwright -> BS4 -> restricted curl. The
+  curl backend is internal to Browse and only receives normalized URL
+  candidates; do not expose it as model-visible shell execution. Jina Reader is
+  a third-party URL-to-Markdown first pass, and Browse automatically tries the
+  official alternate endpoint `https://r.jinaai.cn/` when the primary Reader
+  endpoint has a transport or service failure. Disable it with
+  `Browse(enable_jina_reader=False, fallback_order=("playwright", "bs4", "curl"))`
+  when that external service boundary is not acceptable.
 - when `agent.language(...)` is set, registered Search/Browse packages may use
   the policy as default locale guidance: Search derives any provider-specific
   region code inside the Search package, and Browse receives an

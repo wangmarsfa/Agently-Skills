@@ -151,17 +151,25 @@ import os
 from agently.builtins.actions import Browse, Search
 
 search = Search(proxy=os.getenv("BROWSE_PROXY"), timeout=15, max_attempts=2)
+disable_jina_reader = os.getenv("BROWSE_DISABLE_JINA_READER", "0").lower() in {"1", "true", "yes"}
+jina_reader_endpoint = os.getenv("BROWSE_JINA_READER_ENDPOINT", "https://r.jina.ai/")
+fallback_order = (
+    ("playwright", "bs4", "curl") if disable_jina_reader else ("jina_reader", "playwright", "bs4", "curl")
+)
 browse = Browse(
     proxy=os.getenv("BROWSE_PROXY"),
     max_attempts=2,
     enable_pyautogui=False,
     enable_playwright=True,
+    enable_curl=True,
+    enable_jina_reader=not disable_jina_reader,
     enable_bs4=True,
-    fallback_order=("playwright", "bs4"),
+    jina_reader_endpoint=jina_reader_endpoint,
+    fallback_order=fallback_order,
 )
 ```
 
-Prefer this for “read web pages”, “summarize docs”, or “verify an online page”. Keep shell sandboxes out of the path unless the task truly needs command execution.
+Prefer this for “read web pages”, “summarize docs”, or “verify an online page”. Keep shell sandboxes out of the path unless the task truly needs command execution. Browse uses Jina Reader by default as an external URL-to-Markdown first pass and automatically knows the official alternate endpoint `https://r.jinaai.cn/`; set `BROWSE_DISABLE_JINA_READER=1` when delegating public URLs to that external service is not acceptable. Set `BROWSE_JINA_READER_ENDPOINT` only when you need to choose a different primary Reader endpoint.
 Attach them with `agent.use_actions([search, browse])` when you want the agent
 to call both packages.
 

@@ -27,12 +27,17 @@ here for Actions, ExecutionResource, service, or DevTools details.
   and transient retry configuration belongs to the package/executor, not
   ExecutionResource. Registered Browse actions fail closed with structured
   diagnostics when all backends fail; direct `Browse.browse(...)` remains a
-  text-returning compatibility helper. Browse defaults to Playwright ->
-  restricted curl -> BS4, where curl is an internal normalized-URL fallback and
-  not model-visible shell execution. Browse should try same-host protocol and
-  canonical candidates before giving up, and remote PDF/Office/image/download
-  bytes should be materialized into the bound Workspace with file refs rather
-  than copied into the model hot path.
+  text-returning compatibility helper. Browse defaults to Jina Reader ->
+  Playwright -> BS4 -> restricted curl, where curl is an internal normalized-URL
+  fallback and not model-visible shell execution. Jina Reader is an external
+  URL-to-Markdown first pass and Browse automatically tries the official
+  alternate endpoint `https://r.jinaai.cn/` when the primary Reader endpoint has
+  a transport or service failure; disable it with
+  `Browse(enable_jina_reader=False, fallback_order=("playwright", "bs4", "curl"))`
+  when that external service boundary is not acceptable. Browse should
+  try same-host protocol and canonical candidates before giving up, and remote
+  PDF/Office/image/download bytes should be materialized into the bound Workspace
+  with file refs rather than copied into the model hot path.
 - treat `agent_task.heartbeat` as observation only: AgentTask may emit it after
   a quiet interval with no other stream items, but any normal progress,
   snapshot, child-execution, delta, or phase event resets the quiet timer.
