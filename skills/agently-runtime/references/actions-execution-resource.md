@@ -69,6 +69,16 @@ Audience split:
 - `enable_*` helper `desc=` parameters supplement default capability descriptions by default. Use `desc_mode="override"` only when replacing baseline usage and safety guidance is intentional.
 - Public helper APIs should use explicit typing for IDE assistance. Prefer `Literal` for finite option sets, including `desc_mode`.
 
+For human approval or external exchange transports, ExecutionResource may own a
+live client or queue handle, but the wait/resume protocol belongs to TriggerFlow
+and ExecutionExchange. Bind the live transport as
+`runtime_resources={"execution_exchange_provider": provider}` or register a
+reusable provider through `agently.base.execution_exchange.register_provider(...)`.
+Host UIs should render `ExecutionExchangeView` data from
+`project_pending_exchanges(execution)` / `project_execution_exchanges(execution)`;
+connected ActionFlow/PolicyApproval service endpoints may resolve the same live
+run with `execution_exchange.async_respond(...)`.
+
 Do not design custom ActionExecutors that secretly start long-lived MCP servers,
 processes, or broad sandboxes when the environment can be declared and managed
 through ExecutionResource.
@@ -136,10 +146,11 @@ agent.action.register_bash_sandbox_action(
 ```
 
 This is the right profile for “read local files only” or “search the repo tree”.
-Keep `allow_unsafe=False` and do not include `curl`, `wget`, `pip`, `uv`, or
-`poetry`. If the host passes `env=...` to a managed action helper, those raw
-values are for the execution provider only; visible action metadata should
-redact env values while preserving key names.
+Keep shell bypass grants host-only; do not include `allow_unsafe` or equivalent
+escape hatches in model-visible schemas, and do not include `curl`, `wget`,
+`pip`, `uv`, or `poetry` in read-only profiles. If the host passes `env=...` to
+a managed action helper, those raw values are for the execution provider only;
+visible action metadata should redact env values while preserving key names.
 
 ### Network Read Only
 
@@ -201,6 +212,6 @@ The current codebase does not have a single “full trust” switch for Python s
 - use Bash sandbox or a custom executor, not Python sandbox
 - broaden `allowed_cmd_prefixes` only for trusted flows
 - keep `allowed_workdir_roots` narrow even when commands are broad
-- use `allow_unsafe=True` only in explicitly trusted and reviewable execution paths
+- use `allow_unsafe=True` only in explicitly trusted and reviewable host-owned execution paths
 
 For the most permissive boundary, use a dedicated Docker-based executor with controlled network and filesystem settings, and keep that executor isolated from the default app path.

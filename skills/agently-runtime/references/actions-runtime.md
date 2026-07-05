@@ -86,7 +86,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   router, queue, or exchange transport, bind it with runtime resource key
   `execution_exchange_provider`, and implement provider `publish_request(...)`
   to return `exchange_id`, `audit_metadata`, or `provider_metadata` while
-  TriggerFlow keeps the wait/resume ledger; durable RuntimeEvent records carry
+  TriggerFlow keeps the wait/resume ledger; reusable transports may also be
+  registered through `agently.base.execution_exchange.register_provider(...)`,
+  host cards should consume `project_pending_exchanges(execution)` /
+  `project_execution_exchanges(execution)`, and connected
+  ActionFlow/PolicyApproval endpoints may call
+  `execution_exchange.async_respond(...)` to resume a live exchange; durable
+  RuntimeEvent records carry
   parent signal, aggregation scope, operator id, interrupt id, resume request
   id, actor id, exchange id, lease owner id, snapshot refs, and artifact refs
   for DevTools and recovery diagnostics; use
@@ -139,6 +145,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `commands` is omitted. Treat shell as a test/build/git/read-only diagnostics
   capability; stdout/stderr are bounded by `max_output_chars`, and oversized
   streams are written under `artifacts/shell/` when a Workspace root is bound.
+- Treat shell bypass grants such as `allow_unsafe` as host-only direct-call
+  inputs. Do not expose them in model-visible action schemas; declare any
+  direct-call-only action parameters with `meta={"host_only_input_keys": [...]}`
+  so Action Runtime strips them from model-planned commands.
 - Workspace `retrieve(...)` and Blocks `workspace_operation.search` accept structural
   `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
   filters when planner context already identifies the retained record family or

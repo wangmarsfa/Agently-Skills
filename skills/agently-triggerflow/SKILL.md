@@ -50,6 +50,14 @@ The user does not need to say TriggerFlow or Agently. Scenario language such as 
 - for framework policy approvals, use the global PolicyApproval contract and
   represent pending approvals as `pause_for(type="policy_approval", ...)`
   interrupts that resume through `continue_with(...)`
+- for host-owned approval, webhook, queue, or UI-card transports, use the
+  ExecutionExchange provider seam instead of inventing a second wait/resume
+  channel: the provider publishes typed requests, while TriggerFlow owns the
+  interrupt ledger and all resumes still go through `continue_with(...)`
+- when a TriggerFlow exchange should be rendered by a host, project it through
+  `agently.base.execution_exchange.project_pending_exchanges(execution)` or
+  `project_execution_exchanges(execution)`; do not make host code depend on raw
+  TriggerFlow interrupt internals as the UI contract
 - do not put `pause_for(...)` behind hidden execution sugar such as `flow.start()` or flow-level runtime stream helpers; create an explicit execution handle and consume `get_pending_interrupts()` / `continue_with(...)`
 - close waiting executions explicitly: `close()` / `async_close()` rejects pending interrupts by default, and `pending_interrupts="cancel"` must be chosen deliberately when abandoning waits
 - when a sub-flow can pause, keep the external API rooted at the parent execution id plus projected root interrupt id; do not require callers to manage child execution ids

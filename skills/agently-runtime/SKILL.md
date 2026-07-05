@@ -120,7 +120,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   or exchange transport, bind it with runtime resource key
   `execution_exchange_provider`, and implement provider `publish_request(...)`
   to return `exchange_id`, `audit_metadata`, or `provider_metadata` without
-  taking over TriggerFlow resume lifecycle; use
+  taking over TriggerFlow resume lifecycle; reusable host transports may also be
+  registered with `agently.base.execution_exchange.register_provider(...)`, and
+  hosts should render normalized views from
+  `project_pending_exchanges(execution)` / `project_execution_exchanges(execution)`
+  instead of raw interrupts; connected ActionFlow/PolicyApproval endpoints may
+  resolve live exchanges with `execution_exchange.async_respond(exchange_id,
+  payload, actor=...)`, which still funnels through TriggerFlow
+  `continue_with(...)`; use
   `execution.set_compaction_policy(...)` for long-running
   TriggerFlow executions that externalize large payloads behind Workspace or
   provider artifact refs while keeping only compaction facts and retained
@@ -151,6 +158,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   dispatch-failed phases; callbacks delivered to expired execution-local leases
   fail fast before acceptance without writing resume ledger entries, while the interrupt carries an ExternalWait
   request envelope for projection and restart diagnostics
+- AgentExecution-owned ActionFlow approval waits are projected as stream items
+  with path `exchange.pending` / `exchange.resolved`,
+  `meta.stream_kind=="exchange"`, and value
+  `{"action": "...", "exchanges": [ExecutionExchangeView, ...]}`; frontend or
+  service consumers should treat these normalized views as the render contract
+  instead of inspecting policy-gate implementation details
 - for distributed TriggerFlow recovery, pass
   `require_distributed_provider=True` when persisting snapshots; this must fail
   closed unless the selected providers report CAS, lease, range-read,
