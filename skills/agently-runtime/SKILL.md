@@ -230,7 +230,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for AgentTask terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); explicitly configured
   `max_iterations` can still leave useful Workspace files, but those are partial artifacts
-  (`accepted=False`, `artifact_status="partial"`); when semantic content quality
+  (`accepted=False`, `artifact_status="partial"`); accepted degraded results use
+  `artifact_status="degraded"` and should include a user-facing
+  `final_response` that explains the disclosed unavailable/partial evidence
+  boundary; useful but unaccepted artifacts should also include `final_response`
+  when available so callers can show what was produced and which requirements
+  remain unmet; when semantic content quality
   matters, combine deterministic smoke checks with current docs/spec/source
   references or an Agently model-judge request, and do not use counts, keyword
   hits, or task verifier acceptance alone as the primary acceptance signal
@@ -384,7 +389,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   bounded acceptance-index and handoff projections for resume orientation; they
   point back to TaskBoard revision, EvidenceEnvelope, artifact, and checkpoint
   refs, and must not be treated as a second evidence ledger or completion
-  verdict
+  verdict. Acceptance-index projections may include dirty/cache state, verdict
+  fingerprints, scoped evidence refs, and progress counters so TaskBoard can
+  skip redundant verifier work for unchanged green criteria while still
+  verifying dirty items and required host guards
 - for AgentTask business-system examples, mocks may provide facts, source
   records, policies, missing data, or conflicting inputs, but must not provide
   hidden expected answers, pass/fail fields, or deterministic business-quality
