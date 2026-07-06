@@ -152,7 +152,21 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   snippets, not completion judgments.
   TaskBoard finalization should keep file-backed deliverable bodies in
   Workspace and return only a concise summary or path/ref pointer as
-  `final_result`, not a second copy of the file body.
+  `final_result`, not a second copy of the file body. Terminal TaskBoard
+  results may also carry a user-facing `final_response`: accepted degraded
+  deliveries use `artifact_status="degraded"` with disclosed evidence limits,
+  while useful but unaccepted artifacts remain `artifact_status="partial"` and
+  should explain unmet requirements instead of being reported as completed.
+  TaskBoard terminal payloads may include bounded `taskboard.completion_notes`
+  for card summaries, known gaps, verifier notes, and acceptance progress; use
+  them to disclose final-response limitations, but treat them as projection-only
+  process context, not EvidenceEnvelope evidence or completion proof.
+  For model-produced verifier/finalizer content, prose fields such as `status`,
+  `reason`, `progress_message`, and `final_response` are display context only;
+  semantic completion, repairability, and acceptance state must come from
+  structured output fields such as `is_complete`, `requires_block`, and
+  `criterion_checks[].satisfied` plus host guards, never from tokenization,
+  keyword, substring, regex, or status-text matching over model prose.
   TaskBoard planning card ids are optional model hints. The framework owns
   canonical card ids, deduplication, and dependency remapping; ambiguous id
   hints should fail closed rather than being guessed.
@@ -185,7 +199,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   projections as orientation only: they summarize criteria/card status,
   evidence refs, artifact refs, preflight facts, and explicit task-scoped dirty
   or unresolved state facts, but they are not `EvidenceEnvelope` evidence and do
-  not accept the task. Preflight requirements must come from mounted Actions,
+  not accept the task. The acceptance index may also carry dirty/cache state,
+  verdict fingerprints, scoped evidence refs, and progress counters so
+  TaskBoard can avoid re-verifying unchanged green criteria; dirty items,
+  required deliverable guards, and explicit blocking facts still go through
+  verifier or host checks. Preflight requirements must come from mounted Actions,
   ExecutionResources, or existing Workspace refs; do not assume universal git,
   browser, shell, or startup-script checks.
   TaskBoard scheduling defaults to event-driven `frontier` mode: completed
