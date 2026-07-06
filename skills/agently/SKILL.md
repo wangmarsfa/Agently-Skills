@@ -125,9 +125,12 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   plain public delta remains a valid body source when the consumer handles
   replay boundaries.
   For AgentTask-backed AgentExecution, public `delta` may also project
-  framework-owned progress, action observation, heartbeat, phase, retry, and
-  terminal-result facts as short paragraphs separated by blank lines, while
-  `instant` remains the structured stream for UI state and diagnostics.
+  framework-owned progress, action observation, TaskBoard status tables,
+  heartbeat, phase, retry, and terminal-result facts as short paragraphs
+  separated by blank lines, while `instant` remains the structured stream for
+  UI state and diagnostics. TaskBoard status tables are display-only
+  projections from structured board events; they do not own completion or
+  quality judgment.
   Internal artifact writers should consume AgentExecution stream facts: natural
   body text comes from raw delta items, and retry boundaries come from `$status`
   when the provider reports it. If the public `"<$retry>...</$retry>"` delta
