@@ -193,6 +193,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
   browser access just because the task loop exists
+- when a running task-strategy AgentExecution needs additional optional context,
+  use `execution.async_add_guidance(...)` / `execution.add_guidance(...)`.
+  This records guidance to the retained AgentTask Workspace and applies it at
+  the next safe Flat or TaskBoard boundary. Do not use guidance as completion
+  evidence, do not inject it into non-task route prompts, and use TriggerFlow
+  `pause_for(...)` / `continue_with(...)` instead when an external answer is
+  required before execution may continue.
 - when an AgentTask Skills step must perform side effects, grant the
   relevant ActionRuntime tools/actions explicitly through route or effort
   configuration, declare required side-effect actions when a Skills React loop
@@ -631,11 +638,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   response ids, ActionRuntime action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
   to copy raw action stdout into final text. `type="delta"` remains the public
-  string stream; `type="instant"` yields original structured items and appends
-  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
-  text projection when a source item can be projected to natural language;
-  `type="all"` remains the raw audit stream and must not include synthetic
-  `$delta` items
+	  string stream; `type="instant"` yields original structured items and appends
+	  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
+	  text projection when a source item can be projected to natural language;
+	  `type="all"` remains the raw audit stream and must not include synthetic
+	  `$delta` items. Rich task UIs should consume `instant` for structured state
+	  and render public/synthetic `$delta` only as visible process text; public
+	  `delta` is a printable compatibility stream, not the UI state owner
 - when AgentExecution planning selects direct `model_request`, treat
   Action and Observation as skipped business stages and consume the model result
   as passthrough. If Action or Skill candidates are available but the selected

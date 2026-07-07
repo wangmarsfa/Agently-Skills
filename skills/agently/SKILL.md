@@ -125,12 +125,21 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   plain public delta remains a valid body source when the consumer handles
   replay boundaries.
   For AgentTask-backed AgentExecution, public `delta` may also project
-  framework-owned progress, action observation, TaskBoard status tables,
-  heartbeat, phase, retry, and terminal-result facts as short paragraphs
-  separated by blank lines, while `instant` remains the structured stream for
-  UI state and diagnostics. TaskBoard status tables are display-only
-  projections from structured board events; they do not own completion or
-  quality judgment.
+  framework-owned progress, action observation, Flat plan/action summaries,
+  TaskBoard status tables, phase, retry, and terminal-result facts as short
+  paragraphs separated by blank lines, while `instant` remains the structured
+  stream for UI state and diagnostics. Flat projections stay linear: plan
+  completion can state the previous completed action and current action plan,
+  and terminal output can summarize what was done and the result. TaskBoard
+  status tables are display-only projections from structured AgentTask events;
+  the first TaskBoard projection may render a table and later ticks may render
+  card-state changes instead of reprinting the whole table.
+  These projections do not own completion or quality judgment. Do not add a
+  default parallel narrator request for process prose; use bounded process
+  fields such as `progress_message`,
+  `short_summary`, `verification_summary`, and `final_response` from the
+  existing planner, verifier, card, or finalizer request, then consume them
+  through `instant` / synthetic `$delta` when the UI needs richer structure.
   Internal artifact writers should consume AgentExecution stream facts: natural
   body text comes from raw delta items, and retry boundaries come from `$status`
   when the provider reports it. If the public `"<$retry>...</$retry>"` delta
@@ -246,14 +255,20 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `effort(..., execution={"step_plan": "dag"})` degrade to one direct bounded
   AgentExecution step with diagnostics. Use TaskDAG / DynamicTask separately
   when the application or visual automation surface owns the submitted graph.
-- treat task `execution="auto"` as the default execution strategy. Auto uses one
-  AgentTask-owned task-shape model request that first allows free natural
-  language analysis and then returns a thin structured `execution_hint`; do not
-  route with keywords, regex, or local scorecards, and do not treat the hint as
-  completion evidence. Use `execution="flat"` / `.strategy("flat")` to force the
-  linear loop and `execution="taskboard"` / `.strategy("taskboard")` only when
-  the host explicitly wants TaskBoard. Nested AgentExecution instances inherit
-  the parent strategy context unless the child explicitly overrides it.
+- treat `AgentExecution.strategy("auto"|"direct"|"flat"|"taskboard")` as the
+  top-level route/execution selector. `direct` forces the ordinary
+  model_request route with ActionLoop and does not create AgentTask; do not use
+  `.effort("direct")` for route control. `auto` keeps ordinary prompt/action
+  runs direct unless structural task signals such as goals, success criteria,
+  task options, or Skill selectors enter AgentTask. Once AgentTask is selected,
+  task `execution="auto"` uses one AgentTask-owned task-shape model request that
+  allows free natural language analysis and then returns a thin structured
+  `execution_hint`; do not route with keywords, regex, or local scorecards, and
+  do not treat the hint as completion evidence. Use `execution="flat"` /
+  `.strategy("flat")` to force the linear loop and `execution="taskboard"` /
+  `.strategy("taskboard")` only when the host explicitly wants TaskBoard.
+  Nested AgentExecution instances inherit the parent strategy context unless
+  the child explicitly overrides it.
 - treat Blocks as the internal lowering bridge from AgentTask
   `ExecutionPlan` / `PlanBlock` instances and validated TaskDAG nodes to
   TriggerFlow-backed `ExecutionBlockGraph`, not as a public task lifecycle.
@@ -288,6 +303,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   completion as model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
+- when an application needs to add optional operator context while a
+  task-strategy AgentExecution is already running, use
+  `await execution.async_add_guidance(...)` or `execution.add_guidance(...)`.
+  Treat guidance as non-blocking context: AgentTask records it to Workspace
+  `workspace_refs["guidance"]`, exposes `guidance_items` / `guidance_refs`,
+  and applies it at the next Flat or TaskBoard safe boundary. It must not be
+  used as completion evidence, must not be injected into non-task route prompts,
+  and must not replace `pause_for(...)` / `continue_with(...)` when the workflow
+  requires a blocking external answer.
 - when AgentTask completion depends on a particular capability, express it
   as framework contract rather than prompt force: expose capabilities through
   planner metadata, use structured `step_scope` for bounded action steps, and

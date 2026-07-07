@@ -1,6 +1,6 @@
 # TriggerFlow Runtime Intervention
 
-Use runtime intervention when outside code may add optional supplemental context
+Use runtime intervention when outside code may add optional guidance context
 while a TriggerFlow execution is already running. It is an execution-local
 ledger and visibility mechanism, not a wait gate and not graph mutation.
 
@@ -47,14 +47,14 @@ Chunks read only inserted context from runtime data:
 
 ```python
 async def risk_assessment(data):
-    supplements = data.get_interventions(status="inserted", target="before_risk")
+    guidance_items = data.get_interventions(status="inserted", target="before_risk")
     result = await assess_with_model(
         {
             "terms": data.input,
-            "supplements": [item["payload"] for item in supplements],
+            "guidance": [item["payload"] for item in guidance_items],
         }
     )
-    for item in supplements:
+    for item in guidance_items:
         await data.async_mark_intervention_consumed(
             item["id"],
             status="applied",

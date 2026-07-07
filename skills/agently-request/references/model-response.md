@@ -31,6 +31,14 @@ absent, dispatch and retry timing keep the legacy immediate behavior.
   such as `model.delta` or output field paths only to update structured UI state.
   Internal bridges, recorders, and audits should consume `type="all"` so derived
   `$delta` projection items do not become source facts.
+- for AgentTask or TaskBoard UI, prefer `instant` over parsing public text:
+  render source-addressed paths into state panels and synthetic `$delta` into the
+  visible process feed. Public `delta` remains printable CLI text; it may render
+  the first TaskBoard board projection as a compact table and later ticks as
+  card-state changes, and it separates process paragraphs from model body
+  deltas. Do not add a default parallel narrator request only for prettier
+  progress text; use bounded process fields from the existing planner/verifier
+  request when richer wording is needed.
 - when OpenAICompatible replays a transient disconnect after partial output,
   treat `StreamingData(path="$status", value=...)` as a framework control record:
   `failed` plus `retry=True` invalidates provisional output and requires the UI
