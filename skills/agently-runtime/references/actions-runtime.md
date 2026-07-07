@@ -31,7 +31,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   explicitly selected durable information domain; do not expect separate
   explicit Workspaces to communicate implicitly
 - move facts across separate Workspaces in application or TriggerFlow business
-  logic with explicit search/read plus write/ingest/link operations; Workspace
+  logic with explicit search/read plus write/link operations; Workspace
   is not a cross-space messaging or replication protocol
 - use `agent.workspace` for durable multi-turn task records, artifacts, search,
   links, checkpoints, stable ref envelopes, bounded reads, RuntimeEvent records,
@@ -86,7 +86,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   router, queue, or exchange transport, bind it with runtime resource key
   `execution_exchange_provider`, and implement provider `publish_request(...)`
   to return `exchange_id`, `audit_metadata`, or `provider_metadata` while
-  TriggerFlow keeps the wait/resume ledger; durable RuntimeEvent records carry
+  TriggerFlow keeps the wait/resume ledger; reusable transports may also be
+  registered through `agently.base.execution_exchange.register_provider(...)`,
+  host cards should consume `project_pending_exchanges(execution)` /
+  `project_execution_exchanges(execution)`, and connected
+  ActionFlow/PolicyApproval endpoints may call
+  `execution_exchange.async_respond(...)` to resume a live exchange; durable
+  RuntimeEvent records carry
   parent signal, aggregation scope, operator id, interrupt id, resume request
   id, actor id, exchange id, lease owner id, snapshot refs, and artifact refs
   for DevTools and recovery diagnostics; use
@@ -139,6 +145,10 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   `commands` is omitted. Treat shell as a test/build/git/read-only diagnostics
   capability; stdout/stderr are bounded by `max_output_chars`, and oversized
   streams are written under `artifacts/shell/` when a Workspace root is bound.
+- Treat shell bypass grants such as `allow_unsafe` as host-only direct-call
+  inputs. Do not expose them in model-visible action schemas; declare any
+  direct-call-only action parameters with `meta={"host_only_input_keys": [...]}`
+  so Action Runtime strips them from model-planned commands.
 - Workspace `retrieve(...)` and Blocks `workspace_operation.search` accept structural
   `collection`, `kind`, `id`, `path`, `scope`, and `meta` filters. Use those
   filters when planner context already identifies the retained record family or
@@ -175,6 +185,13 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   bounded `workspace_artifact.targeted_readback` ledger items from declared
   output-contract sections and generic source/risk/reference/coverage anchors;
   treat those snippets as scoped evidence, not as local completion judgment.
+  Host file-producing Actions should return typed `file_refs` or
+  `artifact_refs` when the produced file must be consumed by AgentTask,
+  TaskBoard, a verifier, or an application UI. A path-only payload such as
+  `{filename, path, size}` remains bounded Action result evidence and an
+  external ref pointer; it becomes a trusted Workspace file only when the path
+  is Workspace-contained and `Workspace.read_file(...)` succeeds, or when the
+  host returns explicit framework refs.
   Model-declared `file_refs` are diagnostics only until this write/readback evidence exists.
   Write-success/readback-failure paths must report
   `agent_task.workspace_artifact.readback_failed` or
@@ -305,9 +322,14 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   as timeouts, connection resets, incomplete chunked reads, and proxy handshakes
   are retried once by default; a long-unavailable network is still an
   infrastructure failure.
-- Browse defaults to Playwright -> restricted curl -> BS4. The curl backend is
-  internal to Browse and only receives normalized URL candidates; do not expose
-  it as model-visible shell execution.
+- Browse defaults to Jina Reader -> Playwright -> BS4 -> restricted curl. The
+  curl backend is internal to Browse and only receives normalized URL
+  candidates; do not expose it as model-visible shell execution. Jina Reader is
+  a third-party URL-to-Markdown first pass, and Browse automatically tries the
+  official alternate endpoint `https://r.jinaai.cn/` when the primary Reader
+  endpoint has a transport or service failure. Disable it with
+  `Browse(enable_jina_reader=False, fallback_order=("playwright", "bs4", "curl"))`
+  when that external service boundary is not acceptable.
 - when `agent.language(...)` is set, registered Search/Browse packages may use
   the policy as default locale guidance: Search derives any provider-specific
   region code inside the Search package, and Browse receives an

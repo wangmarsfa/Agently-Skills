@@ -27,12 +27,17 @@ here for Actions, ExecutionResource, service, or DevTools details.
   and transient retry configuration belongs to the package/executor, not
   ExecutionResource. Registered Browse actions fail closed with structured
   diagnostics when all backends fail; direct `Browse.browse(...)` remains a
-  text-returning compatibility helper. Browse defaults to Playwright ->
-  restricted curl -> BS4, where curl is an internal normalized-URL fallback and
-  not model-visible shell execution. Browse should try same-host protocol and
-  canonical candidates before giving up, and remote PDF/Office/image/download
-  bytes should be materialized into the bound Workspace with file refs rather
-  than copied into the model hot path.
+  text-returning compatibility helper. Browse defaults to Jina Reader ->
+  Playwright -> BS4 -> restricted curl, where curl is an internal normalized-URL
+  fallback and not model-visible shell execution. Jina Reader is an external
+  URL-to-Markdown first pass and Browse automatically tries the official
+  alternate endpoint `https://r.jinaai.cn/` when the primary Reader endpoint has
+  a transport or service failure; disable it with
+  `Browse(enable_jina_reader=False, fallback_order=("playwright", "bs4", "curl"))`
+  when that external service boundary is not acceptable. Browse should
+  try same-host protocol and canonical candidates before giving up, and remote
+  PDF/Office/image/download bytes should be materialized into the bound Workspace
+  with file refs rather than copied into the model hot path.
 - treat `agent_task.heartbeat` as observation only: AgentTask may emit it after
   a quiet interval with no other stream items, but any normal progress,
   snapshot, child-execution, delta, or phase event resets the quiet timer.
@@ -67,7 +72,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Workspace binding
 - move information between separate Workspaces in application or TriggerFlow
   business logic by searching/reading the source Workspace, writing or
-  ingesting into the destination Workspace, and linking refs as needed;
+  storing records in the destination Workspace, and linking refs as needed;
   Workspace itself is not a cross-space messaging or replication protocol
 - for durable multi-turn task records, write through `agent.workspace` or
   explicitly configure it with `agent.use_workspace(...)`; for model-callable
@@ -115,7 +120,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
   or exchange transport, bind it with runtime resource key
   `execution_exchange_provider`, and implement provider `publish_request(...)`
   to return `exchange_id`, `audit_metadata`, or `provider_metadata` without
-  taking over TriggerFlow resume lifecycle; use
+  taking over TriggerFlow resume lifecycle; reusable host transports may also be
+  registered with `agently.base.execution_exchange.register_provider(...)`, and
+  hosts should render normalized views from
+  `project_pending_exchanges(execution)` / `project_execution_exchanges(execution)`
+  instead of raw interrupts; connected ActionFlow/PolicyApproval endpoints may
+  resolve live exchanges with `execution_exchange.async_respond(exchange_id,
+  payload, actor=...)`, which still funnels through TriggerFlow
+  `continue_with(...)`; use
   `execution.set_compaction_policy(...)` for long-running
   TriggerFlow executions that externalize large payloads behind Workspace or
   provider artifact refs while keeping only compaction facts and retained
@@ -146,6 +158,12 @@ here for Actions, ExecutionResource, service, or DevTools details.
   dispatch-failed phases; callbacks delivered to expired execution-local leases
   fail fast before acceptance without writing resume ledger entries, while the interrupt carries an ExternalWait
   request envelope for projection and restart diagnostics
+- AgentExecution-owned ActionFlow approval waits are projected as stream items
+  with path `exchange.pending` / `exchange.resolved`,
+  `meta.stream_kind=="exchange"`, and value
+  `{"action": "...", "exchanges": [ExecutionExchangeView, ...]}`; frontend or
+  service consumers should treat these normalized views as the render contract
+  instead of inspecting policy-gate implementation details
 - for distributed TriggerFlow recovery, pass
   `require_distributed_provider=True` when persisting snapshots; this must fail
   closed unless the selected providers report CAS, lease, range-read,
@@ -175,6 +193,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   explicit `agent.create_task_loop(...)`; both return AgentExecution drafts, not
   public AgentTask handles. Do not expose broad shell, filesystem, MCP, or
   browser access just because the task loop exists
+- when a running task-strategy AgentExecution needs additional optional context,
+  use `execution.async_add_guidance(...)` / `execution.add_guidance(...)`.
+  This records guidance to the retained AgentTask Workspace and applies it at
+  the next safe Flat or TaskBoard boundary. Do not use guidance as completion
+  evidence, do not inject it into non-task route prompts, and use TriggerFlow
+  `pause_for(...)` / `continue_with(...)` instead when an external answer is
+  required before execution may continue.
 - when an AgentTask Skills step must perform side effects, grant the
   relevant ActionRuntime tools/actions explicitly through route or effort
   configuration, declare required side-effect actions when a Skills React loop
@@ -212,7 +237,14 @@ here for Actions, ExecutionResource, service, or DevTools details.
 - for AgentTask terminal results, treat `completed` as accepted output
   (`accepted=True`, `artifact_status="accepted"`); explicitly configured
   `max_iterations` can still leave useful Workspace files, but those are partial artifacts
-  (`accepted=False`, `artifact_status="partial"`); when semantic content quality
+  (`accepted=False`, `artifact_status="partial"`); accepted degraded results use
+  `artifact_status="degraded"` and should include a user-facing
+  `final_response` that explains the disclosed unavailable/partial evidence
+  boundary; useful but unaccepted artifacts and blocked outcomes should also
+  include `final_response` so callers can show what was produced, where work
+  stopped, and which requirements remain unmet. Prefer `final_response` for
+  task-strategy `get_text()` display, while `get_data()` remains the structured
+  result; when semantic content quality
   matters, combine deterministic smoke checks with current docs/spec/source
   references or an Agently model-judge request, and do not use counts, keyword
   hits, or task verifier acceptance alone as the primary acceptance signal
@@ -251,6 +283,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   TaskBoard finalization keeps file-backed deliverable bodies in Workspace and
   returns only a concise summary or path/ref pointer as `final_result`, not a
   second copy of the file body;
+  host file-producing Actions should return typed `file_refs` or
+  `artifact_refs` when later AgentTask, TaskBoard, verifier, or UI consumers
+  need the produced file. A path-only payload such as `{filename, path, size}`
+  remains bounded Action result evidence and an external ref pointer; it is not
+  a trusted Workspace file unless the path is Workspace-contained and real
+  `Workspace.read_file(...)` succeeds, or the host returns explicit framework
+  refs;
   model-declared `file_refs` remain diagnostics until readback exists; if write
   succeeds but readback fails or lacks trusted fields, expect
   `agent_task.workspace_artifact.readback_failed` or
@@ -359,7 +398,10 @@ here for Actions, ExecutionResource, service, or DevTools details.
   bounded acceptance-index and handoff projections for resume orientation; they
   point back to TaskBoard revision, EvidenceEnvelope, artifact, and checkpoint
   refs, and must not be treated as a second evidence ledger or completion
-  verdict
+  verdict. Acceptance-index projections may include dirty/cache state, verdict
+  fingerprints, scoped evidence refs, and progress counters so TaskBoard can
+  skip redundant verifier work for unchanged green criteria while still
+  verifying dirty items and required host guards
 - for AgentTask business-system examples, mocks may provide facts, source
   records, policies, missing data, or conflicting inputs, but must not provide
   hidden expected answers, pass/fail fields, or deterministic business-quality
@@ -598,11 +640,13 @@ here for Actions, ExecutionResource, service, or DevTools details.
   response ids, ActionRuntime action logs, task refs, and artifact refs when available; use those
   framework-owned records for Workspace persistence instead of asking the model
   to copy raw action stdout into final text. `type="delta"` remains the public
-  string stream; `type="instant"` yields original structured items and appends
-  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
-  text projection when a source item can be projected to natural language;
-  `type="all"` remains the raw audit stream and must not include synthetic
-  `$delta` items
+	  string stream; `type="instant"` yields original structured items and appends
+	  synthetic `path="$delta"` `AgentExecutionStreamData` items only as a consumer
+	  text projection when a source item can be projected to natural language;
+	  `type="all"` remains the raw audit stream and must not include synthetic
+	  `$delta` items. Rich task UIs should consume `instant` for structured state
+	  and render public/synthetic `$delta` only as visible process text; public
+	  `delta` is a printable compatibility stream, not the UI state owner
 - when AgentExecution planning selects direct `model_request`, treat
   Action and Observation as skipped business stages and consume the model result
   as passthrough. If Action or Skill candidates are available but the selected

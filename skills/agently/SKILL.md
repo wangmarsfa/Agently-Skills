@@ -125,9 +125,21 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   plain public delta remains a valid body source when the consumer handles
   replay boundaries.
   For AgentTask-backed AgentExecution, public `delta` may also project
-  framework-owned progress, action observation, heartbeat, phase, retry, and
-  terminal-result facts as short paragraphs separated by blank lines, while
-  `instant` remains the structured stream for UI state and diagnostics.
+  framework-owned progress, action observation, Flat plan/action summaries,
+  TaskBoard status tables, phase, retry, and terminal-result facts as short
+  paragraphs separated by blank lines, while `instant` remains the structured
+  stream for UI state and diagnostics. Flat projections stay linear: plan
+  completion can state the previous completed action and current action plan,
+  and terminal output can summarize what was done and the result. TaskBoard
+  status tables are display-only projections from structured AgentTask events;
+  the first TaskBoard projection may render a table and later ticks may render
+  card-state changes instead of reprinting the whole table.
+  These projections do not own completion or quality judgment. Do not add a
+  default parallel narrator request for process prose; use bounded process
+  fields such as `progress_message`,
+  `short_summary`, `verification_summary`, and `final_response` from the
+  existing planner, verifier, card, or finalizer request, then consume them
+  through `instant` / synthetic `$delta` when the UI needs richer structure.
   Internal artifact writers should consume AgentExecution stream facts: natural
   body text comes from raw delta items, and retry boundaries come from `$status`
   when the provider reports it. If the public `"<$retry>...</$retry>"` delta
@@ -152,7 +164,28 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   snippets, not completion judgments.
   TaskBoard finalization should keep file-backed deliverable bodies in
   Workspace and return only a concise summary or path/ref pointer as
-  `final_result`, not a second copy of the file body.
+  `final_result`, not a second copy of the file body. AgentTask terminal
+  results should carry a user-facing `final_response` for accepted, degraded,
+  partial, and blocked outcomes: Flat terminal verification may return it in the
+  existing verifier request, TaskBoard finalization may return it in the
+  existing finalizer request, and framework fallback should be deterministic
+  from structured status, artifact refs, final_result pointers, and unmet
+  criteria without starting a separate narrator request. Accepted degraded
+  deliveries use `artifact_status="degraded"` with disclosed evidence limits,
+  while useful but unaccepted artifacts remain `artifact_status="partial"` and
+  should explain unmet requirements instead of being reported as completed.
+  `get_text()` / `async_get_text()` may prefer `final_response` for
+  task-strategy result dicts; `get_data()` still returns the structured result.
+  TaskBoard terminal payloads may include bounded `taskboard.completion_notes`
+  for card summaries, known gaps, verifier notes, and acceptance progress; use
+  them to disclose final-response limitations, but treat them as projection-only
+  process context, not EvidenceEnvelope evidence or completion proof.
+  For model-produced verifier/finalizer content, prose fields such as `status`,
+  `reason`, `progress_message`, and `final_response` are display context only;
+  semantic completion, repairability, and acceptance state must come from
+  structured output fields such as `is_complete`, `requires_block`, and
+  `criterion_checks[].satisfied` plus host guards, never from tokenization,
+  keyword, substring, regex, or status-text matching over model prose.
   TaskBoard planning card ids are optional model hints. The framework owns
   canonical card ids, deduplication, and dependency remapping; ambiguous id
   hints should fail closed rather than being guessed.
@@ -185,7 +218,11 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   projections as orientation only: they summarize criteria/card status,
   evidence refs, artifact refs, preflight facts, and explicit task-scoped dirty
   or unresolved state facts, but they are not `EvidenceEnvelope` evidence and do
-  not accept the task. Preflight requirements must come from mounted Actions,
+  not accept the task. The acceptance index may also carry dirty/cache state,
+  verdict fingerprints, scoped evidence refs, and progress counters so
+  TaskBoard can avoid re-verifying unchanged green criteria; dirty items,
+  required deliverable guards, and explicit blocking facts still go through
+  verifier or host checks. Preflight requirements must come from mounted Actions,
   ExecutionResources, or existing Workspace refs; do not assume universal git,
   browser, shell, or startup-script checks.
   TaskBoard scheduling defaults to event-driven `frontier` mode: completed
@@ -207,11 +244,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   the framework can build locator evidence after Workspace readback; do not
   invent line numbers or byte offsets.
 - AgentTask work units receive an internal task context contract with
-  compact `current_time` facts (`utc`, plus `local` and `timezone` when the
-  local timezone is recognizable) and intermediate-resource ref/readback policy.
-  For current, latest, recent, or as-of tasks, use that time context unless the
-  caller supplied a more specific date. This contract is model-decision context,
-  not a model-call, tool-call, node-count, iteration, or wall-clock cap.
+  intermediate-resource ref/readback policy and prompt-safe runtime metadata.
+  Runtime records may keep compact `current_time` diagnostics, but default
+  model-hot prompts omit concrete runtime timestamps and only expose
+  availability metadata. For current, latest, recent, or as-of tasks, require
+  the caller or source evidence to provide the business date when it matters.
+  This contract is model-decision context, not a model-call, tool-call,
+  node-count, iteration, or wall-clock cap, and runtime time must not be used as
+  a business/source fact by itself.
 - AgentTask observation projects normalized `agent_task.action.started`,
   `agent_task.action.completed`, and `agent_task.action.failed` stream events
   from Action records. Treat them as factual observability for UI, DevTools, and
@@ -225,14 +265,20 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   `effort(..., execution={"step_plan": "dag"})` degrade to one direct bounded
   AgentExecution step with diagnostics. Use TaskDAG / DynamicTask separately
   when the application or visual automation surface owns the submitted graph.
-- treat task `execution="auto"` as the default execution strategy. Auto uses one
-  AgentTask-owned task-shape model request that first allows free natural
-  language analysis and then returns a thin structured `execution_hint`; do not
-  route with keywords, regex, or local scorecards, and do not treat the hint as
-  completion evidence. Use `execution="flat"` / `.strategy("flat")` to force the
-  linear loop and `execution="taskboard"` / `.strategy("taskboard")` only when
-  the host explicitly wants TaskBoard. Nested AgentExecution instances inherit
-  the parent strategy context unless the child explicitly overrides it.
+- treat `AgentExecution.strategy("auto"|"direct"|"flat"|"taskboard")` as the
+  top-level route/execution selector. `direct` forces the ordinary
+  model_request route with ActionLoop and does not create AgentTask; do not use
+  `.effort("direct")` for route control. `auto` keeps ordinary prompt/action
+  runs direct unless structural task signals such as goals, success criteria,
+  task options, or Skill selectors enter AgentTask. Once AgentTask is selected,
+  task `execution="auto"` uses one AgentTask-owned task-shape model request that
+  allows free natural language analysis and then returns a thin structured
+  `execution_hint`; do not route with keywords, regex, or local scorecards, and
+  do not treat the hint as completion evidence. Use `execution="flat"` /
+  `.strategy("flat")` to force the linear loop and `execution="taskboard"` /
+  `.strategy("taskboard")` only when the host explicitly wants TaskBoard.
+  Nested AgentExecution instances inherit the parent strategy context unless
+  the child explicitly overrides it.
 - treat Blocks as the internal lowering bridge from AgentTask
   `ExecutionPlan` / `PlanBlock` instances and validated TaskDAG nodes to
   TriggerFlow-backed `ExecutionBlockGraph`, not as a public task lifecycle.
@@ -267,6 +313,15 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   completion as model verification plus conservative host evidence guards, read task refs
   through the execution result/meta, and use a second model judge for
   model-owned semantic content instead of accepting structural counters alone
+- when an application needs to add optional operator context while a
+  task-strategy AgentExecution is already running, use
+  `await execution.async_add_guidance(...)` or `execution.add_guidance(...)`.
+  Treat guidance as non-blocking context: AgentTask records it to Workspace
+  `workspace_refs["guidance"]`, exposes `guidance_items` / `guidance_refs`,
+  and applies it at the next Flat or TaskBoard safe boundary. It must not be
+  used as completion evidence, must not be injected into non-task route prompts,
+  and must not replace `pause_for(...)` / `continue_with(...)` when the workflow
+  requires a blocking external answer.
 - when AgentTask completion depends on a particular capability, express it
   as framework contract rather than prompt force: expose capabilities through
   planner metadata, use structured `step_scope` for bounded action steps, and
