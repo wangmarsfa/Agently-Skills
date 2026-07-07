@@ -72,7 +72,7 @@ here for Actions, ExecutionResource, service, or DevTools details.
   Workspace binding
 - move information between separate Workspaces in application or TriggerFlow
   business logic by searching/reading the source Workspace, writing or
-  ingesting into the destination Workspace, and linking refs as needed;
+  storing records in the destination Workspace, and linking refs as needed;
   Workspace itself is not a cross-space messaging or replication protocol
 - for durable multi-turn task records, write through `agent.workspace` or
   explicitly configure it with `agent.use_workspace(...)`; for model-callable
@@ -240,9 +240,11 @@ here for Actions, ExecutionResource, service, or DevTools details.
   (`accepted=False`, `artifact_status="partial"`); accepted degraded results use
   `artifact_status="degraded"` and should include a user-facing
   `final_response` that explains the disclosed unavailable/partial evidence
-  boundary; useful but unaccepted artifacts should also include `final_response`
-  when available so callers can show what was produced and which requirements
-  remain unmet; when semantic content quality
+  boundary; useful but unaccepted artifacts and blocked outcomes should also
+  include `final_response` so callers can show what was produced, where work
+  stopped, and which requirements remain unmet. Prefer `final_response` for
+  task-strategy `get_text()` display, while `get_data()` remains the structured
+  result; when semantic content quality
   matters, combine deterministic smoke checks with current docs/spec/source
   references or an Agently model-judge request, and do not use counts, keyword
   hits, or task verifier acceptance alone as the primary acceptance signal
