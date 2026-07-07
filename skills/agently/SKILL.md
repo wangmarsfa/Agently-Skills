@@ -164,11 +164,18 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   snippets, not completion judgments.
   TaskBoard finalization should keep file-backed deliverable bodies in
   Workspace and return only a concise summary or path/ref pointer as
-  `final_result`, not a second copy of the file body. Terminal TaskBoard
-  results may also carry a user-facing `final_response`: accepted degraded
+  `final_result`, not a second copy of the file body. AgentTask terminal
+  results should carry a user-facing `final_response` for accepted, degraded,
+  partial, and blocked outcomes: Flat terminal verification may return it in the
+  existing verifier request, TaskBoard finalization may return it in the
+  existing finalizer request, and framework fallback should be deterministic
+  from structured status, artifact refs, final_result pointers, and unmet
+  criteria without starting a separate narrator request. Accepted degraded
   deliveries use `artifact_status="degraded"` with disclosed evidence limits,
   while useful but unaccepted artifacts remain `artifact_status="partial"` and
   should explain unmet requirements instead of being reported as completed.
+  `get_text()` / `async_get_text()` may prefer `final_response` for
+  task-strategy result dicts; `get_data()` still returns the structured result.
   TaskBoard terminal payloads may include bounded `taskboard.completion_notes`
   for card summaries, known gaps, verifier notes, and acceptance progress; use
   them to disclose final-response limitations, but treat them as projection-only
@@ -237,11 +244,14 @@ Requests that also mention a UI, a web page, a desktop shell, or a local model s
   the framework can build locator evidence after Workspace readback; do not
   invent line numbers or byte offsets.
 - AgentTask work units receive an internal task context contract with
-  compact `current_time` facts (`utc`, plus `local` and `timezone` when the
-  local timezone is recognizable) and intermediate-resource ref/readback policy.
-  For current, latest, recent, or as-of tasks, use that time context unless the
-  caller supplied a more specific date. This contract is model-decision context,
-  not a model-call, tool-call, node-count, iteration, or wall-clock cap.
+  intermediate-resource ref/readback policy and prompt-safe runtime metadata.
+  Runtime records may keep compact `current_time` diagnostics, but default
+  model-hot prompts omit concrete runtime timestamps and only expose
+  availability metadata. For current, latest, recent, or as-of tasks, require
+  the caller or source evidence to provide the business date when it matters.
+  This contract is model-decision context, not a model-call, tool-call,
+  node-count, iteration, or wall-clock cap, and runtime time must not be used as
+  a business/source fact by itself.
 - AgentTask observation projects normalized `agent_task.action.started`,
   `agent_task.action.completed`, and `agent_task.action.failed` stream events
   from Action records. Treat them as factual observability for UI, DevTools, and

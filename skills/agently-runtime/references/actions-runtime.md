@@ -31,7 +31,7 @@ Use this skill when the problem is agent-side extension rather than prompt shape
   explicitly selected durable information domain; do not expect separate
   explicit Workspaces to communicate implicitly
 - move facts across separate Workspaces in application or TriggerFlow business
-  logic with explicit search/read plus write/ingest/link operations; Workspace
+  logic with explicit search/read plus write/link operations; Workspace
   is not a cross-space messaging or replication protocol
 - use `agent.workspace` for durable multi-turn task records, artifacts, search,
   links, checkpoints, stable ref envelopes, bounded reads, RuntimeEvent records,
